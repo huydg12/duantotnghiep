@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kix Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+
+<body>
+    <header class="bg-black shadow-md text-white">
+        <div class="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <a href="home.html" class="block">
+                    <img src="HinhAnh/logo.png" alt="Logo" class="h-14 w-auto object-contain" />
+                </a>
+            </div>
+            <!-- Menu chính -->
+            <nav class="flex space-x-6 font-normal">
+                <a href="home.html" class="text-red-500 hover:text-red-500">Trang Chủ</a>
+                <a href="gioithieu.html" class="hover:text-red-400">Giới Thiệu</a>
+                <div class="relative">
+                    <!-- Nút Dropdown -->
+                    <div class="peer flex items-center space-x-1 cursor-pointer">
+                        <a href="sanpham.html" class="hover:text-red-500 transition-colors duration-200">Sản Phẩm</a>
+                        <i class="fas fa-chevron-down text-sm mt-[1px] transition-transform duration-300 peer-hover:rotate-180"></i>
+                    </div>
+                    <!-- Menu con -->
+                    <div class="absolute left-0 mt-2 w-40 bg-white text-black rounded shadow-md z-50 opacity-0 invisible translate-y-1 peer-hover:opacity-100 peer-hover:visible peer-hover:translate-y-0 hover:opacity-100 hover:visible hover:translate-y-0 transition-all duration-300 ease-in-out">
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Adidas</a>
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Nike</a>
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Converse</a>
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Vans</a>
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Puma</a>
+                        <a href="sanpham.html" class="block px-4 py-2 hover:text-red-500 transition-colors duration-200">Fila</a>
+                    </div>
+                </div>
+                <a href="lienhe.html" class="hover:text-red-400">Liên Hệ</a>
+            </nav>
+            <!-- Công cụ: icon + tìm kiếm hiện ra bên trái -->
+            <div class="flex items-center space-x-5 text-xl relative">
+                <!-- Tìm kiếm hover mở rộng sang trái -->
+               <div class="group relative">
+                    <i class="fas fa-search cursor-pointer hover:text-green-400"></i>
+                    <input type="text" placeholder="Tìm kiếm sản phẩm" class="absolute top-1/2 right-8 -translate-y-1/2 w-0 group-hover:w-48 opacity-0 group-hover:opacity-100 transition-all duration-300 px-3 py-1 border rounded-md text-sm shadow z-10 bg-white text-black placeholder:italic" />
+                </div>
+
+                <!-- Yêu thích -->
+                <a href="#" title="Yêu thích" class="hover:text-red-400">
+                    <i class="fas fa-heart"></i>
+                </a>
+                <!-- Giỏ hàng -->
+                <a href="gioHang.html" title="Giỏ hàng" class="hover:text-yellow-400">
+                    <i class="fas fa-shopping-cart"></i>
+                </a>
+                <!-- Đăng nhập -->
+                <a href="dangnhap.html" title="Đăng nhập" class="hover:text-blue-400">
+                    <i class="fas fa-user"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+    <section class="relative bg-cover bg-center h-64 md:h-80 lg:h-96" style="background-image: url('https://allgoodtales.com/wp-content/uploads/2018/10/Nike-Header-min.jpg');">
+        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <div class="text-center text-white px-4">
+                <h2 class="text-2xl md:text-4xl font-bold mb-3">Giày Xịn – Phong Cách Chất – Chill Hết Nấc</h2>
+                <p class="mb-5 text-sm md:text-base">Đập hộp ngay đôi sneaker đỉnh cao dành riêng cho bạn</p>
+                <a href="sanpham.html" class="inline-block bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-5 rounded transition duration-300">Mua Ngay</a>
+            </div>
+        </div>
+    </section>
+    <section class="py-12 bg-gray-100">
+  <!-- Tiêu đề -->
+  <div class="relative text-center mb-10">
+  <h2 class="text-3xl md:text-4xl font-bold text-gray-800 inline-block relative z-10">
+    Sản Phẩm Nổi Bật
+  </h2>
+  <span class="block w-28 h-1 bg-red-500 mx-auto mt-2 rounded"></span>
+  <p class="mt-3 text-gray-500 text-sm md:text-base max-w-xl mx-auto">
+    Những mẫu giày hot trend, được giới trẻ săn đón – nổi bật về cả kiểu dáng lẫn chất lượng.
+  </p>
+</div>
+
+
+  <!-- Slider sản phẩm -->
+  <div class="relative max-w-screen-xl mx-auto px-4">
+    <!-- Nút điều hướng trái -->
+    <button class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white shadow p-2 rounded-full hover:bg-gray-200 transition z-10">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <!-- Sản phẩm 1 -->
+      <div class="bg-white p-4 rounded shadow hover:shadow-md transition">
+        <img src="https://via.placeholder.com/300x200" alt="Sản phẩm 1" class="w-full h-48 object-cover rounded mb-3">
+        <h3 class="text-lg font-semibold text-gray-800">Nike Air Max</h3>
+        <p class="text-red-500 font-bold mt-1">2.500.000₫</p>
+        <button class="mt-3 w-full bg-red-500 text-white py-1.5 rounded hover:bg-red-600 transition">Mua Ngay</button>
+      </div>
+
+      <!-- Sản phẩm 2 -->
+      <div class="bg-white p-4 rounded shadow hover:shadow-md transition">
+        <img src="https://via.placeholder.com/300x200" alt="Sản phẩm 2" class="w-full h-48 object-cover rounded mb-3">
+        <h3 class="text-lg font-semibold text-gray-800">Adidas Ultraboost</h3>
+        <p class="text-red-500 font-bold mt-1">2.900.000₫</p>
+        <button class="mt-3 w-full bg-red-500 text-white py-1.5 rounded hover:bg-red-600 transition">Mua Ngay</button>
+      </div>
+
+      <!-- Sản phẩm 3 -->
+      <div class="bg-white p-4 rounded shadow hover:shadow-md transition">
+        <img src="https://via.placeholder.com/300x200" alt="Sản phẩm 3" class="w-full h-48 object-cover rounded mb-3">
+        <h3 class="text-lg font-semibold text-gray-800">Converse Classic</h3>
+        <p class="text-red-500 font-bold mt-1">1.200.000₫</p>
+        <button class="mt-3 w-full bg-red-500 text-white py-1.5 rounded hover:bg-red-600 transition">Mua Ngay</button>
+      </div>
+
+      <!-- Sản phẩm 4 -->
+      <div class="bg-white p-4 rounded shadow hover:shadow-md transition">
+        <img src="https://via.placeholder.com/300x200" alt="Sản phẩm 4" class="w-full h-48 object-cover rounded mb-3">
+        <h3 class="text-lg font-semibold text-gray-800">Vans Old Skool</h3>
+        <p class="text-red-500 font-bold mt-1">1.600.000₫</p>
+        <button class="mt-3 w-full bg-red-500 text-white py-1.5 rounded hover:bg-red-600 transition">Mua Ngay</button>
+      </div>
+    </div>
+
+    <!-- Nút điều hướng phải -->
+    <button class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white shadow p-2 rounded-full hover:bg-gray-200 transition z-10">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Nút Xem tất cả -->
+  <div class="text-center mt-10">
+    <a href="#tat-ca-san-pham" class="inline-block bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition">Xem tất cả</a>
+  </div>
+</section>
+<section class="py-10 bg-gray-100" x-data="{ selectedBrand: 'Nike' }">
+  <div class="relative text-center mb-10">
+  <h2 class="text-3xl md:text-4xl font-bold text-gray-800 inline-block relative z-10">
+    Sản Phẩm Theo Hãng
+  </h2>
+  <span class="block w-28 h-1 bg-red-500 mx-auto mt-2 rounded"></span>
+  <p class="mt-3 text-gray-500 text-sm md:text-base max-w-xl mx-auto">
+    Khám phá những đôi giày nổi bật đến từ các thương hiệu đình đám như Nike, Adidas, Converse và nhiều hơn thế nữa.
+  </p>
+</div>
+
+
+  <!-- Bộ lọc -->
+  <div class="flex justify-center gap-4 mb-8">
+    <button @click="selectedBrand = 'Nike'" class="px-4 py-2 rounded bg-black text-white hover:bg-red-500" :class="selectedBrand === 'Nike' ? 'bg-red-500' : ''">Nike</button>
+    <button @click="selectedBrand = 'Adidas'" class="px-4 py-2 rounded bg-black text-white hover:bg-red-500" :class="selectedBrand === 'Adidas' ? 'bg-red-500' : ''">Adidas</button>
+    <button @click="selectedBrand = 'Converse'" class="px-4 py-2 rounded bg-black text-white hover:bg-red-500" :class="selectedBrand === 'Converse' ? 'bg-red-500' : ''">Converse</button>
+    <button @click="selectedBrand = 'Vans'" class="px-4 py-2 rounded bg-black text-white hover:bg-red-500" :class="selectedBrand === 'Vans' ? 'bg-red-500' : ''">Vans</button>
+  </div>
+
+  <!-- Danh sách sản phẩm -->
+  <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 px-4">
+    <!-- Nike -->
+    <template x-if="selectedBrand === 'Nike'">
+      <template x-for="i in 8" :key="'nike' + i">
+        <div class="bg-white rounded shadow p-3">
+          <img src="https://via.placeholder.com/300x200?text=Nike" alt="Nike" class="w-full h-40 object-cover rounded">
+          <h3 class="mt-2 font-semibold">Nike Air Max</h3>
+          <p class="text-red-500 font-bold">2.300.000đ</p>
+        </div>
+      </template>
+    </template>
+
+    <!-- Adidas -->
+    <template x-if="selectedBrand === 'Adidas'">
+      <template x-for="i in 8" :key="'adidas' + i">
+        <div class="bg-white rounded shadow p-3">
+          <img src="https://via.placeholder.com/300x200?text=Adidas" alt="Adidas" class="w-full h-40 object-cover rounded">
+          <h3 class="mt-2 font-semibold">Adidas Ultraboost</h3>
+          <p class="text-red-500 font-bold">2.900.000đ</p>
+        </div>
+      </template>
+    </template>
+
+    <!-- Converse -->
+    <template x-if="selectedBrand === 'Converse'">
+      <template x-for="i in 8" :key="'converse' + i">
+        <div class="bg-white rounded shadow p-3">
+          <img src="https://via.placeholder.com/300x200?text=Converse" alt="Converse" class="w-full h-40 object-cover rounded">
+          <h3 class="mt-2 font-semibold">Converse Classic</h3>
+          <p class="text-red-500 font-bold">1.200.000đ</p>
+        </div>
+      </template>
+    </template>
+
+    <!-- Vans -->
+    <template x-if="selectedBrand === 'Vans'">
+      <template x-for="i in 8" :key="'vans' + i">
+        <div class="bg-white rounded shadow p-3">
+          <img src="https://via.placeholder.com/300x200?text=Vans" alt="Vans" class="w-full h-40 object-cover rounded">
+          <h3 class="mt-2 font-semibold">Vans Old Skool</h3>
+          <p class="text-red-500 font-bold">1.500.000đ</p>
+        </div>
+      </template>
+    </template>
+  </div>
+</section>
+<footer class="bg-black text-white pt-10 pb-6">
+  <div class="max-w-screen-xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Logo & Mô tả -->
+    <div>
+      <img src="HinhAnh/logo.png" alt="Kix Store" class="h-16 mb-3">
+      <p class="text-sm text-gray-400">
+        Kix Store – Nơi hội tụ những đôi sneaker đỉnh cao, đậm chất cá tính và thời trang.
+      </p>
+    </div>
+
+    <!-- Liên kết nhanh -->
+    <div>
+      <h4 class="text-lg font-semibold mb-3">Liên kết nhanh</h4>
+      <ul class="space-y-2 text-sm text-gray-400">
+        <li><a href="#" class="hover:text-red-400 transition">Trang chủ</a></li>
+        <li><a href="#" class="hover:text-red-400 transition">Sản phẩm</a></li>
+        <li><a href="#" class="hover:text-red-400 transition">Giới thiệu</a></li>
+        <li><a href="#" class="hover:text-red-400 transition">Liên hệ</a></li>
+      </ul>
+    </div>
+
+    <!-- Liên hệ -->
+    <div>
+      <h4 class="text-lg font-semibold mb-3">Liên hệ</h4>
+      <p class="text-sm text-gray-400">SĐT: 0123 456 789</p>
+      <p class="text-sm text-gray-400">Email: support@kixstore.vn</p>
+      <div class="flex space-x-4 mt-4 text-lg">
+        <a href="#" class="hover:text-blue-500"><i class="fab fa-facebook"></i></a>
+        <a href="#" class="hover:text-pink-400"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="hover:text-blue-400"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="hover:text-red-500"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dòng bản quyền -->
+  <div class="mt-8 border-t border-gray-700 pt-4 text-center text-gray-500 text-sm">
+    © 2025 Kix Store. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>
