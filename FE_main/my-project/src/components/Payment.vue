@@ -124,8 +124,8 @@ const handleOverlayClick = (e) => {
   </div>
 
   <!-- Popup chọn địa chỉ -->
-  <!-- <div
-    v-show="showAddressOverlay"
+  <div
+    v-if="showAddressOverlay"
     @click="handleOverlayClick"
     class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
   >
@@ -162,11 +162,11 @@ const handleOverlayClick = (e) => {
         </div>
       </form>
     </div>
-  </div> -->
+  </div>
 
   <!-- Popup thêm địa chỉ -->
-  <!-- <div
-    v-show="showAddAddressOverlay"
+  <div
+    v-if="showAddAddressOverlay"
     @click="handleOverlayClick"
     class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
   >
@@ -191,7 +191,7 @@ const handleOverlayClick = (e) => {
         </div>
       </form>
     </div>
-  </div> -->
+  </div>
 </template>
 
 <style scoped>
