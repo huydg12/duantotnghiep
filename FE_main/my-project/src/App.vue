@@ -1,18 +1,7 @@
 <script setup>
-import DangNhap from './components/DangNhap.vue'
-import QuenMK from './components/QuenMK.vue'
-import DoiMK from './components/DoiMK.vue'
-import GioHang from './components/GioHang.vue'
-import GioiThieu from './components/GioiThieu.vue'
-import Home from './components/Home.vue'
-import LienHe from './components/LienHe.vue'
 
-import SanPham from './components/SanPham.vue'
-import SPChiTiet from './components/SPChiTiet.vue'
-import ThanhToan from './components/ThanhToan.vue'
-import ThongTinKH from './components/ThongTinKH.vue'
-import XacNhanMa from './components/XacNhanMa.vue'
 import Logo from './components/HinhAnh/logo.png'
+import Payment from './components/Payment.vue';
 </script>
 
 <template>
@@ -65,7 +54,7 @@ import Logo from './components/HinhAnh/logo.png'
   </header>
 
   
-<ThanhToan/>
+<Payment/>
 
 <footer class="footer pt-5 pb-4">
         <div class="container-xl">
