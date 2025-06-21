@@ -3,6 +3,8 @@
 import Logo from './components/HinhAnh/logo.png'
 
 import { RouterLink, RouterView } from 'vue-router'
+import LoginAdmin from './components/LoginAdmin.vue';
+import Manage from './components/Manage.vue';
 </script>
 
 <template>
@@ -62,6 +64,8 @@ import { RouterLink, RouterView } from 'vue-router'
   <div id="app">
     <RouterView />
   </div>
+
+<Manage />
 
   <footer class="footer pt-5 pb-4">
     <div class="container-xl">
