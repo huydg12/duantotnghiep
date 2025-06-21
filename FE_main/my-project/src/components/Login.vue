@@ -29,7 +29,7 @@
             <input type="password" class="form-control" placeholder="Nhập Mật khẩu">
           </div>
           <div class="mb-3 text-end">
-            <a href="quenMK.html" class="text-decoration-none text-primary">Quên mật khẩu?</a>
+            <router-link to="/resetPass" class="text-decoration-none text-primary">Quên mật khẩu?</router-link>
           </div>
           <button type="submit" class="btn btn-dark w-100 fw-semibold">ĐĂNG NHẬP</button>
         </form>

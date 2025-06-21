@@ -51,12 +51,11 @@ function removeItem() {}
         <span id="totalPrice" class="text-danger fw-bold">2.000.000₫</span>
       </h5>
       <div class="mt-4 d-flex flex-column flex-md-row justify-content-between gap-2">
-        <a href="home.html" class="btn btn-secondary text-center">
-          ⬅️ Tiếp tục mua sắm
+        <a >
         </a>
-        <a href="thanhToan.html" class="btn btn-success text-center">
+        <router-link to="/payment" class="btn btn-success text-center">
           🧾 Thanh toán
-        </a>
+        </router-link>
       </div>
     </div>
   </div>

@@ -1,30 +1,42 @@
 <script setup>
 
 import Logo from './components/HinhAnh/logo.png'
-import Payment from './components/Payment.vue';
+
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
   <header class="header sticky-top">
     <nav class="navbar navbar-expand-lg container-xl">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <router-link class="navbar-brand" to="/home">
           <img :src="Logo" alt="Logo" />
-        </a>
+        </router-link>
 
         <div class="collapse navbar-collapse justify-content-center">
           <ul class="navbar-nav gap-3">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Trang Chủ</a>
+              <router-link class="nav-link active" to="/home" aria-current="page" >Trang Chủ</router-link>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Giới Thiệu</a>
+              <router-link class="nav-link" to="/introduce">Giới Thiệu</router-link>
             </li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Sản Phẩm
-              </a>
+              <div class="d-flex align-items-center">
+                <!-- Link chính tới trang Product.vue -->
+                <router-link class="nav-link pe-1" to="/product">Sản Phẩm</router-link>
+
+                <!-- Nút mũi tên dropdown tách riêng -->
+                <a
+                  class="nav-link dropdown-toggle ps-1"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                ></a>
+              </div>
+
+              <!-- Dropdown menu hiển thị chuẩn -->
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#">Adidas</a></li>
                 <li><a class="dropdown-item" href="#">Nike</a></li>
@@ -35,7 +47,7 @@ import Payment from './components/Payment.vue';
               </ul>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Liên Hệ</a>
+            <router-link class="nav-link" to="/contact">Liên Hệ</router-link>
             </li>
           </ul>
         </div>
@@ -46,15 +58,17 @@ import Payment from './components/Payment.vue';
             <input type="text" placeholder="Tìm kiếm..." class="search-input">
           </div>
           <a href="#" title="Yêu thích"><i class="bi bi-heart-fill"></i></a>
-          <a href="#" title="Giỏ hàng"><i class="bi bi-bag-fill"></i></a>
-          <a href="#" title="Đăng nhập"><i class="bi bi-person-circle"></i></a>
+          <router-link to="/cart" title="Giỏ hàng"><i class="bi bi-bag-fill"></i></router-link>
+          <router-link to="/login" title="Đăng nhập"><i class="bi bi-person-circle"></i></router-link>
         </div>
       </div>
     </nav>
   </header>
+<div id="app"> 
+  <RouterView/>
+</div>
 
-  
-<Payment/>
+
 
 <footer class="footer pt-5 pb-4">
         <div class="container-xl">
@@ -68,10 +82,10 @@ import Payment from './components/Payment.vue';
                 <div class="col-lg-4 col-md-6">
                     <h5 class="mb-3 fw-bold">Liên kết nhanh</h5>
                     <ul class="list-unstyled space-y-2 footer-links">
-                        <li><a href="#">Trang chủ</a></li>
-                        <li><a href="#">Sản phẩm</a></li>
-                        <li><a href="#">Giới thiệu</a></li>
-                        <li><a href="#">Liên hệ</a></li>
+                        <li><router-link to="/home">Trang chủ</router-link></li>
+                        <li><router-link to="/product">Sản phẩm</router-link></li>
+                        <li><router-link to="/introduce">Giới thiệu</router-link></li>
+                        <li><router-link to="/contact">Liên hệ</router-link></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6">

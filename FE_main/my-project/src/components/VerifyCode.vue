@@ -5,7 +5,7 @@
   <div class="container">
     <div class="xacnhan-container mx-auto">
       <!-- Mũi tên quay lại -->
-      <a href="quenMK.html" class="back-arrow">&#8592;</a>
+      <router-link to="/resetPass" class="back-arrow">&#8592;</router-link>
 
       <!-- Tiêu đề -->
       <h1 class="text-center fw-bold text-dark mb-4">Xác nhận mã</h1>

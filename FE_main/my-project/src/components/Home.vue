@@ -1,62 +1,58 @@
 <script setup>
-        document.addEventListener('DOMContentLoaded', function () {
-            const filterButtons = document.querySelectorAll('.filter-buttons .btn');
-            const productContainer = document.getElementById('product-list-container');
+import { onMounted, ref } from 'vue';
 
-            // Dữ liệu sản phẩm (thay thế cho việc lặp tĩnh)
-            const products = {
-                nike: { name: 'Nike Air Max', price: '2.300.000đ', text: 'Nike' },
-                adidas: { name: 'Adidas Ultraboost', price: '2.900.000đ', text: 'Adidas' },
-                converse: { name: 'Converse Classic', price: '1.200.000đ', text: 'Converse' },
-                vans: { name: 'Vans Old Skool', price: '1.500.000đ', text: 'Vans' },
-            };
+const productContainer = ref(null);
 
-            // Hàm để tạo HTML cho một danh sách sản phẩm
-            function createProductListHTML(brand, count) {
-                let html = `<div class="product-list" id="${brand}-products"><div class="row g-4">`;
-                const productData = products[brand];
-                for (let i = 0; i < count; i++) {
-                    html += `
-                    <div class="col-6 col-md-3">
-                        <div class="card h-100 product-card">
-                            <img src="https://via.placeholder.com/300x200?text=${productData.text}" class="card-img-top" alt="${productData.name}">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">${productData.name}</h6>
-                                <p class="product-price">${productData.price}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                }
-                html += `</div></div>`;
-                return html;
-            }
+const products = {
+  nike: { name: 'Nike Air Max', price: '2.300.000đ', text: 'Nike' },
+  adidas: { name: 'Adidas Ultraboost', price: '2.900.000đ', text: 'Adidas' },
+  converse: { name: 'Converse Classic', price: '1.200.000đ', text: 'Converse' },
+  vans: { name: 'Vans Old Skool', price: '1.500.000đ', text: 'Vans' },
+};
 
-            // Hàm để hiển thị sản phẩm dựa trên brand được chọn
-            function showProducts(selectedBrand) {
-                // Xóa nội dung cũ
-                productContainer.innerHTML = '';
-                // Tạo và chèn HTML mới
-                productContainer.innerHTML = createProductListHTML(selectedBrand, 8);
-            }
+function createProductListHTML(brand, count) {
+  let html = `<div class="product-list" id="${brand}-products"><div class="row g-4">`;
+  const productData = products[brand];
+  for (let i = 0; i < count; i++) {
+    html += `
+      <div class="col-6 col-md-3">
+          <div class="card h-100 product-card">
+              <img src="https://via.placeholder.com/300x200?text=${productData.text}" class="card-img-top" alt="${productData.name}">
+              <div class="card-body text-center">
+                  <h6 class="card-title">${productData.name}</h6>
+                  <p class="product-price">${productData.price}</p>
+              </div>
+          </div>
+      </div>
+    `;
+  }
+  html += `</div></div>`;
+  return html;
+}
 
-            // Lắng nghe sự kiện click trên các nút lọc
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const selectedBrand = this.getAttribute('data-brand');
+function showProducts(brand) {
+  if (productContainer.value) {
+    productContainer.value.innerHTML = createProductListHTML(brand, 8);
+  }
+}
 
-                    // Cập nhật trạng thái active cho nút
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
+onMounted(() => {
+  const filterButtons = document.querySelectorAll('.filter-buttons .btn');
 
-                    // Hiển thị sản phẩm tương ứng
-                    showProducts(selectedBrand);
-                });
-            });
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function () {
+      const selectedBrand = this.getAttribute('data-brand');
 
-            // Hiển thị sản phẩm Nike mặc định khi tải trang
-            showProducts('nike');
-        });
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+
+      showProducts(selectedBrand);
+    });
+  });
+
+  // Hiển thị sản phẩm mặc định
+  showProducts('nike');
+});
 </script>
 <template>
     <main>
@@ -147,7 +143,7 @@
                     <button class="btn" data-brand="vans">Vans</button>
                 </div>
 
-                <div id="product-list-container">
+                <div id="product-list-container" ref="productContainer">
                 </div>
             </div>
         </section>

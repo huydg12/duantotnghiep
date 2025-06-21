@@ -15,10 +15,18 @@ body {
 .header {
   background-color: var(--color-dark);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    height: 72px; /* Chiều cao mong muốn cố định cho toàn bộ header */
+  overflow: hidden; /* Giúp che phần logo nếu to quá */
 }
 
 .header .navbar-brand img {
-  height: 56px;
+  height: 100px;
+    object-fit: contain; /* Đảm bảo ảnh không bị méo */
+}
+
+.header .navbar {
+  height: 100%; /* Đảm bảo navbar không vượt quá header */
+  padding: 0; /* Không cần padding nếu muốn tiết kiệm chiều cao */
 }
 
 .header .navbar-nav .nav-link {
