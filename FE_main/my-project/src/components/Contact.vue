@@ -8,13 +8,8 @@
       <div class="col-lg-6 map-container">
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3729.214795239776!2d106.64883387488325!3d20.8230310807753!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a70bd730b201d%3A0xab7b4b5c986bd11!2zODY3IMSQLiBUcsaw4budbmcgQ2hpbmgsIEzDo20gSMOgLCBLaeG6v24gQW4sIEjhuqNpIFBow7JuZywgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1750154235243!5m2!1svi!2s"
-          width="600"
-          height="450"
-          style="border:0;"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+          width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
 
       <!-- Contact Form -->
@@ -46,7 +41,8 @@
 
             <div class="mb-3">
               <label for="content" class="form-label fw-medium">Nội dung*</label>
-              <textarea class="form-control" id="content" rows="5" required placeholder="Nội dung bạn muốn liên hệ..."></textarea>
+              <textarea class="form-control" id="content" rows="5" required
+                placeholder="Nội dung bạn muốn liên hệ..."></textarea>
               <div class="invalid-feedback">Vui lòng nhập nội dung liên hệ.</div>
             </div>
 
@@ -60,7 +56,7 @@
 
 
 
-<style >
+<style>
 :root {
   --color-primary: #ef4444;
   --color-primary-dark: #dc2626;

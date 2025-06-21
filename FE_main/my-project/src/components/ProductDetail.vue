@@ -43,7 +43,7 @@ const selectColor = (color) => {
 }
 </script>
 <template>
- <div class="container bg-white rounded-4 shadow p-4">
+  <div class="container bg-white rounded-4 shadow p-4">
     <div class="row g-4 align-items-start">
       <!-- Hình ảnh -->
       <div class="col-md-6 position-relative">
@@ -84,7 +84,8 @@ const selectColor = (color) => {
 
         <hr />
         <p class="text-muted">
-          Nike Air Force 1 07 mang lại sự thay đổi mới mẻ nhưng vẫn giữ bản sắc OG: lớp phủ khâu đẹp, kết thúc sạch sẽ và đèn phản quang khiến bạn luôn tỏa sáng.
+          Nike Air Force 1 07 mang lại sự thay đổi mới mẻ nhưng vẫn giữ bản sắc OG: lớp phủ khâu đẹp, kết thúc sạch sẽ
+          và đèn phản quang khiến bạn luôn tỏa sáng.
         </p>
       </div>
     </div>
@@ -93,42 +94,43 @@ const selectColor = (color) => {
 </template>
 
 <style scoped>
-    .product-image {
-      height: 500px;
-      object-fit: cover;
-      object-position: center;
-    }
+.product-image {
+  height: 500px;
+  object-fit: cover;
+  object-position: center;
+}
 
-    .image-nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background-color: rgba(107, 114, 128, 0.6);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 50%;
-      border: none;
-    }
+.image-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(107, 114, 128, 0.6);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: none;
+}
 
-    .image-nav-btn:hover {
-      background-color: rgba(75, 85, 99, 0.8);
-    }
+.image-nav-btn:hover {
+  background-color: rgba(75, 85, 99, 0.8);
+}
 
-    .product-button {
-      min-width: 120px;
-    }
+.product-button {
+  min-width: 120px;
+}
 
-    .color-btn, .size-btn {
-      border: 1px solid #6c757d;
-      font-size: 0.875rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 5px;
-      margin: 0 0.25rem;
-      background-color: white;
-    }
+.color-btn,
+.size-btn {
+  border: 1px solid #6c757d;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 5px;
+  margin: 0 0.25rem;
+  background-color: white;
+}
 
-    .color-btn:hover, .size-btn:hover {
-      background-color: #e2e6ea;
-    }
-
-</style> 
+.color-btn:hover,
+.size-btn:hover {
+  background-color: #e2e6ea;
+}
+</style>

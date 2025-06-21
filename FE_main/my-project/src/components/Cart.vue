@@ -1,6 +1,6 @@
 <script setup>
-function updateTotal() {}
-function removeItem() {}
+function updateTotal() { }
+function removeItem() { }
 </script>
 <template>
   <div class="container my-5 bg-white p-4 rounded shadow">
@@ -11,12 +11,8 @@ function removeItem() {}
       <!-- Sản phẩm mẫu -->
       <div class="row align-items-center g-3 mb-4 cart-item">
         <div class="col-12 col-md-2 text-center">
-          <img
-            src="./HinhAnh/anh1.webp"
-            alt="Nike Air Force 1"
-            class="img-fluid rounded"
-            style="max-width: 96px; height: auto;"
-          />
+          <img src="./HinhAnh/anh1.webp" alt="Nike Air Force 1" class="img-fluid rounded"
+            style="max-width: 96px; height: auto;" />
         </div>
         <div class="col-12 col-md-4">
           <h6 class="mb-1 fw-medium">Nike Air Force 1</h6>
@@ -26,13 +22,7 @@ function removeItem() {}
           <p class="text-danger fw-semibold mb-0">2.000.000₫</p>
         </div>
         <div class="col-6 col-md-2">
-          <input
-            type="number"
-            value="1"
-            min="1"
-            class="form-control text-center quantity"
-            @change="updateTotal"
-          />
+          <input type="number" value="1" min="1" class="form-control text-center quantity" @change="updateTotal" />
         </div>
         <div class="col-12 col-md-2 text-md-end">
           <button class="btn btn-outline-danger btn-sm" @click="removeItem">
@@ -51,7 +41,7 @@ function removeItem() {}
         <span id="totalPrice" class="text-danger fw-bold">2.000.000₫</span>
       </h5>
       <div class="mt-4 d-flex flex-column flex-md-row justify-content-between gap-2">
-        <a >
+        <a>
         </a>
         <router-link to="/payment" class="btn btn-success text-center">
           🧾 Thanh toán
@@ -62,7 +52,4 @@ function removeItem() {}
 
 </template>
 
-<style scoped>
-
-
-</style> 
+<style scoped></style>

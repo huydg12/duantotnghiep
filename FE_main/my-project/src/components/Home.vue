@@ -4,17 +4,17 @@ import { onMounted, ref } from 'vue';
 const productContainer = ref(null);
 
 const products = {
-  nike: { name: 'Nike Air Max', price: '2.300.000đ', text: 'Nike' },
-  adidas: { name: 'Adidas Ultraboost', price: '2.900.000đ', text: 'Adidas' },
-  converse: { name: 'Converse Classic', price: '1.200.000đ', text: 'Converse' },
-  vans: { name: 'Vans Old Skool', price: '1.500.000đ', text: 'Vans' },
+    nike: { name: 'Nike Air Max', price: '2.300.000đ', text: 'Nike' },
+    adidas: { name: 'Adidas Ultraboost', price: '2.900.000đ', text: 'Adidas' },
+    converse: { name: 'Converse Classic', price: '1.200.000đ', text: 'Converse' },
+    vans: { name: 'Vans Old Skool', price: '1.500.000đ', text: 'Vans' },
 };
 
 function createProductListHTML(brand, count) {
-  let html = `<div class="product-list" id="${brand}-products"><div class="row g-4">`;
-  const productData = products[brand];
-  for (let i = 0; i < count; i++) {
-    html += `
+    let html = `<div class="product-list" id="${brand}-products"><div class="row g-4">`;
+    const productData = products[brand];
+    for (let i = 0; i < count; i++) {
+        html += `
       <div class="col-6 col-md-3">
           <div class="card h-100 product-card">
               <img src="https://via.placeholder.com/300x200?text=${productData.text}" class="card-img-top" alt="${productData.name}">
@@ -25,33 +25,33 @@ function createProductListHTML(brand, count) {
           </div>
       </div>
     `;
-  }
-  html += `</div></div>`;
-  return html;
+    }
+    html += `</div></div>`;
+    return html;
 }
 
 function showProducts(brand) {
-  if (productContainer.value) {
-    productContainer.value.innerHTML = createProductListHTML(brand, 8);
-  }
+    if (productContainer.value) {
+        productContainer.value.innerHTML = createProductListHTML(brand, 8);
+    }
 }
 
 onMounted(() => {
-  const filterButtons = document.querySelectorAll('.filter-buttons .btn');
+    const filterButtons = document.querySelectorAll('.filter-buttons .btn');
 
-  filterButtons.forEach(button => {
-    button.addEventListener('click', function () {
-      const selectedBrand = this.getAttribute('data-brand');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const selectedBrand = this.getAttribute('data-brand');
 
-      filterButtons.forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
 
-      showProducts(selectedBrand);
+            showProducts(selectedBrand);
+        });
     });
-  });
 
-  // Hiển thị sản phẩm mặc định
-  showProducts('nike');
+    // Hiển thị sản phẩm mặc định
+    showProducts('nike');
 });
 </script>
 <template>
@@ -153,105 +153,105 @@ onMounted(() => {
 
 </template>
 
-<style >
+<style>
+:root {
+    --color-primary: #ef4444;
+    --color-primary-dark: #dc2626;
+    --color-dark: #000;
+    --color-light: #fff;
+    --color-secondary-text: #6c757d;
+    --font-family-main: 'Be Vietnam Pro', sans-serif;
+}
 
-        :root {
-            --color-primary: #ef4444;
-            --color-primary-dark: #dc2626;
-            --color-dark: #000;
-            --color-light: #fff;
-            --color-secondary-text: #6c757d;
-            --font-family-main: 'Be Vietnam Pro', sans-serif;
-        }
-        .hero-section {
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            height: 24rem;
-        }
+.hero-section {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    height: 24rem;
+}
 
-        .hero-section .overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.hero-section .overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .btn-hero {
-            background-color: #ef4444 !important;
-            color: #fff!important;
-            border: none !important;
-            font-weight: 750 !important;
-            padding: 0.75rem 1.5rem !important;
-            transition: background-color 0.3s ease;
-        }
+.btn-hero {
+    background-color: #ef4444 !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 750 !important;
+    padding: 0.75rem 1.5rem !important;
+    transition: background-color 0.3s ease;
+}
 
-        .btn-hero:hover {
-            background-color: #dc2626!important;
-            color: #fff!important;
-        }
-        /* Product card */
-        .product-card {
-            border: 1px solid #e5e7eb;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+.btn-hero:hover {
+    background-color: #dc2626 !important;
+    color: #fff !important;
+}
 
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
+/* Product card */
+.product-card {
+    border: 1px solid #e5e7eb;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-        .product-card .card-img-top {
-            height: 12rem;
-            /* h-48 */
-            object-fit: cover;
-        }
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
 
-        .product-card .card-title {
-            font-weight: 700;
-        }
+.product-card .card-img-top {
+    height: 12rem;
+    /* h-48 */
+    object-fit: cover;
+}
 
-        .product-price {
-            color:  #ef4444;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
+.product-card .card-title {
+    font-weight: 700;
+}
 
-        .btn-buy {
-            background-color:  #ef4444;
-            color: var(--color-light);
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
+.product-price {
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
 
-        .btn-buy:hover {
-            background-color:  #dc2626;
-            color: var(--color-light);
-        }
+.btn-buy {
+    background-color: #ef4444;
+    color: var(--color-light);
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
 
-        /*  Filter Section */
-        .filter-buttons .btn {
-            background-color:  #000;
-            color: var(--color-light);
-            border: none;
-            font-weight: 500;
-            transition: background-color 0.3s ease;
-        }
+.btn-buy:hover {
+    background-color: #dc2626;
+    color: var(--color-light);
+}
 
-        .filter-buttons .btn:hover {
-            background-color:  #ef4444;
-            color: var(--color-light);
-        }
+/*  Filter Section */
+.filter-buttons .btn {
+    background-color: #000;
+    color: var(--color-light);
+    border: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
 
-        .filter-buttons .btn.active {
-            background-color:  #ef4444;
-            box-shadow: 0 4px 15px -3px rgb(239 68 68 / 0.5);
-        }
+.filter-buttons .btn:hover {
+    background-color: #ef4444;
+    color: var(--color-light);
+}
 
-        #product-list-container .product-list {
-            transition: opacity 0.5s ease;
-        }
+.filter-buttons .btn.active {
+    background-color: #ef4444;
+    box-shadow: 0 4px 15px -3px rgb(239 68 68 / 0.5);
+}
 
-</style> 
+#product-list-container .product-list {
+    transition: opacity 0.5s ease;
+}
+</style>

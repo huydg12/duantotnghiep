@@ -2,7 +2,7 @@
 
 </script>
 <template>
-  <!-- Nội dung giới thiệu -->
+    <!-- Nội dung giới thiệu -->
     <main class="container py-5">
         <div class="content-box">
             <h1 class="page-title mb-4">Giới thiệu</h1>
@@ -24,26 +24,25 @@
 
 </template>
 
-<style >
-        body {
-            background-color: #f8f9fa;
-            color: #212529;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
+<style>
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
-        .content-box {
-            background-color: #ffffff;
-            padding: 3rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-        }
+.content-box {
+    background-color: #ffffff;
+    padding: 3rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
 
-        .page-title {
-            font-size: 2rem;
-            font-weight: s ;
+.page-title {
+    font-size: 2rem;
+    font-weight: s;
 
-            border-bottom: 2px solid #dee2e6;
-            padding-bottom: 1rem;
-        }
-
-</style> 
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 1rem;
+}
+</style>

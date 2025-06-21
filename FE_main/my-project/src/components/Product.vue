@@ -162,44 +162,24 @@ const products = ref([
           <div class="accordion" id="filterAccordion">
             <div v-for="(section, index) in filterSections" :key="section.title" class="accordion-item">
               <h2 class="accordion-header">
-                <button
-                  class="accordion-button fw-semibold"
-                  :class="{ collapsed: index !== 0 }"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  :data-bs-target="'#collapse' + index"
-                >
+                <button class="accordion-button fw-semibold" :class="{ collapsed: index !== 0 }" type="button"
+                  data-bs-toggle="collapse" :data-bs-target="'#collapse' + index">
                   {{ section.title }}
                 </button>
               </h2>
-              <div
-                :id="'collapse' + index"
-                class="accordion-collapse collapse"
-                :class="{ show: index === 0 }"
-              >
+              <div :id="'collapse' + index" class="accordion-collapse collapse" :class="{ show: index === 0 }">
                 <div class="accordion-body">
                   <div v-if="section.type === 'radio'">
                     <div v-for="opt in section.options" :key="opt.id" class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="radio"
-                        :id="opt.id"
-                        :name="section.name"
-                        :value="opt.value"
-                        v-model="filters[section.model]"
-                      />
+                      <input class="form-check-input" type="radio" :id="opt.id" :name="section.name" :value="opt.value"
+                        v-model="filters[section.model]" />
                       <label class="form-check-label" :for="opt.id">{{ opt.label }}</label>
                     </div>
                   </div>
                   <div v-else>
                     <div v-for="opt in section.options" :key="opt.id" class="form-check">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        :id="opt.id"
-                        :value="opt.value"
-                        v-model="filters[section.model]"
-                      />
+                      <input class="form-check-input" type="checkbox" :id="opt.id" :value="opt.value"
+                        v-model="filters[section.model]" />
                       <label class="form-check-label" :for="opt.id">{{ opt.label }}</label>
                     </div>
                   </div>

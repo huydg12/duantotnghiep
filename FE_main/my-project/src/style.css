@@ -4,7 +4,7 @@
   --color-dark: #000;
   --color-light: #fff;
   --color-secondary-text: #6c757d;
-  --font-family-main: 'Be Vietnam Pro', sans-serif;
+  --font-family-main: "Be Vietnam Pro", sans-serif;
 }
 
 body {
@@ -15,13 +15,13 @@ body {
 .header {
   background-color: var(--color-dark);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    height: 72px; /* Chiều cao mong muốn cố định cho toàn bộ header */
+  height: 72px; /* Chiều cao mong muốn cố định cho toàn bộ header */
   overflow: hidden; /* Giúp che phần logo nếu to quá */
 }
 
 .header .navbar-brand img {
   height: 100px;
-    object-fit: contain; /* Đảm bảo ảnh không bị méo */
+  object-fit: contain; /* Đảm bảo ảnh không bị méo */
 }
 
 .header .navbar {
@@ -162,7 +162,6 @@ body {
   color: var(--color-light);
 }
 
-
 /* Shared Section Title */
 .section-title h2 {
   font-weight: 700;
@@ -182,51 +181,51 @@ body {
   max-width: 600px;
   color: var(--color-secondary-text);
 }
-        /* Footer */
-        .footer {
-            background-color: var(--color-dark);
-            color: var(--color-light);
-        }
+/* Footer */
+.footer {
+  background-color: var(--color-dark);
+  color: var(--color-light);
+}
 
-        .footer p,
-        .footer a {
-            color: #adb5bd;
-            /* gray-400 */
-        }
+.footer p,
+.footer a {
+  color: #adb5bd;
+  /* gray-400 */
+}
 
-        .footer-links a {
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+.footer-links a {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
 
-        .footer-links a:hover {
-            color: var(--color-primary);
-        }
+.footer-links a:hover {
+  color: var(--color-primary);
+}
 
-        .footer .social-icons a {
-            font-size: 1.25rem;
-            transition: color 0.3s ease;
-        }
+.footer .social-icons a {
+  font-size: 1.25rem;
+  transition: color 0.3s ease;
+}
 
-        .footer .social-icons a:hover .bi-facebook {
-            color: #1877F2;
-        }
+.footer .social-icons a:hover .bi-facebook {
+  color: #1877f2;
+}
 
-        .footer .social-icons a:hover .bi-instagram {
-            color: #E4405F;
-        }
+.footer .social-icons a:hover .bi-instagram {
+  color: #e4405f;
+}
 
-        .footer .social-icons a:hover .bi-twitter-x {
-            color: #1DA1F2;
-        }
+.footer .social-icons a:hover .bi-twitter-x {
+  color: #1da1f2;
+}
 
-        .footer .social-icons a:hover .bi-youtube {
-            color: #FF0000;
-        }
+.footer .social-icons a:hover .bi-youtube {
+  color: #ff0000;
+}
 
-        .copyright {
-            border-top: 1px solid #343a40;
-            /* gray-700 */
-            color: #6c757d;
-            /* gray-500 */
-        }
+.copyright {
+  border-top: 1px solid #343a40;
+  /* gray-700 */
+  color: #6c757d;
+  /* gray-500 */
+}

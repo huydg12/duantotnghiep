@@ -30,44 +30,43 @@
 </template>
 
 <style scoped>
+.xacnhan-container {
+  max-width: 420px;
+  margin-top: 4rem;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
 
-    .xacnhan-container {
-      max-width: 420px;
-      margin-top: 4rem;
-      padding: 2rem;
-      background-color: white;
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      position: relative;
-    }
+.back-arrow {
+  position: absolute;
+  top: 1.5rem;
+  left: 1rem;
+  font-size: 1.25rem;
+  color: black;
+  text-decoration: none;
+}
 
-    .back-arrow {
-      position: absolute;
-      top: 1.5rem;
-      left: 1rem;
-      font-size: 1.25rem;
-      color: black;
-      text-decoration: none;
-    }
+.back-arrow:hover {
+  text-decoration: underline;
+}
 
-    .back-arrow:hover {
-      text-decoration: underline;
-    }
+.code-input {
+  letter-spacing: 0.4em;
+  font-size: 1.25rem;
+  text-align: center;
+}
 
-    .code-input {
-      letter-spacing: 0.4em;
-      font-size: 1.25rem;
-      text-align: center;
-    }
+.confirm-btn {
+  font-weight: 600;
+}
 
-    .confirm-btn {
-      font-weight: 600;
-    }
-
-    .info-text {
-      font-size: 0.875rem;
-      color: #6c757d;
-      text-align: center;
-      margin-top: 1rem;
-    }
-</style> 
+.info-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 1rem;
+}
+</style>

@@ -45,7 +45,7 @@ const handleOverlayClick = (e) => {
       <button @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
     </div>
     <div class="border rounded bg-light p-3">
-      <strong>Bùi Hiếu</strong> - (+84) 123456789 
+      <strong>Bùi Hiếu</strong> - (+84) 123456789
       <span class="badge bg-primary disabled-link">Mặc định</span><br>
       Số A<br>
       Phường Kênh Dương, Quận Lê Chân, Hải Phòng
@@ -124,11 +124,8 @@ const handleOverlayClick = (e) => {
   </div>
 
   <!-- Popup chọn địa chỉ -->
-  <div
-    v-if="showAddressOverlay"
-    @click="handleOverlayClick"
-    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
-  >
+  <div v-if="showAddressOverlay" @click="handleOverlayClick"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
     <div class="bg-white rounded p-4 shadow w-100" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
       <h5 class="fw-semibold mb-3">Địa chỉ của tôi</h5>
       <form>
@@ -141,7 +138,8 @@ const handleOverlayClick = (e) => {
             <span class="small">Số 6, Ngõ 292 Hào Khê<br>Phường Kênh Dương, Quận Lê Chân, Hải Phòng</span><br>
             <span class="badge bg-primary mt-2">Mặc định</span>
           </label>
-          <span class="position-absolute top-0 end-0 me-2 mt-2 text-primary text-decoration-underline small" role="button">Cập nhật</span>
+          <span class="position-absolute top-0 end-0 me-2 mt-2 text-primary text-decoration-underline small"
+            role="button">Cập nhật</span>
         </div>
 
 
@@ -152,10 +150,12 @@ const handleOverlayClick = (e) => {
             <span class="text-muted small">(+84) 123 456 789</span><br>
             <span class="small">1 Bưu Điện, Xã An Lư<br>Huyện Thủy Nguyên, Hải Phòng</span>
           </label>
-          <span class="position-absolute top-0 end-0 me-2 mt-2 text-primary text-decoration-underline small" role="button">Cập nhật</span>
+          <span class="position-absolute top-0 end-0 me-2 mt-2 text-primary text-decoration-underline small"
+            role="button">Cập nhật</span>
         </div>
 
-        <button type="button" class="btn btn-success w-100 mb-2" @click="openAddAddressOverlay">+ Thêm Địa Chỉ Mới</button>
+        <button type="button" class="btn btn-success w-100 mb-2" @click="openAddAddressOverlay">+ Thêm Địa Chỉ
+          Mới</button>
         <div class="text-end">
           <button type="button" class="btn btn-secondary me-2" @click="closeAddressOverlay">Huỷ</button>
           <button type="submit" class="btn btn-success">Xác nhận</button>
@@ -165,11 +165,8 @@ const handleOverlayClick = (e) => {
   </div>
 
   <!-- Popup thêm địa chỉ -->
-  <div
-    v-if="showAddAddressOverlay"
-    @click="handleOverlayClick"
-    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
-  >
+  <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
     <div class="bg-white rounded p-4 shadow w-100" style="max-width: 600px;">
       <h5 class="fw-semibold mb-3">Thêm địa chỉ mới</h5>
       <form ref="newAddressForm">

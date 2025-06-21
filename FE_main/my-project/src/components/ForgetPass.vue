@@ -1,14 +1,14 @@
 <script setup>
-    function goToConfirmPage() {
-      const email = document.getElementById("emailInput").value.trim();
-      if (email !== "") {
-        window.location.href = "xacNhanMa.html";
-      }
-      return false;
-    }
+function goToConfirmPage() {
+  const email = document.getElementById("emailInput").value.trim();
+  if (email !== "") {
+    window.location.href = "xacNhanMa.html";
+  }
+  return false;
+}
 </script>
 <template>
-      <div class="custom-box">
+  <div class="custom-box">
     <!-- Mũi tên quay lại -->
     <a href="dangnhap.html" class="back-arrow">&#8592;</a>
 
@@ -18,19 +18,10 @@
     <form onsubmit="return goToConfirmPage()">
       <div class="mb-3">
         <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ*</label>
-        <input
-          type="email"
-          id="emailInput"
-          required
-          placeholder="Nhập địa chỉ email"
-          class="form-control"
-        />
+        <input type="email" id="emailInput" required placeholder="Nhập địa chỉ email" class="form-control" />
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-dark w-100 mt-3 fw-semibold"
-      >
+      <button type="submit" class="btn btn-dark w-100 mt-3 fw-semibold">
         GỬI YÊU CẦU
       </button>
 
@@ -42,38 +33,37 @@
 </template>
 
 <style scoped>
-    .back-arrow {
-      position: absolute;
-      top: 1.5rem;
-      left: 1.5rem;
-      font-size: 1.25rem;
-      color: black;
-      text-decoration: none;
-    }
+.back-arrow {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  font-size: 1.25rem;
+  color: black;
+  text-decoration: none;
+}
 
-    .back-arrow:hover {
-      text-decoration: underline;
-    }
+.back-arrow:hover {
+  text-decoration: underline;
+}
 
-    .custom-box {
-      max-width: 400px;
-      margin: 4rem auto;
-      background-color: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      position: relative;
-    }
+.custom-box {
+  max-width: 400px;
+  margin: 4rem auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
 
-    .form-label {
-      font-weight: 600;
-    }
+.form-label {
+  font-weight: 600;
+}
 
-    .info-text {
-      font-size: 0.875rem;
-      color: #6c757d;
-      text-align: center;
-      margin-top: 1rem;
-    }
-
+.info-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 1rem;
+}
 </style>

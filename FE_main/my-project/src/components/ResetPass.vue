@@ -36,25 +36,13 @@ function changePassword() {
       <form @submit.prevent="changePassword">
         <div class="mb-3">
           <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới:</label>
-          <input
-            v-model="newPassword"
-            type="password"
-            id="newPassword"
-            required
-            class="form-control"
-            placeholder="Nhập mật khẩu mới"
-          />
+          <input v-model="newPassword" type="password" id="newPassword" required class="form-control"
+            placeholder="Nhập mật khẩu mới" />
         </div>
         <div class="mb-3">
           <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu:</label>
-          <input
-            v-model="confirmPassword"
-            type="password"
-            id="confirmPassword"
-            required
-            class="form-control"
-            placeholder="Xác nhận mật khẩu mới"
-          />
+          <input v-model="confirmPassword" type="password" id="confirmPassword" required class="form-control"
+            placeholder="Xác nhận mật khẩu mới" />
         </div>
 
         <button type="submit" class="btn btn-dark w-100 fw-semibold">Xác nhận</button>
