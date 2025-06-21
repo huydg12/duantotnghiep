@@ -5,6 +5,7 @@ import Logo from './components/HinhAnh/logo.png'
 import { RouterLink, RouterView } from 'vue-router'
 import LoginAdmin from './components/LoginAdmin.vue';
 import Manage from './components/Manage.vue';
+import InformationCustomer from './components/InformationCustomer.vue';
 </script>
 
 <template>
@@ -62,10 +63,9 @@ import Manage from './components/Manage.vue';
     </nav>
   </header>
   <div id="app">
-    <RouterView />
+    <!-- <RouterView /> -->
+      <InformationCustomer/>
   </div>
-
-<Manage />
 
   <footer class="footer pt-5 pb-4">
     <div class="container-xl">
