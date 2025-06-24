@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import Banner from './Banner.vue'
 
 const imagesByColor = {
   "Trắng": [
@@ -43,6 +44,7 @@ const selectColor = (color) => {
 }
 </script>
 <template>
+  <Banner title="" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="container bg-white rounded-4 shadow p-4">
     <div class="row g-4 align-items-start">
       <!-- Hình ảnh -->

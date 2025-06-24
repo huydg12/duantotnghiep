@@ -1,11 +1,8 @@
 <script setup>
 
 import Logo from './components/HinhAnh/logo.png'
-
 import { RouterLink, RouterView } from 'vue-router'
-import LoginAdmin from './components/LoginAdmin.vue';
-import Manage from './components/Manage.vue';
-import InformationCustomer from './components/InformationCustomer.vue';
+
 </script>
 
 <template>
@@ -63,8 +60,7 @@ import InformationCustomer from './components/InformationCustomer.vue';
     </nav>
   </header>
   <div id="app">
-    <!-- <RouterView /> -->
-      <InformationCustomer/>
+    <RouterView />
   </div>
 
   <footer class="footer pt-5 pb-4">

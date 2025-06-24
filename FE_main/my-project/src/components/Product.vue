@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Banner from './Banner.vue'
 
 const router = useRouter()
 
@@ -153,6 +154,7 @@ const products = ref([
 </script>
 
 <template>
+  <Banner title="Sản phẩm" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="container-fluid p-4 p-md-5">
     <div class="row g-4">
       <!-- Bộ lọc -->

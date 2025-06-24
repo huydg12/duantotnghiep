@@ -4,7 +4,8 @@
     <div class="sidebar">
       <div class="flex-grow-1 sidebar-scroll">
         <div class="text-center py-4 border-bottom border-secondary user-profile">
-          <div class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
+          <div
+            class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
             <i class="fa-solid fa-user text-dark fa-2x"></i>
           </div>
           <h2 class="mt-3 fs-5 fw-semibold">
@@ -14,24 +15,13 @@
 
         <ul class="nav flex-column p-3">
           <li v-for="item in menuItems" :key="item.id" class="nav-item">
-            <a
-              v-if="!item.sub"
-              href="#"
-              class="nav-link menu-btn"
-              @click.prevent="loadContent(item.target)"
-            >
+            <a v-if="!item.sub" href="#" class="nav-link menu-btn" @click.prevent="loadContent(item.target)">
               <i :class="item.icon"></i> {{ item.label }}
             </a>
 
             <template v-else>
-              <a
-                class="nav-link"
-                data-bs-toggle="collapse"
-                :href="'#' + item.id"
-                role="button"
-                aria-expanded="false"
-                :aria-controls="item.id"
-              >
+              <a class="nav-link" data-bs-toggle="collapse" :href="'#' + item.id" role="button" aria-expanded="false"
+                :aria-controls="item.id">
                 <i :class="item.icon"></i> {{ item.label }}
                 <i class="fa-solid fa-chevron-down ms-auto"></i>
               </a>
@@ -123,10 +113,12 @@ const menuItems = [
   height: 100vh;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 .sidebar .user-profile .user-icon {
   width: 96px;
   height: 96px;
 }
+
 .sidebar .nav-link {
   color: rgba(255, 255, 255, 0.8);
   padding: 0.75rem 1rem;
@@ -134,20 +126,25 @@ const menuItems = [
   align-items: center;
   border-radius: 0.375rem;
 }
+
 .sidebar .nav-link:hover {
   background-color: #495057;
   color: white;
 }
+
 .sidebar .nav-link i {
   margin-right: 0.75rem;
 }
+
 .submenu-collapse {
   background-color: #212529;
 }
+
 .submenu-collapse .nav-link {
   padding: 0.5rem 1rem 0.5rem 2.5rem;
   font-size: 0.9rem;
 }
+
 .main-content {
   background-color: white;
   border-top-left-radius: 2rem;
@@ -155,16 +152,20 @@ const menuItems = [
   box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
   overflow-y: auto;
 }
+
 .sidebar-scroll {
   overflow-y: auto;
 }
+
 .sidebar-scroll::-webkit-scrollbar {
   width: 8px;
 }
+
 .sidebar-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.3);
   border-radius: 10px;
 }
+
 .sidebar:hover .sidebar-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.5);
 }

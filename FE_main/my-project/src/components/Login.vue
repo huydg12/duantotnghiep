@@ -1,7 +1,9 @@
-<script>
+<script setup>
+import Banner from './Banner.vue';
 </script>
 
 <template>
+  <Banner title="Đăng Nhập" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="bg-light">
     <div class="container">
       <div class="bg-white mx-auto mt-5 p-4 rounded shadow" style="max-width: 480px;">
@@ -72,4 +74,5 @@
 
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>

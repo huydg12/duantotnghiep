@@ -1,7 +1,8 @@
 <script setup>
-
+import Banner from './Banner.vue';
 </script>
 <template>
+    <Banner title="Giới thiệu" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
     <!-- Nội dung giới thiệu -->
     <main class="container py-5">
         <div class="content-box">

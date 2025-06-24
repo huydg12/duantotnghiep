@@ -1,8 +1,10 @@
 <script setup>
+import Banner from './Banner.vue';
 function updateTotal() { }
 function removeItem() { }
 </script>
 <template>
+  <Banner title="Giỏ Hàng" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"  />
   <div class="container my-5 bg-white p-4 rounded shadow">
     <h3 class="mb-4 fw-semibold">🛒 Giỏ Hàng Của Bạn</h3>
 
