@@ -103,7 +103,6 @@ const menuItems = [
 @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';
 @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
 
-/* Tất cả phần CSS bạn có thể giữ nguyên như ban đầu, hoặc tách ra file .css nếu cần */
 .sidebar {
   width: 288px;
   background-color: #212529;
