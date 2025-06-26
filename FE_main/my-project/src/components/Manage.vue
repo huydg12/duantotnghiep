@@ -1,52 +1,3 @@
-<template>
-  <div class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="flex-grow-1 sidebar-scroll">
-        <div class="text-center py-4 border-bottom border-secondary user-profile">
-          <div
-            class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
-            <i class="fa-solid fa-user text-dark fa-2x"></i>
-          </div>
-          <h2 class="mt-3 fs-5 fw-semibold">
-            Xin chào, <span class="fw-bold">Admin</span>
-          </h2>
-        </div>
-
-        <ul class="nav flex-column p-3">
-          <li v-for="item in menuItems" :key="item.id" class="nav-item">
-            <a v-if="!item.sub" href="#" class="nav-link menu-btn" @click.prevent="loadContent(item.target)">
-              <i :class="item.icon"></i> {{ item.label }}
-            </a>
-
-            <template v-else>
-              <a class="nav-link" data-bs-toggle="collapse" :href="'#' + item.id" role="button" aria-expanded="false"
-                :aria-controls="item.id">
-                <i :class="item.icon"></i> {{ item.label }}
-                <i class="fa-solid fa-chevron-down ms-auto"></i>
-              </a>
-              <div class="collapse submenu-collapse" :id="item.id">
-                <ul class="nav flex-column">
-                  <li v-for="sub in item.sub" :key="sub.target">
-                    <a href="#" class="nav-link menu-btn" @click.prevent="loadContent(sub.target)">
-                      <i :class="sub.icon"></i> {{ sub.label }}
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </template>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Main content -->
-    <div class="flex-grow-1 p-4 main-content">
-      <div id="content" class="transition-all" v-html="content" />
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref } from 'vue'
 
@@ -98,6 +49,55 @@ const menuItems = [
   { id: 'dangxuat', label: 'Đăng xuất', target: 'dangxuat', icon: 'fa-solid fa-sign-out-alt' },
 ]
 </script>
+
+<template>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="flex-grow-1 sidebar-scroll">
+        <div class="text-center py-4 border-bottom border-secondary user-profile">
+          <div
+            class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
+            <i class="fa-solid fa-user text-dark fa-2x"></i>
+          </div>
+          <h2 class="mt-3 fs-5 fw-semibold">
+            Xin chào, <span class="fw-bold">Admin</span>
+          </h2>
+        </div>
+
+        <ul class="nav flex-column p-3">
+          <li v-for="item in menuItems" :key="item.id" class="nav-item">
+            <a v-if="!item.sub" href="#" class="nav-link menu-btn" @click.prevent="loadContent(item.target)">
+              <i :class="item.icon"></i> {{ item.label }}
+            </a>
+
+            <template v-else>
+              <a class="nav-link" data-bs-toggle="collapse" :href="'#' + item.id" role="button" aria-expanded="false"
+                :aria-controls="item.id">
+                <i :class="item.icon"></i> {{ item.label }}
+                <i class="fa-solid fa-chevron-down ms-auto"></i>
+              </a>
+              <div class="collapse submenu-collapse" :id="item.id">
+                <ul class="nav flex-column">
+                  <li v-for="sub in item.sub" :key="sub.target">
+                    <a href="#" class="nav-link menu-btn" @click.prevent="loadContent(sub.target)">
+                      <i :class="sub.icon"></i> {{ sub.label }}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </template>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-grow-1 p-4 main-content">
+      <div id="content" class="transition-all" v-html="content" />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';
