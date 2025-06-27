@@ -9,7 +9,8 @@ import org.springframework.context.annotation.ComponentScan;
 		"com.poly.BE_main.controller",
 		"com.poly.BE_main.model",
 		"com.poly.BE_main.repository",
-		"com.poly.BE_main.service"
+		"com.poly.BE_main.service",
+		"com.poly.BE_main.config"
 })
 public class BeMainApplication {
 	public static void main(String[] args) {
