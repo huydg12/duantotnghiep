@@ -1,5 +1,5 @@
 package com.poly.BE_main.model;
 
-public class Category {
-
+public class Image {
+    
 }
