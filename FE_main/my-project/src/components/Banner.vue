@@ -25,11 +25,10 @@ const bannerStyle = computed(() => ({
     <div class="banner" :style="bannerStyle">
         <div class="overlay"></div>
         <div class="banner-content">
-            <h1>{{ title }}</h1><br>
+            <h1>{{ title }}</h1>
 
             <div class="breadcrumb">
-                <RouterLink to="/home" class="home-link">Trang chủ</RouterLink> / <span class="current-page">{{ title
-                    }}</span>
+                <RouterLink to="/home" class="home-link">Trang chủ</RouterLink> / <span class="current-page">{{ breadcrumb }}</span>
             </div>
         </div>
     </div>
@@ -67,13 +66,12 @@ const bannerStyle = computed(() => ({
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 3px;
-    display: inline;
     padding-left: 10px;
     margin: 0;
+    margin-bottom: 15px;
 }
 
 .breadcrumb {
-    margin-top: 15px;
     font-size: 15px;
     color: #ddd;
     display: flex;

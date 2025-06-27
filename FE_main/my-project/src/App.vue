@@ -2,6 +2,7 @@
 
 import Logo from './assets/images/logo.png'
 import { RouterLink, RouterView } from 'vue-router'
+import Banner from './components/Banner.vue';
 
 </script>
 
@@ -62,6 +63,7 @@ import { RouterLink, RouterView } from 'vue-router'
   <div id="app">
     <RouterView />
   </div>
+  
 
   <footer class="footer pt-5 pb-4">
     <div class="container-xl">

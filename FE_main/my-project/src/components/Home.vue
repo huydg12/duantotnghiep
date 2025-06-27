@@ -1,67 +1,42 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-
-const productContainer = ref(null);
+import { computed, onMounted, ref } from "vue";
 
 const products = {
-    nike: { name: 'Nike Air Max', price: '2.300.000đ', text: 'Nike' },
-    adidas: { name: 'Adidas Ultraboost', price: '2.900.000đ', text: 'Adidas' },
-    converse: { name: 'Converse Classic', price: '1.200.000đ', text: 'Converse' },
-    vans: { name: 'Vans Old Skool', price: '1.500.000đ', text: 'Vans' },
+    nike: { name: "Nike Air Max", price: "2.300.000đ", text: "Nike" },
+    adidas: { name: "Adidas Ultraboost", price: "2.900.000đ", text: "Adidas" },
+    converse: { name: "Converse Classic", price: "1.200.000đ", text: "Converse" },
+    vans: { name: "Vans Old Skool", price: "1.500.000đ", text: "Vans" },
 };
 
-function createProductListHTML(brand, count) {
-    let html = `<div class="product-list" id="${brand}-products"><div class="row g-4">`;
-    const productData = products[brand];
-    for (let i = 0; i < count; i++) {
-        html += `
-      <div class="col-6 col-md-3">
-          <div class="card h-100 product-card">
-              <img src="https://via.placeholder.com/300x200?text=${productData.text}" class="card-img-top" alt="${productData.name}">
-              <div class="card-body text-center">
-                  <h6 class="card-title">${productData.name}</h6>
-                  <p class="product-price">${productData.price}</p>
-              </div>
-          </div>
-      </div>
-    `;
-    }
-    html += `</div></div>`;
-    return html;
-}
+// State reactive để theo dõi brand được chọn
+const selectedBrand = ref("nike");
 
-function showProducts(brand) {
-    if (productContainer.value) {
-        productContainer.value.innerHTML = createProductListHTML(brand, 8);
-    }
-}
-
-onMounted(() => {
-    const filterButtons = document.querySelectorAll('.filter-buttons .btn');
-
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const selectedBrand = this.getAttribute('data-brand');
-
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-
-            showProducts(selectedBrand);
-        });
-    });
-
-    // Hiển thị sản phẩm mặc định
-    showProducts('nike');
+// Computed property để lấy dữ liệu sản phẩm theo brand được chọn
+const productsToShow = computed(() => {
+    // Lấy dữ liệu brand được chọn
+    const productData = products[selectedBrand.value];
+    // Tạo một mảng gồm 8 sản phẩm
+    return Array(8).fill(productData);
 });
+
+// Hàm để thay đổi brand khi click button
+function selectBrand(brand) {
+    selectedBrand.value = brand;
+}
 </script>
 <template>
     <main>
-        <section class="hero-section"
-            style="background-image: url('https://allgoodtales.com/wp-content/uploads/2018/10/Nike-Header-min.jpg');">
+        <section class="hero-section" style="
+        background-image: url('https://allgoodtales.com/wp-content/uploads/2018/10/Nike-Header-min.jpg');
+      ">
             <div class="overlay">
                 <div class="text-center text-white px-4">
-                    <h1 class="display-5 fw-bold mb-3">Giày Xịn – Phong Cách Chất – Chill Hết Nấc</h1>
-                    <p class="mb-5 fs-5">Đập hộp ngay đôi sneaker đỉnh cao dành riêng cho bạn</p>
+                    <h1 class="display-5 fw-bold mb-3">
+                        Giày Xịn – Phong Cách Chất – Chill Hết Nấc
+                    </h1>
+                    <p class="mb-5 fs-5">
+                        Đập hộp ngay đôi sneaker đỉnh cao dành riêng cho bạn
+                    </p>
                     <a href="#" class="btn btn-hero">Mua Ngay</a>
                 </div>
             </div>
@@ -73,7 +48,8 @@ onMounted(() => {
                     <h2>Sản Phẩm Nổi Bật</h2>
                     <span class="divider"></span>
                     <p class="mt-3 mx-auto">
-                        Những mẫu giày hot trend, được giới trẻ săn đón – nổi bật về cả kiểu dáng lẫn chất lượng.
+                        Những mẫu giày hot trend, được giới trẻ săn đón – nổi bật về cả kiểu
+                        dáng lẫn chất lượng.
                     </p>
                 </div>
 
@@ -137,20 +113,37 @@ onMounted(() => {
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
-                    <button class="btn active" data-brand="nike">Nike</button>
-                    <button class="btn" data-brand="adidas">Adidas</button>
-                    <button class="btn" data-brand="converse">Converse</button>
-                    <button class="btn" data-brand="vans">Vans</button>
+                    <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">
+                        Nike
+                    </button>
+                    <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">
+                        Adidas
+                    </button>
+                    <button class="btn" :class="{ active: selectedBrand === 'converse' }" @click="selectBrand('converse')">
+                        Converse
+                    </button>
+                    <button class="btn" :class="{ active: selectedBrand === 'vans' }" @click="selectBrand('vans')">
+                        Vans
+                    </button>
                 </div>
 
-                <div id="product-list-container" ref="productContainer">
+                <div id="product-list-container">
+                    <div class="row g-4">
+                        <div class="col-6 col-md-3" v-for="(product, index) in productsToShow" :key="index">
+                            <div class="card h-100 product-card">
+                                <img :src="`https://via.placeholder.com/300x200?text=${product.text}`"
+                                    class="card-img-top" :alt="product.name" />
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="product-price">{{ product.price }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
-
-
-
 </template>
 
 <style>
@@ -160,7 +153,7 @@ onMounted(() => {
     --color-dark: #000;
     --color-light: #fff;
     --color-secondary-text: #6c757d;
-    --font-family-main: 'Be Vietnam Pro', sans-serif;
+    --font-family-main: "Be Vietnam Pro", sans-serif;
 }
 
 .hero-section {
@@ -206,7 +199,6 @@ onMounted(() => {
 
 .product-card .card-img-top {
     height: 12rem;
-    /* h-48 */
     object-fit: cover;
 }
 
@@ -221,15 +213,15 @@ onMounted(() => {
 }
 
 .btn-buy {
-    background-color: #ef4444;
-    color: var(--color-light);
-    font-weight: 500;
+    background-color: #ef4444 !important;
+    color: var(--color-light) !important;
+    font-weight: 500 !important;
     transition: background-color 0.3s ease;
 }
 
 .btn-buy:hover {
-    background-color: #dc2626;
-    color: var(--color-light);
+    background-color: #dc2626 !important;
+    color: var(--color-light) !important;
 }
 
 /*  Filter Section */
