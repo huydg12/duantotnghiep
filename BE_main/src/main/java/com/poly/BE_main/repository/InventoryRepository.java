@@ -1,5 +1,5 @@
 package com.poly.BE_main.repository;
 
-public class NhanVienRepository {
+public class InventoryRepository {
 
 }
