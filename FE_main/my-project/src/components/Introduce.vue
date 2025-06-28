@@ -18,14 +18,14 @@ import Banner from './Banner.vue';
                 Kix Store có đa dạng các loại giày đến từ các hãng nổi tiếng sẵn sàng phục vụ quý khách nhanh chóng
                 thông
                 qua việc bán tại cửa hàng
-                tại <strong>867 Trường Chinh, Kiến An, Hải Phòng</strong> và đặt hàng online trên website.
+                ở <strong>867 Trường Chinh, Kiến An, Hải Phòng</strong> và đặt hàng online trên website.
             </p>
         </div>
     </main>
 
 </template>
 
-<style>
+<style scoped>
 body {
     background-color: #f8f9fa;
     color: #212529;
@@ -41,7 +41,7 @@ body {
 
 .page-title {
     font-size: 2rem;
-    font-weight: s;
+    font-weight: bold;
 
     border-bottom: 2px solid #dee2e6;
     padding-bottom: 1rem;

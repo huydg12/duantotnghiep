@@ -1,34 +1,100 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 
-const products = {
-    nike: { name: "Nike Air Max", price: "2.300.000đ", text: "Nike" },
-    adidas: { name: "Adidas Ultraboost", price: "2.900.000đ", text: "Adidas" },
-    converse: { name: "Converse Classic", price: "1.200.000đ", text: "Converse" },
-    vans: { name: "Vans Old Skool", price: "1.500.000đ", text: "Vans" },
-};
+// Mảng chứa tất cả sản phẩmm
+const allProducts = ref([
+    {
+        id: 1,
+        name: "Nike Air Force 1",
+        price: 2500000,
+        brand: "nike",
+        image: "https://via.placeholder.com/300x200?text=Nike+AF1",
+        featured: true,
+    },
+    {
+        id: 2,
+        name: "Adidas Ultraboost 22",
+        price: 2900000,
+        brand: "adidas",
+        image: "https://via.placeholder.com/300x200?text=Ultraboost",
+        featured: true,
+    },
+    {
+        id: 3,
+        name: "Converse Chuck 70",
+        price: 1800000,
+        brand: "converse",
+        image: "https://via.placeholder.com/300x200?text=Chuck+70",
+        featured: true,
+    },
+    {
+        id: 4,
+        name: "Vans Old Skool",
+        price: 1600000,
+        brand: "vans",
+        image: "https://via.placeholder.com/300x200?text=Vans+Old+Skool",
+        featured: true,
+    },
+    {
+        id: 5,
+        name: "Nike Dunk Low",
+        price: 2700000,
+        brand: "nike",
+        image: "https://via.placeholder.com/300x200?text=Nike+Dunk",
+    },
+    {
+        id: 6,
+        name: "Nike Air Jordan 1",
+        price: 3500000,
+        brand: "nike",
+        image: "https://via.placeholder.com/300x200?text=Jordan+1",
+    },
+    {
+        id: 7,
+        name: "Adidas Stan Smith",
+        price: 2100000,
+        brand: "adidas",
+        image: "https://via.placeholder.com/300x200?text=Stan+Smith",
+    },
+    {
+        id: 8,
+        name: "Adidas NMD_R1",
+        price: 3200000,
+        brand: "adidas",
+        image: "https://via.placeholder.com/300x200?text=NMD+R1",
+    },
+]);
+
+// Lấy sản phẩm nổi bật
+const featuredProducts = computed(() => {
+    return allProducts.value.filter((p) => p.featured).slice(0, 4);
+});
 
 // State reactive để theo dõi brand được chọn
 const selectedBrand = ref("nike");
 
-// Computed property để lấy dữ liệu sản phẩm theo brand được chọn
-const productsToShow = computed(() => {
-    // Lấy dữ liệu brand được chọn
-    const productData = products[selectedBrand.value];
-    // Tạo một mảng gồm 8 sản phẩm
-    return Array(8).fill(productData);
+// Lấy sản phẩm theo brand
+const productsByBrand = computed(() => {
+    return allProducts.value.filter((p) => p.brand == selectedBrand.value);
 });
 
 // Hàm để thay đổi brand khi click button
 function selectBrand(brand) {
     selectedBrand.value = brand;
 }
+
+// Định dạng tiền
+function formatCurrency(value) {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+    }).format(value);
+}
 </script>
 <template>
     <main>
         <section class="hero-section" style="
-        background-image: url('https://allgoodtales.com/wp-content/uploads/2018/10/Nike-Header-min.jpg');
-      ">
+        background-image: url('https://allgoodtales.com/wp-content/uploads/2018/10/Nike-Header-min.jpg');">
             <div class="overlay">
                 <div class="text-center text-white px-4">
                     <h1 class="display-5 fw-bold mb-3">
@@ -54,42 +120,14 @@ function selectBrand(brand) {
                 </div>
 
                 <div class="row g-4">
-                    <div class="col-12 col-sm-6 col-md-3">
+                    <div class="col-12 col-sm-6 col-md-3" v-for="product in featuredProducts" :key="product.id">
                         <div class="card h-100 product-card">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Sản phẩm 1" />
+                            <img :src="product.image" class="card-img-top" :alt="product.name" />
                             <div class="card-body d-flex flex-column text-center">
-                                <h5 class="card-title">Nike Air Max</h5>
-                                <p class="product-price mt-1">2.500.000₫</p>
-                                <button class="btn btn-buy mt-auto">Thêm vào giỏ</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3">
-                        <div class="card h-100 product-card">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Sản phẩm 2" />
-                            <div class="card-body d-flex flex-column text-center">
-                                <h5 class="card-title">Adidas Ultraboost</h5>
-                                <p class="product-price mt-1">2.900.000₫</p>
-                                <button class="btn btn-buy mt-auto">Thêm vào giỏ</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3">
-                        <div class="card h-100 product-card">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Sản phẩm 3" />
-                            <div class="card-body d-flex flex-column text-center">
-                                <h5 class="card-title">Converse Classic</h5>
-                                <p class="product-price mt-1">1.200.000₫</p>
-                                <button class="btn btn-buy mt-auto">Thêm vào giỏ</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3">
-                        <div class="card h-100 product-card">
-                            <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Sản phẩm 4" />
-                            <div class="card-body d-flex flex-column text-center">
-                                <h5 class="card-title">Vans Old Skool</h5>
-                                <p class="product-price mt-1">1.600.000₫</p>
+                                <h5 class="cart-title">{{ product.name }}</h5>
+                                <p class="product-price mt-1">
+                                    {{ formatCurrency(product.price) }}
+                                </p>
                                 <button class="btn btn-buy mt-auto">Thêm vào giỏ</button>
                             </div>
                         </div>
@@ -119,7 +157,8 @@ function selectBrand(brand) {
                     <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">
                         Adidas
                     </button>
-                    <button class="btn" :class="{ active: selectedBrand === 'converse' }" @click="selectBrand('converse')">
+                    <button class="btn" :class="{ active: selectedBrand === 'converse' }"
+                        @click="selectBrand('converse')">
                         Converse
                     </button>
                     <button class="btn" :class="{ active: selectedBrand === 'vans' }" @click="selectBrand('vans')">
@@ -129,13 +168,12 @@ function selectBrand(brand) {
 
                 <div id="product-list-container">
                     <div class="row g-4">
-                        <div class="col-6 col-md-3" v-for="(product, index) in productsToShow" :key="index">
+                        <div class="col-6 col-md-3" v-for="product in productsByBrand" :key="product.id">
                             <div class="card h-100 product-card">
-                                <img :src="`https://via.placeholder.com/300x200?text=${product.text}`"
-                                    class="card-img-top" :alt="product.name" />
+                                <img :src="product.image" class="card-img-top" :alt="product.name" />
                                 <div class="card-body text-center">
                                     <h6 class="card-title">{{ product.name }}</h6>
-                                    <p class="product-price">{{ product.price }}</p>
+                                    <p class="product-price">{{ formatCurrency(product.price) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -146,7 +184,7 @@ function selectBrand(brand) {
     </main>
 </template>
 
-<style>
+<style scoped>
 :root {
     --color-primary: #ef4444;
     --color-primary-dark: #dc2626;
