@@ -317,7 +317,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[ROLE](
 	[ID] [int] IDENTITY(1,1),
-	[ROLE_NANE] [nvarchar](50),
+	[ROLE_NAME] [nvarchar](50),
 	[DESCRIPTION] [nvarchar](255),
 PRIMARY KEY CLUSTERED 
 (

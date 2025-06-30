@@ -1,5 +1,10 @@
 package com.poly.BE_main.repository;
 
-public class SoleRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.poly.BE_main.model.Sole;
+
+@Repository
+public interface SoleRepository extends JpaRepository <Sole, Integer>{
 
 }

@@ -22,11 +22,22 @@ public class ProductService {
         return p;
     }
 
-    public void deleteById(Integer id){
+    public void deleteById(Integer id) {
         productRepository.deleteById(id);
     }
 
-    public Product updadte(Product p){
-        return productRepository.save(p);
+    public Product update(int id, Product pUpdate) {
+        return productRepository.findById(id).map(p -> {
+            p.setProductName(pUpdate.getProductName());
+            p.setBrandId(pUpdate.getBrandId());
+            p.setStyleId(pUpdate.getStyleId());
+            p.setSoleId(pUpdate.getSoleId());
+            p.setDescription(pUpdate.getDescription());
+            p.setCreatedBy(pUpdate.getCreatedBy());
+            p.setCreatedDate(pUpdate.getCreatedDate());
+            p.setStatus(pUpdate.getStatus());
+            return productRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
     }
+
 }
