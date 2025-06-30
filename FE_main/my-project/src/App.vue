@@ -63,7 +63,7 @@ import InformationCustomer from './components/InformationCustomer.vue';
   </header>
   <div id="app">
     <RouterView />
-    <InformationCustomer/>
+    <!-- <InformationCustomer/> -->
   </div>
   
 

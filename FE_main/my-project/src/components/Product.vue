@@ -1,13 +1,31 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Banner from './Banner.vue'
+import axios from 'axios'
 
 const router = useRouter()
 
 const goToDetail = (id) => {
   router.push('/productDetail')
 }
+
+const products = ref([])
+
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get('localhost:8080/product/show') // Thay thế bằng API thực tế
+    products.value = response.data
+  } catch (error) {
+    console.error('Lỗi hiển thị sản phẩm', error)
+  }
+}
+
+onMounted(() => {
+  fetchProducts()
+})  
+
+
 // Filter states
 const filters = ref({
   sort: '',
@@ -106,51 +124,7 @@ const filterSections = [
   }
 ]
 
-// Dữ liệu sản phẩm mẫu
-const products = ref([
-  {
-    id: 1,
-    name: 'Nike Air Max 2023',
-    brand: 'Nike',
-    price: '1.590.000',
-    image: 'https://via.placeholder.com/300x200'
-  },
-  {
-    id: 2,
-    name: 'Adidas Ultraboost',
-    brand: 'Adidas',
-    price: '2.250.000',
-    image: 'https://via.placeholder.com/300x200'
-  },
-  {
-    id: 3,
-    name: 'Puma Running Pro',
-    brand: 'Puma',
-    price: '1.100.000',
-    image: 'https://via.placeholder.com/300x200'
-  },
-  {
-    id: 4,
-    name: 'Nike Zoom Fly',
-    brand: 'Nike',
-    price: '1.750.000',
-    image: 'https://via.placeholder.com/300x200'
-  },
-  {
-    id: 5,
-    name: 'Adidas NMD R1',
-    brand: 'Adidas',
-    price: '2.000.000',
-    image: 'https://via.placeholder.com/300x200'
-  },
-  {
-    id: 6,
-    name: 'Puma Future Rider',
-    brand: 'Puma',
-    price: '1.300.000',
-    image: 'https://via.placeholder.com/300x200'
-  }
-])
+
 </script>
 
 <template>

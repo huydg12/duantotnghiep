@@ -47,12 +47,15 @@ CREATE TABLE [dbo].[IMAGE](
 	[ID] [int] IDENTITY(1,1),
 	[PRODUCT_DETAIL_ID] [int],
 	[URL] [nvarchar](max),
+	[IS_MAIN] [bit] DEFAULT 0
 PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+
 
 -- BẢNG SIZE --
 SET ANSI_NULLS ON
@@ -803,9 +806,23 @@ GO
 ---------------------------------
 -- 12. Bảng IMAGE 
 ---------------------------------
-INSERT INTO dbo.IMAGE (PRODUCT_DETAIL_ID, URL) VALUES 
-(1, 'https:');
-GO
+INSERT INTO dbo.IMAGE (PRODUCT_DETAIL_ID, URL, IS_MAIN) VALUES
+(1, './HinhAnh/anh1.webp',1),
+(1, './HinhAnh/anh2.webp',0),
+(1, './HinhAnh/anh3.webp',0),
+(1, './HinhAnh/anh4.webp',0),
+(1, './HinhAnh/anh5.webp',0),
+(1, './HinhAnh/anh6.webp',0),
+(2, './HinhAnh/anhd1.webp',1),
+(2, './HinhAnh/anhd2.webp',0),
+(2, './HinhAnh/anhd3.webp',0),
+(2, './HinhAnh/anhd4.webp',0),
+(2, './HinhAnh/anhd5.webp',0),
+(2, './HinhAnh/anhd6.webp',0),
+(5, './HinhAnh/anhd6.webp',1),
+(9, './HinhAnh/anhd6.webp',1),
+(13, './HinhAnh/anhd6.webp',1),
+(17, './HinhAnh/anhd6.webp',1);
 
 
 ---------------------------------
@@ -882,3 +899,15 @@ VALUES
     (1, 5, 10, 1000000.00, 10000000.00, 1);
 GO
 
+
+
+SELECT 
+    P.PRODUCT_NAME,
+    B.NAME AS BRAND_NAME,
+    PD.PRICE,
+    I.URL AS MAIN_IMAGE_URL
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
+JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.IS_MAIN = 1
+WHERE P.STATUS = 1
