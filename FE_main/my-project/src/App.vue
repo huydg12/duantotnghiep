@@ -2,8 +2,7 @@
 
 import Logo from '/images/logo.png';
 import { RouterLink, RouterView } from 'vue-router'
-import Banner from './components/Banner.vue';
-import InformationCustomer from './components/InformationCustomer.vue';
+import Manage from './components/Manage.vue';
 
 </script>
 
@@ -62,8 +61,8 @@ import InformationCustomer from './components/InformationCustomer.vue';
     </nav>
   </header>
   <div id="app">
-    <RouterView />
-    <!-- <InformationCustomer/> -->
+    <!-- <RouterView /> -->
+    <Manage/>
   </div>
   
 

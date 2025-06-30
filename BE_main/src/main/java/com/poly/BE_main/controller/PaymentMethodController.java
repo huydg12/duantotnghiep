@@ -12,32 +12,32 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.poly.BE_main.model.Role;
-import com.poly.BE_main.service.RoleService;
+import com.poly.BE_main.model.PaymentMethod;
+import com.poly.BE_main.service.PaymentMethodService;
 
 @RestController
-@RequestMapping("/role")
-public class RoleController {
+@RequestMapping("/PaymentMethod")
+public class PaymentMethodController {
     @Autowired
-    RoleService roleService;
+    PaymentMethodService paymentMethodService;
 
     @GetMapping("/show")
-    public List<Role>findall(){
-        return roleService.FindAll();
+    public List<PaymentMethod>findAll(){
+        return paymentMethodService.findAll();
     }
 
     @PostMapping("/add")
-    public Role add(@RequestBody Role r){
-        return roleService.create(r);
+    public PaymentMethod add(@RequestBody PaymentMethod p){
+        return paymentMethodService.create(p);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable int id){
-        roleService.delete(id);
-    }
-
+        public void delete(@PathVariable int id){
+            paymentMethodService.delete(id);
+        }
+    
     @PutMapping("/update/{id}")
-    public Role update(@PathVariable int id, @RequestBody Role r){
-        return roleService.update(id, r);
+    public PaymentMethod update(@PathVariable int id, @RequestBody PaymentMethod p){
+        return paymentMethodService.update(id, p);
     }
 }

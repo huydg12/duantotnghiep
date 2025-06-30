@@ -1,5 +1,9 @@
 package com.poly.BE_main.repository;
 
-public class StyleRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.poly.BE_main.model.Style;
+
+public interface StyleRepository extends JpaRepository<Style, Integer>{
 
 }

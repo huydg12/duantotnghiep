@@ -1,6 +1,4 @@
 package com.poly.BE_main.model;
-
-import jakarta.annotation.Generated;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -54,5 +52,7 @@ public String getDescription() {
 public void setDescription(String description) {
     Description = description;
 }
+
+
 
 }

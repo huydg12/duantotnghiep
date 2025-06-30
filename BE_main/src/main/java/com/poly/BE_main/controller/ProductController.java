@@ -50,6 +50,6 @@ public void delete(@PathVariable Integer id){
 
 @PutMapping("/update/{id}")
 public Product update(@PathVariable int id, @RequestBody Product p){
-    return productService.updadte(p);
+    return productService.update(id, p);
 }
 }

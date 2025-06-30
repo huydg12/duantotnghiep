@@ -26,30 +26,11 @@ public class ProductService {
         return p;
     }
 
-    public void deleteById(Integer id){
+    public void deleteById(Integer id) {
         productRepository.deleteById(id);
     }
 
     public Product updadte(Product p){
         return productRepository.save(p);
     }
-
-public List<ProductDTO> getProducts() {
-    List<Object[]> results = productRepository.findAllProductsWithImages();
-
-    List<ProductDTO> products = new ArrayList<>();
-
-    for (Object[] row : results) {
-        Integer productId = ((Number) row[0]).intValue();
-        String productName = (String) row[1];
-        String brandName = (String) row[2];
-        BigDecimal price = (BigDecimal) row[3];
-        String image1 = (String) row[4]; // Ảnh chính
-        String image2 = (String) row[5]; // Ảnh hover
-
-        products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
-    }
-
-    return products;
-}
 }
