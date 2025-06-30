@@ -1,8 +1,11 @@
 package com.poly.BE_main.service;
 
 import java.util.List;
-import com.poly.BE_main.model.PromotionDetail;
 
+import org.springframework.stereotype.Service;
+
+import com.poly.BE_main.model.PromotionDetail;
+@Service
 public interface PromotionDetailService {
     List<PromotionDetail> findAll();
     PromotionDetail findById(Long id);

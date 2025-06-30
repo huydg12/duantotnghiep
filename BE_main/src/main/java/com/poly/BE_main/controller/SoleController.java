@@ -17,7 +17,7 @@ public class SoleController {
 
     @GetMapping("/show")
     public List<Sole> finall() {
-        return soleService.finall();
+        return soleService.findAll();
     }
 
     @PostMapping("/add")

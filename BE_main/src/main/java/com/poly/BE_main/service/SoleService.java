@@ -2,14 +2,16 @@ package com.poly.BE_main.service;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.poly.BE_main.model.Sole;
 import com.poly.BE_main.repository.SoleRepository;
-
+@Service
 public class SoleService {
     @Autowired
     SoleRepository soleRepository;
 
-    public List<Sole>finall(){
+    public List<Sole>findAll(){
         return soleRepository.findAll();
     }
 

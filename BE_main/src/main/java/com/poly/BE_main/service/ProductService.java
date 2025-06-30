@@ -33,4 +33,38 @@ public class ProductService {
     public Product updadte(Product p){
         return productRepository.save(p);
     }
+      public Product update(int id, Product pUpdate) {
+        return productRepository.findById(id).map(p -> {
+            p.setProductName(pUpdate.getProductName());
+            p.setBrandId(pUpdate.getBrandId());
+            p.setStyleId(pUpdate.getStyleId());
+            p.setSoleId(pUpdate.getSoleId());
+            p.setDescription(pUpdate.getDescription());
+            p.setCreatedBy(pUpdate.getCreatedBy());
+            p.setCreatedDate(pUpdate.getCreatedDate());
+            p.setStatus(pUpdate.getStatus());
+            return productRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
+    }
+
+
+    public List<ProductDTO> getProducts() {
+    List<Object[]> results = productRepository.findAllProductsWithImages();
+
+    List<ProductDTO> products = new ArrayList<>();
+
+    for (Object[] row : results) {
+        Integer productId = ((Number) row[0]).intValue();
+        String productName = (String) row[1];
+        String brandName = (String) row[2];
+        BigDecimal price = (BigDecimal) row[3];
+        String image1 = (String) row[4]; // Ảnh chính
+        String image2 = (String) row[5]; // Ảnh hover
+
+        products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+    }
+
+    return products;
+}
+
 }
