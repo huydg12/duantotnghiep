@@ -9,7 +9,7 @@ const cartItems = ref([
     size: 42,
     price: 2000000,
     quantity: 1,
-    image: ".assets/images/anh1.webp",
+    image: "/images/anh1.webp",
   },
 ]);
 
@@ -41,7 +41,7 @@ function formatCurrency(value) {
       <div id="cartItems">
         <div v-for="item in cartItems" :key="item.id" class="row align-items-center g-3 mb-4 cart-item">
           <div class="col-12 col-md-2 text-center">
-            <img src=".assets/images/anh1.webp" :alt="item.name" class="img-fluid rounded" style="max-width: 96px; height: auto" />
+            <img src="/images/anh1.webp" :alt="item.name" class="img-fluid rounded" style="max-width: 96px; height: auto" />
           </div>
           <div class="col-12 col-md-4">
             <h6 class="mb-1 fw-medium">{{ item.name }}</h6>

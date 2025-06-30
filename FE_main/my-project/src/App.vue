@@ -1,6 +1,6 @@
 <script setup>
 
-import Logo from './assets/images/logo.png'
+import Logo from '/images/logo.png';
 import { RouterLink, RouterView } from 'vue-router'
 import Banner from './components/Banner.vue';
 import InformationCustomer from './components/InformationCustomer.vue';

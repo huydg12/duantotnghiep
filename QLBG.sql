@@ -57,6 +57,7 @@ GO
 
 
 
+
 -- BẢNG SIZE --
 SET ANSI_NULLS ON
 GO
@@ -807,22 +808,22 @@ GO
 -- 12. Bảng IMAGE 
 ---------------------------------
 INSERT INTO dbo.IMAGE (PRODUCT_DETAIL_ID, URL, IS_MAIN) VALUES
-(1, './HinhAnh/anh1.webp',1),
-(1, './HinhAnh/anh2.webp',0),
-(1, './HinhAnh/anh3.webp',0),
-(1, './HinhAnh/anh4.webp',0),
-(1, './HinhAnh/anh5.webp',0),
-(1, './HinhAnh/anh6.webp',0),
-(2, './HinhAnh/anhd1.webp',1),
-(2, './HinhAnh/anhd2.webp',0),
-(2, './HinhAnh/anhd3.webp',0),
-(2, './HinhAnh/anhd4.webp',0),
-(2, './HinhAnh/anhd5.webp',0),
-(2, './HinhAnh/anhd6.webp',0),
-(5, './HinhAnh/anhd6.webp',1),
-(9, './HinhAnh/anhd6.webp',1),
-(13, './HinhAnh/anhd6.webp',1),
-(17, './HinhAnh/anhd6.webp',1);
+(1, './images/anh1.webp', 1),
+(1, './images/anh2.webp', 0),
+(1, './images/anh3.webp', 0),
+(1, './images/anh4.webp', 0),
+(1, './images/anh5.webp', 0),
+(1, './images/anh6.webp', 0),
+(2, './images/anhd1.webp', 1),
+(2, './images/anhd2.webp', 0),
+(2, './images/anhd3.webp', 0),
+(2, './images/anhd4.webp', 0),
+(2, './images/anhd5.webp', 0),
+(2, './images/anhd6.webp', 0),
+(5, './images/anhd6.webp', 1),
+(9, './images/anhd6.webp', 1),
+(13, './images/anhd6.webp', 1),
+(17, './images/anhd6.webp', 1);
 
 
 ---------------------------------
@@ -902,6 +903,7 @@ GO
 
 
 SELECT 
+    P.ID AS id,
     P.PRODUCT_NAME,
     B.NAME AS BRAND_NAME,
     PD.PRICE,
@@ -911,3 +913,106 @@ JOIN BRAND B ON P.BRAND_ID = B.ID
 JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
 JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.IS_MAIN = 1
 WHERE P.STATUS = 1
+
+SELECT 
+    P.ID AS productId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    PD.PRICE AS price,
+    I.URL AS imageUrl,
+    I.IS_MAIN AS isMain
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
+JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
+WHERE P.STATUS = 1
+
+SELECT 
+    P.ID AS productId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    PD.PRICE AS price,
+    STRING_AGG(I.URL + '|' + CAST(I.IS_MAIN AS VARCHAR), ',') AS images
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
+JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
+WHERE P.STATUS = 1
+GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+
+
+SELECT 
+    P.ID AS productId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    PD.PRICE AS price,
+    (
+        SELECT I2.URL 
+        FROM IMAGE I2 
+        WHERE I2.PRODUCT_DETAIL_ID = PD.ID 
+        ORDER BY I2.ID 
+        OFFSET 1 ROW FETCH NEXT 1 ROW ONLY
+    ) AS hoverImage
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
+JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+WHERE P.STATUS = 1
+GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+
+
+SELECT 
+    P.ID AS productId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    PD.PRICE AS price,
+    MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
+    MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
+
+
+CROSS APPLY (
+    SELECT TOP 1 * 
+    FROM PRODUCT_DETAIL PD 
+    WHERE PD.PRODUCT_ID = P.ID
+    ORDER BY PD.ID
+) PD
+
+
+JOIN (
+    SELECT 
+        ID, PRODUCT_DETAIL_ID, URL,
+        ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
+    FROM IMAGE
+) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
+
+WHERE P.STATUS = 1
+GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+
+
+SELECT 
+    P.ID AS productId,
+    PD.ID AS productDetailId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    C.NAME AS color,
+    P.DESCRIPTION AS descriptionProduct,
+    S.NAME AS size,
+    PD.PRICE AS price,
+    STRING_AGG(I.URL, ',') AS images
+FROM 
+    PRODUCT P
+JOIN 
+    PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
+JOIN 
+    BRAND B ON P.BRAND_ID = B.ID
+JOIN 
+    COLOR C ON PD.COLOR_ID = C.ID
+JOIN 
+    SIZE S ON PD.SIZE_ID = S.ID
+LEFT JOIN 
+    IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
+ WHERE P.ID = :productId
+GROUP BY 
+    P.ID, PD.ID, P.PRODUCT_NAME, 
+    B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;

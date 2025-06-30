@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,11 +15,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.poly.BE_main.dto.ProductDTO;
 import com.poly.BE_main.model.Product;
 import com.poly.BE_main.service.ProductService;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/product")
 public class ProductController {
@@ -26,6 +29,11 @@ ProductService productService;
 @GetMapping("/show")
 public List<Product>findAll(){
     return productService.findAll();
+}
+@GetMapping("/showSPdto")
+public ResponseEntity<List<ProductDTO>> getAllProductDTOs() {
+    List<ProductDTO> products = productService.getProducts();
+    return ResponseEntity.ok(products); // Trả về 200 OK với danh sách ProductDTO
 }
 
 @PostMapping("/add")

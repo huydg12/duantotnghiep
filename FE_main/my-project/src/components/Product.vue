@@ -5,17 +5,22 @@ import Banner from './Banner.vue'
 import axios from 'axios'
 
 const router = useRouter()
+const products = ref([])
+
 
 const goToDetail = (id) => {
-  router.push('/productDetail')
+  router.push(`/productDetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
 }
 
-const products = ref([])
+
+
+
 
 const fetchProducts = async () => {
   try {
-    const response = await axios.get('localhost:8080/product/show') // Thay thế bằng API thực tế
+    const response = await axios.get('http://localhost:8080/product/showSPdto') // Thay thế bằng API thực tế
     products.value = response.data
+    console.log(products.value)
   } catch (error) {
     console.error('Lỗi hiển thị sản phẩm', error)
   }
@@ -168,19 +173,33 @@ const filterSections = [
 
       <!-- Danh sách sản phẩm -->
       <div class="col-lg-9">
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
-          <div v-for="product in products" :key="product.id" class="col">
-            <div class="card h-100 shadow-sm">
-              <img :src="product.image" class="card-img-top" :alt="product.name" />
-              <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text text-muted">{{ product.brand }}</p>
-                <p class="card-text fw-bold text-danger">{{ product.price }}₫</p>
-                <button class="btn btn-outline-primary mt-auto" @click="goToDetail()">Xem chi tiết</button>
-              </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
+      <div v-for="product in products" :key="product.id" class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="image-container position-relative">
+              <img
+                :src="product.image1"
+                class="product-image image-front"
+                :alt="product.productName"
+              />
+              <img
+                :src="product.image2"
+                class="product-image image-hover position-absolute top-0 start-0"
+                :alt="product.productName"
+              />
             </div>
+          
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ product.productName }}</h5>
+            <p class="card-text text-muted">{{ product.brandName }}</p>
+            <p class="card-text fw-bold text-danger">{{ product.price }}₫</p>
+            <button class="btn btn-outline-primary mt-auto" @click="goToDetail(product.productId)">
+              Xem chi tiết
+            </button>
           </div>
         </div>
+      </div>
+    </div>
 
         <!-- Phân trang -->
         <nav aria-label="Page navigation">
@@ -204,8 +223,36 @@ const filterSections = [
 
 
 <style scoped>
-.card-img-top {
-  height: 200px;
-  object-fit: cover;
+
+.image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 8px;
 }
+
+.image-front,
+.image-hover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+}
+
+.image-hover {
+  opacity: 0;
+  z-index: 1;
+}
+
+.image-container:hover .image-hover {
+  opacity: 1;
+}
+
+.image-container:hover .image-front {
+  opacity: 0;
+}
+
 </style>

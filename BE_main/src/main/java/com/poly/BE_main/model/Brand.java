@@ -17,7 +17,7 @@ public class Brand {
 private Integer Id;
 
 @Column(name="NAME")
-private Integer Name;
+private String Name;
 
 @Column(name="DESCRIPTION")
 private String Description;
@@ -25,7 +25,7 @@ private String Description;
 public Brand() {
 }
 
-public Brand(Integer id, Integer name, String description) {
+public Brand(Integer id, String name, String description) {
     Id = id;
     Name = name;
     Description = description;
@@ -39,11 +39,11 @@ public void setId(Integer id) {
     Id = id;
 }
 
-public Integer getName() {
+public String getName() {
     return Name;
 }
 
-public void setName(Integer name) {
+public void setName(String name) {
     Name = name;
 }
 

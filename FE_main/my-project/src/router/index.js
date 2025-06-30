@@ -67,7 +67,7 @@ const router = createRouter({
       component: VerifyCode,
     },
     {
-      path: "/productDetail",
+      path: "/productDetail/:id",
       name: "productDetail",
       component: ProductDetail,
     },
