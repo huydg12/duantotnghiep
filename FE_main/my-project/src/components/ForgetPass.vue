@@ -26,7 +26,8 @@ function goToConfirmPage() {
       </button>
 
       <p class="info-text">
-        Hệ thống sẽ gửi đường dẫn đặt lại mật khẩu đến email của bạn (nếu có tồn tại trong hệ thống).
+        Hệ thống sẽ gửi đường dẫn đặt lại mật khẩu đến email của bạn (nếu có tồn
+        tại trong hệ thống).
       </p>
     </form>
   </div>
