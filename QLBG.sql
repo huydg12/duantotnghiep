@@ -1,6 +1,6 @@
-CREATE DATABASE QLBG;
+CREATE DATABASE Shoes;
 GO
-USE [QLBG];
+USE [Shoes];
 GO
 
 -- BẢNG BRAND --
@@ -8,11 +8,12 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[BRAND](
+CREATE TABLE [dbo].[BRAND]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [nvarchar](255),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -20,18 +21,18 @@ PRIMARY KEY CLUSTERED
 GO
 
 
-
 -- BẢNG COLOR --
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[COLOR](
+CREATE TABLE [dbo].[COLOR]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [nvarchar](255),
 	[CODE] [nvarchar](10),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -43,12 +44,13 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[IMAGE](
+CREATE TABLE [dbo].[IMAGE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[PRODUCT_DETAIL_ID] [int],
 	[URL] [nvarchar](max),
 	[IS_MAIN] [bit] DEFAULT 0
-PRIMARY KEY CLUSTERED 
+		PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -56,18 +58,17 @@ PRIMARY KEY CLUSTERED
 GO
 
 
-
-
 -- BẢNG SIZE --
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[SIZE](
+CREATE TABLE [dbo].[SIZE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [varchar](255),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -79,11 +80,12 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[SOLE](
+CREATE TABLE [dbo].[SOLE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [nvarchar](255),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -95,32 +97,31 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[STYLE](
+CREATE TABLE [dbo].[STYLE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [nvarchar](255),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
-
-
 -- BẢNG PAYMENT_METHOD --
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[PAYMENT_METHOD](
+CREATE TABLE [dbo].[PAYMENT_METHOD]
+(
 	[ID] [int] IDENTITY(1,1),
 	[NAME] [nvarchar](255),
 	[DESCRIPTION] [nvarchar](255),
-    [CREATED_DATE] [DATETIME] DEFAULT GETDATE(), 
-    [MODIFIED_DATE] [DATETIME]
-
-PRIMARY KEY CLUSTERED 
+	[CREATED_DATE] [DATETIME] DEFAULT GETDATE(),
+	[MODIFIED_DATE] [DATETIME]
+		PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -132,10 +133,11 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[CART](
+CREATE TABLE [dbo].[CART]
+(
 	[ID] [int] IDENTITY(1,1),
 	[CUSTOMER_ID] [int],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -147,12 +149,13 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[CART_DETAIL](
+CREATE TABLE [dbo].[CART_DETAIL]
+(
 	[ID] [int] IDENTITY(1,1),
 	[CART_ID] [int],
 	[PRODUCT_DETAIL_ID] [int],
 	[QUANTITY] [int],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -164,7 +167,8 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[ADDRESS](
+CREATE TABLE [dbo].[ADDRESS]
+(
 	[ID] [int] IDENTITY(1,1),
 	[FULL_ADDRESS] [nvarchar](500),
 	[ADDRESS] [nvarchar](300),
@@ -180,43 +184,49 @@ CREATE TABLE [dbo].[ADDRESS](
 	[STREET_NAME] [nvarchar](150),
 	[WARD_NAME] [nvarchar](150),
 	[CITY_NAME] [nvarchar](150),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
--- BẢNG BILL --
+-- BẢNG BILL (ĐÃ TỐI ƯU) --
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[BILL](
+CREATE TABLE [dbo].[BILL]
+(
 	[ID] [int] IDENTITY(1,1),
 	[CUSTOMER_ID] [int],
-    [EMPLOYEE_ID] [int],
+	[EMPLOYEE_ID] [int],
 	[PTTT_ID] [int],
-	[SHIPPING_MONEY] [decimal](10, 0),
 	[CODE] [nvarchar](45),
 	[BILL_TYPE] [nvarchar](45),
-	[STATUS] [nvarchar](45),
+	[STATUS] [int],
 	[CREATED_BY] [nvarchar](45),
 	[CREATED_DATE] [date],
 	[SHIPPING_DATE] [date],
 	[DATE_OF_PAYMENT] [date],
 	[RECIPIENT_NAME] [nvarchar](45),
 	[RECIPIENT_PHONE_NUMBER] [nvarchar](45),
-	[TOTAL_AMOUNT] [decimal](10, 0),
-	[RECEIVER_ADDRESS] [nvarchar](45),
+	[RECEIVER_ADDRESS] [nvarchar](255),
 	[ADDRESS_METHOD] [nvarchar](50),
 	[ESTIMATED_DELIVERY_DATE] [date],
 	[MODIFIED_BY] [nvarchar](100),
 	[MODIFIED_DATE] [date],
 	[NOTE] [text],
 	[STATUS_PAYMENT] [nvarchar](100),
-	[TOTAL_PRICE_PRO] [decimal](10, 0),
-PRIMARY KEY CLUSTERED 
+	-- Tiền hàng
+	[SUB_TOTAL] [decimal](18, 2),
+	-- Tiền giảm giá
+	[DISCOUNT_AMOUNT] [decimal](18, 2),
+	-- Phí ship
+	[SHIPPING_FEE] [decimal](18, 2),
+	-- Tổng cuối
+	[GRAND_TOTAL] [decimal](18, 2),
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -228,17 +238,18 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[BILL_DETAIL](
+CREATE TABLE [dbo].[BILL_DETAIL]
+(
 	[ID] [int] IDENTITY(1,1),
 	[BILL_ID] [int],
 	[PRODUCT_DETAIL_ID] [int],
-	[QUANTITY] [float],
-	[PRICE] [decimal](10, 0),
-	[STATUS] [nvarchar](45),
+	[QUANTITY] [int],
+	[PRICE] [decimal](18, 2),
+	[STATUS] [int],
 	[PRODUCT_IMAGE] [nvarchar](200),
 	[SIZE] [nvarchar](50),
 	[PRODUCT_NAME] [nvarchar](200),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -250,7 +261,8 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[CUSTOMER](
+CREATE TABLE [dbo].[CUSTOMER]
+(
 	[ID] [int] IDENTITY(1,1),
 	[ACCOUNT_ID] [int] null,
 	[FULL_NAME] [nvarchar](255),
@@ -258,9 +270,9 @@ CREATE TABLE [dbo].[CUSTOMER](
 	[EMAIL] [nvarchar](255),
 	[NUMBER_PHONE] [nvarchar](45),
 	[BIRTH_OF_DATE] [date],
-	[STATUS] [nvarchar](45),
+	[STATUS] [int],
 	[CREATED_DATE] [datetime],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -272,7 +284,8 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[EMPLOYEE](
+CREATE TABLE [dbo].[EMPLOYEE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[ACCOUNT_ID] [int],
 	[FULL_NAME] [nvarchar](255),
@@ -283,7 +296,7 @@ CREATE TABLE [dbo].[EMPLOYEE](
 	[IS_ACTIVE] [bit],
 	[CREATED_BY] [nvarchar](45),
 	[CREATED_DATE] [datetime],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -295,7 +308,8 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[ACCOUNT](
+CREATE TABLE [dbo].[ACCOUNT]
+(
 	[ID] [int] IDENTITY(1,1),
 	[USERNAME] [nvarchar](255) UNIQUE,
 	[PASSWORD] [nvarchar](255),
@@ -304,7 +318,7 @@ CREATE TABLE [dbo].[ACCOUNT](
 	[CREATED_DATE] [datetime],
 	[IS_ACTIVE] [bit],
 	[ROLE_ID] [int],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -316,35 +330,39 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[ROLE](
+CREATE TABLE [dbo].[ROLE]
+(
 	[ID] [int] IDENTITY(1,1),
 	[ROLE_NAME] [nvarchar](50),
 	[DESCRIPTION] [nvarchar](255),
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 
--- BẢNG PROMOTION --
+-- BẢNG PROMOTION
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[PROMOTION] (
-    [ID] [INT] IDENTITY(1,1),
-    [PROMOTION_CODE] [INT],
-    [NAME] [NVARCHAR](255),
-    [TYPE] [INT],                    -- 1: %, 2: Fixed amount
-    [VALUE] [DECIMAL](10, 2),
-    [START_DATE] [DATETIME],
-    [END_DATE] [DATETIME],
-    [STATUS] [INT],                 -- 0: Inactive, 1: Active
-    [NOTE] [NVARCHAR](MAX),
-    [CREATED_DATE] [DATETIME],
-    [MODIFIED_DATE] [DATETIME],
-PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[PROMOTION]
+(
+	[ID] [INT] IDENTITY(1,1),
+	[PROMOTION_CODE] [VARCHAR](50),
+	[NAME] [NVARCHAR](255),
+	[TYPE] [INT],
+	-- 1: %, 2: Fixed amount
+	[VALUE] [DECIMAL](10, 2),
+	[START_DATE] [DATETIME],
+	[END_DATE] [DATETIME],
+	[STATUS] [INT],
+	-- 0: Inactive, 1: Active
+	[NOTE] [NVARCHAR](MAX),
+	[CREATED_DATE] [DATETIME],
+	[MODIFIED_DATE] [DATETIME],
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -356,13 +374,14 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[PROMOTION_DETAIL] (
-    [ID] [INT] IDENTITY(1,1),
-    [PROMOTION_ID] [INT],
-    [PRODUCT_DETAIL_ID] [INT],
-    [PROMOTION_VALUE] [DECIMAL](10, 2),
-    [STATUS] [INT],
-PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[PROMOTION_DETAIL]
+(
+	[ID] [INT] IDENTITY(1,1),
+	[PROMOTION_ID] [INT],
+	[PRODUCT_DETAIL_ID] [INT],
+	[PROMOTION_VALUE] [DECIMAL](10, 2),
+	[STATUS] [INT],
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -374,12 +393,13 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[INVENTORY] (
-    [ID] [INT] IDENTITY(1,1),
-    [PRODUCT_DETAIL_ID] [INT],
-    [QUANTITY] [INT],
-    [MODIFIED_DATE] [DATETIME],
-PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[INVENTORY]
+(
+	[ID] [INT] IDENTITY(1,1),
+	[PRODUCT_DETAIL_ID] [INT],
+	[QUANTITY] [INT],
+	[MODIFIED_DATE] [DATETIME],
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -391,16 +411,17 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[IMPORT_RECEIPT] (
-    [ID] [INT] IDENTITY(1,1),
-	[IMPORT_RECEIPT_CODE] [INT],
-    [EMPLOYEE_ID] [INT],
+CREATE TABLE [dbo].[IMPORT_RECEIPT]
+(
+	[ID] [INT] IDENTITY(1,1),
+	[IMPORT_RECEIPT_CODE] [VARCHAR](50),
+	[EMPLOYEE_ID] [INT],
 	[IMPORT_DATE] [DATETIME],
-    [TOTAL_AMOUNT] [DECIMAL](18, 2),
+	[TOTAL_AMOUNT] [DECIMAL](18, 2),
 	[NOTE] [NVARCHAR](MAX),
-    [STATUS] [INT],
-    [CREATED_DATE] [DATETIME] DEFAULT GETDATE(),
-PRIMARY KEY CLUSTERED 
+	[STATUS] [INT],
+	[CREATED_DATE] [DATETIME] DEFAULT GETDATE(),
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -412,15 +433,16 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[IMPORT_RECEIPT_DETAIL] (
-    [ID] [INT] IDENTITY(1,1),
-    [IMPORT_RECEIPT_ID] [INT],         -- Mã phiếu nhập
-    [PRODUCT_DETAIL_ID] [INT],         -- Mã chi tiết sản phẩm
-    [QUANTITY] [INT],                  -- Số lượng nhập
-    [UNIT_PRICE] [DECIMAL](18,2),      -- Giá nhập
-    [TOTAL_PRICE] [DECIMAL](18,2),     -- Thành tiền
-    [STATUS] [INT],     
-PRIMARY KEY CLUSTERED 
+CREATE TABLE [dbo].[IMPORT_RECEIPT_DETAIL]
+(
+	[ID] [INT] IDENTITY(1,1),
+	[IMPORT_RECEIPT_ID] [INT],
+	[PRODUCT_DETAIL_ID] [INT],
+	[QUANTITY] [INT],
+	[UNIT_PRICE] [DECIMAL](18,2),
+	[TOTAL_PRICE] [DECIMAL](18,2),
+	[STATUS] [INT],
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
@@ -432,7 +454,8 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[PRODUCT](
+CREATE TABLE [dbo].[PRODUCT]
+(
 	[ID] [int] IDENTITY(1,1),
 	[PRODUCT_NAME] [nvarchar](255),
 	[BRAND_ID] [int],
@@ -442,37 +465,52 @@ CREATE TABLE [dbo].[PRODUCT](
 	[CREATED_BY] [nvarchar](255),
 	[CREATED_DATE] [datetime],
 	[STATUS] [int],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-
 
 -- BẢNG PRODUCT_DETAIL --
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE [dbo].[PRODUCT_DETAIL](
+CREATE TABLE [dbo].[PRODUCT_DETAIL]
+(
 	[ID] [int] IDENTITY(1,1),
 	[SIZE_ID] [int],
 	[COLOR_ID] [int],
 	[PRODUCT_ID] [int],
-	[PROMOTION_ID] [INT],
-	[QUANTITY] [int],
-	[PRICE] [decimal](10, 2),
+	[PRICE] [decimal](18, 2),
 	[DESCRIPTION] [nvarchar](max),
 	[STATUS] [int],
-PRIMARY KEY CLUSTERED 
+	PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-
-
 GO
+
+-- BẢNG BILL_PROMOTION --
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[BILL_PROMOTION]
+(
+	[ID] [int] IDENTITY(1,1),
+	[BILL_ID] [int],
+	[PROMOTION_ID] [int],
+	[DISCOUNT_VALUE] [decimal](18, 2),
+	PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 ALTER TABLE [dbo].[ADDRESS] WITH CHECK ADD CONSTRAINT [FK_ADDRESS_CUSTOMER] FOREIGN KEY([CUSTOMER_ID])
 REFERENCES [dbo].[CUSTOMER] ([ID])
 GO
@@ -628,391 +666,430 @@ GO
 ALTER TABLE [dbo].[ACCOUNT] CHECK CONSTRAINT [FK_ACCOUNT_ROLE]
 GO
 
-INSERT INTO [dbo].[ROLE] ([ROLE_NANE], [DESCRIPTION]) VALUES
-(N'Admin', N'Quản trị hệ thống'),
-(N'Khách hàng', N'Người mua hàng'),
-(N'Nhân viên', N'Nhân viên bán hàng');
+ALTER TABLE [dbo].[BILL_PROMOTION] WITH CHECK ADD CONSTRAINT [FK_BILLPROMO_BILL] FOREIGN KEY([BILL_ID])
+REFERENCES [dbo].[BILL] ([ID])
+GO
+ALTER TABLE [dbo].[BILL_PROMOTION] CHECK CONSTRAINT [FK_BILLPROMO_BILL]
 GO
 
-INSERT INTO [dbo].[ACCOUNT] ([USERNAME], [PASSWORD], [EMAIL], [NUMBER_PHONE], [CREATED_DATE], [IS_ACTIVE], [ROLE_ID]) VALUES
-(N'admin01', N'123456', N'admin@example.com', N'0909123456', GETDATE(), 1, 1),
-(N'customer01', N'abcdef', N'khachhang01@example.com', N'0911123456', GETDATE(), 1, 2),
-(N'staff01', N'qwerty', N'nhanvien01@example.com', N'0922123456', GETDATE(), 1, 3);
+ALTER TABLE [dbo].[BILL_PROMOTION] WITH CHECK ADD CONSTRAINT [FK_BILLPROMO_PROMO] FOREIGN KEY([PROMOTION_ID])
+REFERENCES [dbo].[PROMOTION] ([ID])
 GO
----------------------------------
--- 1. Bảng BRAND (5 hãng)
----------------------------------
-INSERT INTO dbo.BRAND (NAME, DESCRIPTION) VALUES
-(N'Nike', N'Hãng nổi tiếng đến từ Mỹ'),
-(N'Adidas', N'Kiểu dáng thể thao & thời trang'),
-(N'Puma', N'Hướng đến sự năng động'),
-(N'New Balance', N'Giày chất lượng, phù hợp chạy bộ'),
-(N'Converse', N'Phong cách cổ điển');
+ALTER TABLE [dbo].[BILL_PROMOTION] CHECK CONSTRAINT [FK_BILLPROMO_PROMO]
 GO
----------------------------------
--- 2. Bảng SIZE (size 33–45)
----------------------------------
+
+--- INSERT DATA ---
+
+-- 0. Bảng ROLE & ACCOUNT --
+
+INSERT INTO [dbo].[ROLE]
+	([ROLE_NAME], [DESCRIPTION])
+VALUES
+	(N'Admin', N'Quản trị hệ thống'),
+	(N'Khách hàng', N'Người mua hàng'),
+	(N'Nhân viên', N'Nhân viên bán hàng');
+GO
+
+INSERT INTO [dbo].[ACCOUNT]
+	([USERNAME], [PASSWORD], [EMAIL], [NUMBER_PHONE], [CREATED_DATE], [IS_ACTIVE], [ROLE_ID])
+VALUES
+	(N'admin01', N'123456', N'admin@example.com', N'0909123456', GETDATE(), 1, 1),
+	(N'customer01', N'abcdef', N'khachhang01@example.com', N'0911123456', GETDATE(), 1, 2),
+	(N'staff01', N'qwerty', N'nhanvien01@example.com', N'0922123456', GETDATE(), 1, 3);
+GO
+
+-- 1. Bảng BRAND (5 hãng) --
+
+INSERT INTO dbo.BRAND
+	(NAME, DESCRIPTION)
+VALUES
+	(N'Nike', N'Hãng nổi tiếng đến từ Mỹ'),
+	(N'Adidas', N'Kiểu dáng thể thao & thời trang'),
+	(N'Puma', N'Hướng đến sự năng động'),
+	(N'New Balance', N'Giày chất lượng, phù hợp chạy bộ'),
+	(N'Converse', N'Phong cách cổ điển');
+GO
+
+-- 2. Bảng SIZE (size 33–45) -- 
+
 DECLARE @s INT = 33;
 WHILE @s <= 45
 BEGIN
-    INSERT INTO dbo.SIZE (NAME, DESCRIPTION)
-    VALUES (N'EU ' + CAST(@s AS VARCHAR(3)), N'Size ' + CAST(@s AS VARCHAR(3)));
-    SET @s += 1;
+	INSERT INTO dbo.SIZE
+		(NAME, DESCRIPTION)
+	VALUES
+		(N'EU ' + CAST(@s AS VARCHAR(3)), N'Size ' + CAST(@s AS VARCHAR(3)));
+	SET @s += 1;
 END
-
----------------------------------
--- 3. Bảng COLOR (12 màu)
----------------------------------
-INSERT INTO dbo.COLOR (NAME, DESCRIPTION, CODE) VALUES
-(N'White', N'Trắng', N'#FFFFFF'),
-(N'Black', N'Đen', N'#000000'),
-(N'Red', N'Đỏ', N'#FF0000'),
-(N'Blue', N'Xanh dương', N'#0000FF'),
-(N'Green', N'Xanh lá', N'#00FF00'),
-(N'Yellow', N'Vàng', N'#FFFF00'),
-(N'Pink', N'Hồng', N'#FFC0CB'),
-(N'Orange', N'Cam', N'#FFA500'),
-(N'Purple', N'Tím', N'#800080'),
-(N'Grey', N'Xám', N'#808080'),
-(N'Brown', N'Nâu', N'#A52A2A'),
-(N'Navy', N'Xanh đậm', N'#000080');
-GO
----------------------------------
--- 4. Bảng SOLE (5 mẫu đế)
----------------------------------
-INSERT INTO dbo.SOLE (NAME, DESCRIPTION) VALUES
-(N'Rubber Sole', N'Dế cao su'),
-(N'EVA Sole', N'Dế EVA nhẹ'),
-(N'Foam Sole', N'Dế foam mềm'),
-(N'Leather Sole', N'Dế da'),
-(N'PU Sole', N'Dế PU bền');
-GO
----------------------------------
--- 5. Bảng STYLE (5 phong cách)
----------------------------------
-INSERT INTO dbo.STYLE (NAME, DESCRIPTION) VALUES
-(N'Sport', N'Thể thao'),
-(N'Casual', N'Thường ngày'),
-(N'Running', N'Chạy bộ'),
-(N'Basketball', N'Bóng rổ'),
-(N'Lifestyle', N'Sống phong cách');
-GO
----------------------------------
-
-
----------------------------------
--- 7. Bảng PAYMENT_METHOD (5 phương thức)
----------------------------------
-INSERT INTO dbo.PAYMENT_METHOD (NAME, DESCRIPTION) VALUES
-(N'Cash', N'Thanh toán tiền mặt'),
-(N'ZaloPay', N'Thanh toán qua Zalo Pay'),
-(N'Momo', N'Thanh toán qua Momo'),
-(N'QR', N'Thanh toán qua ngân hàng');
 GO
 
----------------------------------
--- 8. Bảng EMPLOYEE (5 nhân viên)
----------------------------------
+-- 3. Bảng COLOR (12 màu) --
 
-
-INSERT INTO dbo.EMPLOYEE (ACCOUNT_ID, FULL_NAME, GENDER, EMAIL, NUMBER_PHONE, BIRTH_OF_DATE, IS_ACTIVE, CREATED_BY, CREATED_DATE) VALUES 
-(3, 'Nguyễn Văn A', 1, 'nguyenvana@example.com', '0912345678', '1995-05-15', 1, 'admin', GETDATE()),
-(1, 'Nguyễn Văn Admin', 1, 'nguyenvanadmin@example.com', '0912345678', '2000-05-15', 1, 'admin', GETDATE());
-GO
----------------------------------
--- 9. Bảng CUSTOMER (5 khách hàng)
----------------------------------
-
-
-INSERT INTO dbo.CUSTOMER (ACCOUNT_ID, FULL_NAME, GENDER, EMAIL, NUMBER_PHONE, BIRTH_OF_DATE, STATUS, CREATED_DATE) 
-VALUES (2, 'Trần Thị B', 0, 'tranthib@example.com', '0987654321', '1998-09-20', 1, GETDATE());
-GO
-
----------------------------------
--- 10. Bảng PRODUCT (30 sản phẩm)
----------------------------------
-INSERT INTO dbo.PRODUCT (PRODUCT_NAME, BRAND_ID, STYLE_ID, SOLE_ID, DESCRIPTION, CREATED_BY, CREATED_DATE, STATUS) VALUES
--- Nike
-(N'Nike Air Max 90', 1, 3, 1, N'Mẫu giày chạy bộ cổ điển với đệm khí Air nổi bật', N'admin01', GETDATE(), 1),
-(N'Nike Air Force 1', 1, 4, 2, N'Mẫu giày bóng rổ biểu tượng, phong cách thời trang', N'admin01', GETDATE(), 1),
-(N'Nike React Infinity Run', 1, 3, 3, N'Giày chạy bộ với đệm React, êm ái và ổn định', N'admin01', GETDATE(), 1),
-(N'Nike ZoomX Vaporfly', 1, 3, 1, N'Giày chạy chuyên nghiệp cho vận động viên marathon', N'admin01', GETDATE(), 1),
-(N'Nike Blazer Mid', 1, 4, 2, N'Giày mid-top mang phong cách retro bóng rổ cổ điển', N'admin01', GETDATE(), 1),
-(N'Nike Huarache', 1, 5, 3, N'Giày thời trang mang lại sự thoải mái, cá tính', N'admin01', GETDATE(), 1),
-
--- Adidas
-(N'Adidas Ultraboost 22', 2, 3, 3, N'Giày chạy bộ với đệm Boost êm ái, phản hồi tốt', N'admin01', GETDATE(), 1),
-(N'Adidas Superstar', 2, 4, 1, N'Mẫu giày kinh điển với thiết kế mũi sò đặc trưng', N'admin01', GETDATE(), 1),
-(N'Adidas Stan Smith', 2, 2, 4, N'Giày thời trang đơn giản, phong cách tennis cổ điển', N'admin01', GETDATE(), 1),
-(N'Adidas NMD R1', 2, 5, 5, N'Giày streetwear năng động, đệm Boost hiện đại', N'admin01', GETDATE(), 1),
-(N'Adidas Samba OG', 2, 1, 2, N'Giày bóng đá trong nhà, thiết kế cổ điển', N'admin01', GETDATE(), 1),
-(N'Adidas Adizero Adios', 2, 3, 3, N'Giày chạy nhẹ, tốc độ dành cho thi đấu chuyên nghiệp', N'admin01', GETDATE(), 1),
-
--- Puma
-(N'Puma Suede Classic', 3, 2, 4, N'Giày da lộn phong cách đường phố, biểu tượng của Puma', N'admin01', GETDATE(), 1),
-(N'Puma RS-X', 3, 5, 1, N'Mẫu giày có thiết kế hiện đại, đế chunky cá tính', N'admin01', GETDATE(), 1),
-(N'Puma Future Rider', 3, 5, 3, N'Giày retro với thiết kế trẻ trung, nhẹ nhàng', N'admin01', GETDATE(), 1),
-(N'Puma Clyde', 3, 4, 2, N'Giày bóng rổ cổ điển với phong cách thời trang', N'admin01', GETDATE(), 1),
-(N'Puma Cali', 3, 2, 5, N'Giày nữ phong cách California, đế cao trẻ trung', N'admin01', GETDATE(), 1),
-(N'Puma Velocity Nitro', 3, 3, 3, N'Giày chạy hiệu suất cao, đệm Nitro mềm mại', N'admin01', GETDATE(), 1),
-
--- New Balance
-(N'New Balance 990v5', 4, 3, 1, N'Mẫu giày chạy bộ cao cấp, thiết kế bền bỉ và thoải mái', N'admin01', GETDATE(), 1),
-(N'New Balance 327', 4, 2, 4, N'Giày retro độc đáo, mang hơi hướng thập niên 70', N'admin01', GETDATE(), 1),
-(N'New Balance 574', 4, 2, 1, N'Mẫu giày biểu tượng, phù hợp cho nhiều mục đích', N'admin01', GETDATE(), 1),
-(N'New Balance Fresh Foam 1080v12', 4, 3, 3, N'Giày chạy bộ với đệm Fresh Foam siêu êm', N'admin01', GETDATE(), 1),
-(N'New Balance 550', 4, 4, 2, N'Giày bóng rổ cổ điển, mang phong cách retro mạnh mẽ', N'admin01', GETDATE(), 1),
-(N'New Balance 993', 4, 3, 5, N'Giày chạy bộ ổn định, phù hợp cả luyện tập và đi chơi', N'admin01', GETDATE(), 1),
-
--- Converse
-(N'Converse Chuck Taylor All Star', 5, 4, 2, N'Giày vải cao cổ biểu tượng, phù hợp mọi phong cách', N'admin01', GETDATE(), 1),
-(N'Converse Chuck 70', 5, 4, 4, N'Phiên bản nâng cấp của Chuck cổ điển, chất liệu tốt hơn', N'admin01', GETDATE(), 1),
-(N'Converse One Star', 5, 2, 3, N'Giày da lộn với ngôi sao đặc trưng, phong cách riêng biệt', N'admin01', GETDATE(), 1),
-(N'Converse Run Star Motion', 5, 5, 1, N'Mẫu giày đế cao, thiết kế phá cách và hiện đại', N'admin01', GETDATE(), 1),
-(N'Converse Pro Leather', 5, 4, 4, N'Mẫu giày bóng rổ thập niên 70 với phong cách vintage', N'admin01', GETDATE(), 1),
-(N'Converse Chuck Taylor X CDG', 5, 2, 5, N'Giày collab với thương hiệu Comme des Garçons', N'admin01', GETDATE(), 1);
-GO
-
----------------------------------
--- 11. Bảng PRODUCT_DETAIL 
----------------------------------
-INSERT INTO dbo.PRODUCT_DETAIL (SIZE_ID, COLOR_ID, PRODUCT_ID, PROMOTION_ID, QUANTITY, PRICE, DESCRIPTION, STATUS)
+INSERT INTO dbo.COLOR
+	(NAME, DESCRIPTION, CODE)
 VALUES
-(1, 1, 1, NULL, 100, 2500000, N'Chi tiết sản phẩm Nike', 1),
-(1, 2, 1, NULL, 100, 2500000, N'Chi tiết sản phẩm Nike', 1),
-(2, 1, 1, NULL, 100, 2500000, N'Chi tiết sản phẩm Nike', 1),
-(2, 2, 1, NULL, 100, 2500000, N'Chi tiết sản phẩm Nike', 1),
-
-(1, 1, 7, NULL, 100, 2500000, N'Chi tiết sản phẩm Adidas', 1),
-(1, 2, 7, NULL, 100, 2500000, N'Chi tiết sản phẩm Adidas', 1),
-(2, 1, 7, NULL, 100, 2500000, N'Chi tiết sản phẩm Adidas', 1),
-(2, 2, 7, NULL, 100, 2500000, N'Chi tiết sản phẩm Adidas', 1),
-
-(1, 1, 13, NULL, 100, 2500000, N'Chi tiết sản phẩm Puma', 1),
-(1, 2, 13, NULL, 100, 2500000, N'Chi tiết sản phẩm Puma', 1),
-(2, 1, 13, NULL, 100, 2500000, N'Chi tiết sản phẩm Puma', 1),
-(2, 2, 13, NULL, 100, 2500000, N'Chi tiết sản phẩm Puma', 1),
-
-(1, 1, 19, NULL, 100, 2500000, N'Chi tiết sản phẩm New Balance', 1),
-(1, 2, 19, NULL, 100, 2500000, N'Chi tiết sản phẩm New Balance', 1),
-(2, 1, 19, NULL, 100, 2500000, N'Chi tiết sản phẩm New Balance', 1),
-(2, 2, 19, NULL, 100, 2500000, N'Chi tiết sản phẩm New Balance', 1),
-
-(1, 1, 25, NULL, 100, 2500000, N'Chi tiết sản phẩm Converse', 1),
-(1, 2, 25, NULL, 100, 2500000, N'Chi tiết sản phẩm Converse', 1),
-(2, 1, 25, NULL, 100, 2500000, N'Chi tiết sản phẩm Converse', 1),
-(2, 2, 25, NULL, 100, 2500000, N'Chi tiết sản phẩm Converse', 1);
+	(N'White', N'Trắng', N'#FFFFFF'),
+	(N'Black', N'Đen', N'#000000'),
+	(N'Red', N'Đỏ', N'#FF0000'),
+	(N'Blue', N'Xanh dương', N'#0000FF'),
+	(N'Green', N'Xanh lá', N'#00FF00'),
+	(N'Yellow', N'Vàng', N'#FFFF00'),
+	(N'Pink', N'Hồng', N'#FFC0CB'),
+	(N'Orange', N'Cam', N'#FFA500'),
+	(N'Purple', N'Tím', N'#800080'),
+	(N'Grey', N'Xám', N'#808080'),
+	(N'Brown', N'Nâu', N'#A52A2A'),
+	(N'Navy', N'Xanh đậm', N'#000080');
 GO
 
----------------------------------
--- 12. Bảng IMAGE 
----------------------------------
-INSERT INTO dbo.IMAGE (PRODUCT_DETAIL_ID, URL, IS_MAIN) VALUES
-(1, './images/anh1.webp', 1),
-(1, './images/anh2.webp', 0),
-(1, './images/anh3.webp', 0),
-(1, './images/anh4.webp', 0),
-(1, './images/anh5.webp', 0),
-(1, './images/anh6.webp', 0),
-(2, './images/anhd1.webp', 1),
-(2, './images/anhd2.webp', 0),
-(2, './images/anhd3.webp', 0),
-(2, './images/anhd4.webp', 0),
-(2, './images/anhd5.webp', 0),
-(2, './images/anhd6.webp', 0),
-(5, './images/anhd6.webp', 1),
-(9, './images/anhd6.webp', 1),
-(13, './images/anhd6.webp', 1),
-(17, './images/anhd6.webp', 1);
+-- 4. Bảng SOLE (5 mẫu đế) --
 
-
----------------------------------
--- 13. Bảng CART 
----------------------------------
-INSERT INTO dbo.CART (CUSTOMER_ID) VALUES (1);
-GO
----------------------------------
--- 14. Bảng CART_DETAIL 
----------------------------------
-INSERT INTO dbo.CART_DETAIL (CART_ID, PRODUCT_DETAIL_ID, QUANTITY) VALUES
-(1, 1, 2);
-GO
-
----------------------------------
--- 15. Bảng ADDRESS (5 địa chỉ)
----------------------------------
-INSERT INTO dbo.ADDRESS (FULL_ADDRESS, ADDRESS, CREATED_BY, CREATED_DATE, MODIFIED_BY, MODIFIED_DATE, NUMBER_PHONE, FULL_NAME, CUSTOMER_ID, IS_DEFAULT, ADDRESS_TYPE, STREET_NAME, WARD_NAME, CITY_NAME)
+INSERT INTO dbo.SOLE
+	(NAME, DESCRIPTION)
 VALUES
-(N'123 Đường A, P.1, TP.Hải Phòng', N'Đường A', N'customer01', GETDATE(), N'customer01', GETDATE(), N'0911123456', N'Khách 1', 1, 1, N'HN',N'Đường 365', N'Phường 1', N'TP Hải Phòng');
+	(N'Rubber Sole', N'Dế cao su'),
+	(N'EVA Sole', N'Dế EVA nhẹ'),
+	(N'Foam Sole', N'Dế foam mềm'),
+	(N'Leather Sole', N'Dế da'),
+	(N'PU Sole', N'Dế PU bền');
 GO
 
----------------------------------
--- 16. Bảng BILL và BILL_DETAIL (5 hóa đơn + 5 chi tiết)
----------------------------------
-INSERT INTO dbo.BILL (CUSTOMER_ID, EMPLOYEE_ID, PTTT_ID, SHIPPING_MONEY, CODE, BILL_TYPE, STATUS, CREATED_BY, CREATED_DATE, SHIPPING_DATE, DATE_OF_PAYMENT, RECIPIENT_NAME, RECIPIENT_PHONE_NUMBER, TOTAL_AMOUNT, RECEIVER_ADDRESS, ADDRESS_METHOD, ESTIMATED_DELIVERY_DATE, STATUS_PAYMENT, TOTAL_PRICE_PRO)
+-- 5. Bảng STYLE (5 phong cách) --
+
+INSERT INTO dbo.STYLE
+	(NAME, DESCRIPTION)
 VALUES
-(1, 1, 1, 30000, N'INV001', N'Online', N'Completed', N'admin01', GETDATE(), GETDATE(), GETDATE(), N'Khách 1', N'0911123456', 1500000, N'123 Đường A', N'Standard', DATEADD(day,5,GETDATE()), N'Paid', 1470000);
+	(N'Sport', N'Thể thao'),
+	(N'Casual', N'Thường ngày'),
+	(N'Running', N'Chạy bộ'),
+	(N'Basketball', N'Bóng rổ'),
+	(N'Lifestyle', N'Sống phong cách');
+GO
 
+-- 7. Bảng PAYMENT_METHOD (5 phương thức) -- 
 
-INSERT INTO dbo.BILL_DETAIL (BILL_ID, PRODUCT_DETAIL_ID, QUANTITY, PRICE, STATUS, PRODUCT_IMAGE, SIZE, PRODUCT_NAME)
+INSERT INTO dbo.PAYMENT_METHOD
+	(NAME, DESCRIPTION)
 VALUES
-(1,1,1,1000000,N'OK',N'https',N'EU 33',N'Sneaker Model 1');
+	(N'Cash', N'Thanh toán tiền mặt'),
+	(N'ZaloPay', N'Thanh toán qua Zalo Pay'),
+	(N'Momo', N'Thanh toán qua Momo'),
+	(N'QR', N'Thanh toán qua ngân hàng');
 GO
 
----------------------------------
--- 17. Bảng PROMOTION & PROMOTION_DETAIL 
----------------------------------
-INSERT INTO dbo.PROMOTION (PROMOTION_CODE, NAME, TYPE, VALUE, START_DATE, END_DATE, STATUS, NOTE, CREATED_DATE, MODIFIED_DATE) VALUES
-(1001, N'Giảm 10%', 1, 10.00, GETDATE(), DATEADD(day,30,GETDATE()), 1, N'Ưu đãi mùa hè', GETDATE(), GETDATE());
-GO
+-- 8. Bảng EMPLOYEE (5 nhân viên) -- 
 
-INSERT INTO dbo.PROMOTION_DETAIL (PROMOTION_ID, PRODUCT_DETAIL_ID, PROMOTION_VALUE, STATUS) VALUES
-(1,1,10.00,1);
-GO
-
----------------------------------
--- 18. Bảng INVENTORY (30 bản ghi)
----------------------------------
-INSERT INTO dbo.INVENTORY (PRODUCT_DETAIL_ID, QUANTITY, MODIFIED_DATE)
-VALUES 
-(1, 10, GETDATE()),
-(2, 10, GETDATE()),
-(3, 10, GETDATE()),
-(4, 10, GETDATE()),
-(5, 10, GETDATE()),
-(6, 10, GETDATE()),
-(7, 10, GETDATE()),
-(8, 10, GETDATE()),
-(9, 10, GETDATE()),
-(10, 10, GETDATE());
-GO
----------------------------------
--- 19. Bảng IMPORT_RECEIPT & DETAIL (5 phiếu)
----------------------------------
-INSERT INTO dbo.IMPORT_RECEIPT (IMPORT_RECEIPT_CODE, EMPLOYEE_ID, IMPORT_DATE, TOTAL_AMOUNT, NOTE, STATUS)
+INSERT INTO dbo.EMPLOYEE
+	(ACCOUNT_ID, FULL_NAME, GENDER, EMAIL, NUMBER_PHONE, BIRTH_OF_DATE, IS_ACTIVE, CREATED_BY, CREATED_DATE)
 VALUES
-(2001, 1, GETDATE(), 1000000, N'Nhập hàng lô 1', 1);
+	(3, 'Nguyễn Văn A', 1, 'nguyenvana@example.com', '0912345678', '1995-05-15', 1, 'admin', GETDATE()),
+	(1, 'Nguyễn Văn Admin', 1, 'nguyenvanadmin@example.com', '0912345678', '2000-05-15', 1, 'admin', GETDATE());
 GO
 
-INSERT INTO dbo.IMPORT_RECEIPT_DETAIL 
-    (IMPORT_RECEIPT_ID, PRODUCT_DETAIL_ID, QUANTITY, UNIT_PRICE, TOTAL_PRICE, STATUS)
-VALUES 
-    (1, 5, 10, 1000000.00, 10000000.00, 1);
+-- 9. Bảng CUSTOMER (5 khách hàng) --
+
+INSERT INTO dbo.CUSTOMER
+	(ACCOUNT_ID, FULL_NAME, GENDER, EMAIL, NUMBER_PHONE, BIRTH_OF_DATE, STATUS, CREATED_DATE)
+VALUES
+	(2, 'Trần Thị B', 0, 'tranthib@example.com', '0987654321', '1998-09-20', 1, GETDATE());
+GO
+
+-- 10. Bảng PRODUCT (30 sản phẩm) --
+
+INSERT INTO dbo.PRODUCT
+	(PRODUCT_NAME, BRAND_ID, STYLE_ID, SOLE_ID, DESCRIPTION, CREATED_BY, CREATED_DATE, STATUS)
+VALUES
+	-- Nike
+	(N'Nike Air Max 90', 1, 3, 1, N'Mẫu giày chạy bộ cổ điển với đệm khí Air nổi bật', N'admin01', GETDATE(), 1),
+	(N'Nike Air Force 1', 1, 4, 2, N'Mẫu giày bóng rổ biểu tượng, phong cách thời trang', N'admin01', GETDATE(), 1),
+	(N'Nike React Infinity Run', 1, 3, 3, N'Giày chạy bộ với đệm React, êm ái và ổn định', N'admin01', GETDATE(), 1),
+	(N'Nike ZoomX Vaporfly', 1, 3, 1, N'Giày chạy chuyên nghiệp cho vận động viên marathon', N'admin01', GETDATE(), 1),
+	(N'Nike Blazer Mid', 1, 4, 2, N'Giày mid-top mang phong cách retro bóng rổ cổ điển', N'admin01', GETDATE(), 1),
+	(N'Nike Huarache', 1, 5, 3, N'Giày thời trang mang lại sự thoải mái, cá tính', N'admin01', GETDATE(), 1),
+
+	-- Adidas
+	(N'Adidas Ultraboost 22', 2, 3, 3, N'Giày chạy bộ với đệm Boost êm ái, phản hồi tốt', N'admin01', GETDATE(), 1),
+	(N'Adidas Superstar', 2, 4, 1, N'Mẫu giày kinh điển với thiết kế mũi sò đặc trưng', N'admin01', GETDATE(), 1),
+	(N'Adidas Stan Smith', 2, 2, 4, N'Giày thời trang đơn giản, phong cách tennis cổ điển', N'admin01', GETDATE(), 1),
+	(N'Adidas NMD R1', 2, 5, 5, N'Giày streetwear năng động, đệm Boost hiện đại', N'admin01', GETDATE(), 1),
+	(N'Adidas Samba OG', 2, 1, 2, N'Giày bóng đá trong nhà, thiết kế cổ điển', N'admin01', GETDATE(), 1),
+	(N'Adidas Adizero Adios', 2, 3, 3, N'Giày chạy nhẹ, tốc độ dành cho thi đấu chuyên nghiệp', N'admin01', GETDATE(), 1),
+
+	-- Puma
+	(N'Puma Suede Classic', 3, 2, 4, N'Giày da lộn phong cách đường phố, biểu tượng của Puma', N'admin01', GETDATE(), 1),
+	(N'Puma RS-X', 3, 5, 1, N'Mẫu giày có thiết kế hiện đại, đế chunky cá tính', N'admin01', GETDATE(), 1),
+	(N'Puma Future Rider', 3, 5, 3, N'Giày retro với thiết kế trẻ trung, nhẹ nhàng', N'admin01', GETDATE(), 1),
+	(N'Puma Clyde', 3, 4, 2, N'Giày bóng rổ cổ điển với phong cách thời trang', N'admin01', GETDATE(), 1),
+	(N'Puma Cali', 3, 2, 5, N'Giày nữ phong cách California, đế cao trẻ trung', N'admin01', GETDATE(), 1),
+	(N'Puma Velocity Nitro', 3, 3, 3, N'Giày chạy hiệu suất cao, đệm Nitro mềm mại', N'admin01', GETDATE(), 1),
+
+	-- New Balance
+	(N'New Balance 990v5', 4, 3, 1, N'Mẫu giày chạy bộ cao cấp, thiết kế bền bỉ và thoải mái', N'admin01', GETDATE(), 1),
+	(N'New Balance 327', 4, 2, 4, N'Giày retro độc đáo, mang hơi hướng thập niên 70', N'admin01', GETDATE(), 1),
+	(N'New Balance 574', 4, 2, 1, N'Mẫu giày biểu tượng, phù hợp cho nhiều mục đích', N'admin01', GETDATE(), 1),
+	(N'New Balance Fresh Foam 1080v12', 4, 3, 3, N'Giày chạy bộ với đệm Fresh Foam siêu êm', N'admin01', GETDATE(), 1),
+	(N'New Balance 550', 4, 4, 2, N'Giày bóng rổ cổ điển, mang phong cách retro mạnh mẽ', N'admin01', GETDATE(), 1),
+	(N'New Balance 993', 4, 3, 5, N'Giày chạy bộ ổn định, phù hợp cả luyện tập và đi chơi', N'admin01', GETDATE(), 1),
+
+	-- Converse
+	(N'Converse Chuck Taylor All Star', 5, 4, 2, N'Giày vải cao cổ biểu tượng, phù hợp mọi phong cách', N'admin01', GETDATE(), 1),
+	(N'Converse Chuck 70', 5, 4, 4, N'Phiên bản nâng cấp của Chuck cổ điển, chất liệu tốt hơn', N'admin01', GETDATE(), 1),
+	(N'Converse One Star', 5, 2, 3, N'Giày da lộn với ngôi sao đặc trưng, phong cách riêng biệt', N'admin01', GETDATE(), 1),
+	(N'Converse Run Star Motion', 5, 5, 1, N'Mẫu giày đế cao, thiết kế phá cách và hiện đại', N'admin01', GETDATE(), 1),
+	(N'Converse Pro Leather', 5, 4, 4, N'Mẫu giày bóng rổ thập niên 70 với phong cách vintage', N'admin01', GETDATE(), 1),
+	(N'Converse Chuck Taylor X CDG', 5, 2, 5, N'Giày collab với thương hiệu Comme des Garçons', N'admin01', GETDATE(), 1);
+GO
+
+-- 11. Bảng PRODUCT_DETAIL --
+
+INSERT INTO dbo.PRODUCT_DETAIL
+	(SIZE_ID, COLOR_ID, PRODUCT_ID, PRICE, DESCRIPTION, STATUS)
+VALUES
+	(1, 1, 1, 2500000, N'Chi tiết sản phẩm Nike', 1),
+	(1, 2, 1, 2500000, N'Chi tiết sản phẩm Nike', 1),
+	(2, 1, 1, 2500000, N'Chi tiết sản phẩm Nike', 1),
+	(2, 2, 1, 2500000, N'Chi tiết sản phẩm Nike', 1),
+
+	(1, 1, 7, 2500000, N'Chi tiết sản phẩm Adidas', 1),
+	(1, 2, 7, 2500000, N'Chi tiết sản phẩm Adidas', 1),
+	(2, 1, 7, 2500000, N'Chi tiết sản phẩm Adidas', 1),
+	(2, 2, 7, 2500000, N'Chi tiết sản phẩm Adidas', 1),
+
+	(1, 1, 13, 2500000, N'Chi tiết sản phẩm Puma', 1),
+	(1, 2, 13, 2500000, N'Chi tiết sản phẩm Puma', 1),
+	(2, 1, 13, 2500000, N'Chi tiết sản phẩm Puma', 1),
+	(2, 2, 13, 2500000, N'Chi tiết sản phẩm Puma', 1),
+
+	(1, 1, 19, 2500000, N'Chi tiết sản phẩm New Balance', 1),
+	(1, 2, 19, 2500000, N'Chi tiết sản phẩm New Balance', 1),
+	(2, 1, 19, 2500000, N'Chi tiết sản phẩm New Balance', 1),
+	(2, 2, 19, 2500000, N'Chi tiết sản phẩm New Balance', 1),
+
+	(1, 1, 25, 2500000, N'Chi tiết sản phẩm Converse', 1),
+	(1, 2, 25, 2500000, N'Chi tiết sản phẩm Converse', 1),
+	(2, 1, 25, 2500000, N'Chi tiết sản phẩm Converse', 1),
+	(2, 2, 25, 2500000, N'Chi tiết sản phẩm Converse', 1);
+GO
+
+-- 12. Bảng IMAGE --
+
+INSERT INTO dbo.IMAGE
+	(PRODUCT_DETAIL_ID, URL, IS_MAIN)
+VALUES
+	(1, './images/anh1.webp', 1),
+	(1, './images/anh2.webp', 0),
+	(1, './images/anh3.webp', 0),
+	(1, './images/anh4.webp', 0),
+	(1, './images/anh5.webp', 0),
+	(1, './images/anh6.webp', 0),
+	(2, './images/anhd1.webp', 1),
+	(2, './images/anhd2.webp', 0),
+	(2, './images/anhd3.webp', 0),
+	(2, './images/anhd4.webp', 0),
+	(2, './images/anhd5.webp', 0),
+	(2, './images/anhd6.webp', 0),
+	(5, './images/anhd6.webp', 1),
+	(9, './images/anhd6.webp', 1),
+	(13, './images/anhd6.webp', 1),
+	(17, './images/anhd6.webp', 1);
+GO
+
+-- 13. Bảng CART --
+
+INSERT INTO dbo.CART
+	(CUSTOMER_ID)
+VALUES
+	(1);
+GO
+
+-- 14. Bảng CART_DETAIL --
+
+INSERT INTO dbo.CART_DETAIL
+	(CART_ID, PRODUCT_DETAIL_ID, QUANTITY)
+VALUES
+	(1, 1, 2);
+GO
+
+-- 15. Bảng ADDRESS (5 địa chỉ) --
+
+INSERT INTO dbo.ADDRESS
+	(FULL_ADDRESS, ADDRESS, CREATED_BY, CREATED_DATE, MODIFIED_BY, MODIFIED_DATE, NUMBER_PHONE, FULL_NAME, CUSTOMER_ID, IS_DEFAULT, ADDRESS_TYPE, STREET_NAME, WARD_NAME, CITY_NAME)
+VALUES
+	(N'123 Đường A, P.1, TP.Hải Phòng', N'Đường A', N'customer01', GETDATE(), N'customer01', GETDATE(), N'0911123456', N'Khách 1', 1, 1, N'HN', N'Đường 365', N'Phường 1', N'TP Hải Phòng');
+GO
+
+-- 16. Bảng BILL và BILL_DETAIL (5 hóa đơn + 5 chi tiết) -- 
+
+INSERT INTO dbo.BILL
+	(CUSTOMER_ID, EMPLOYEE_ID, PTTT_ID, CODE, BILL_TYPE, STATUS, CREATED_BY, CREATED_DATE, SHIPPING_DATE, DATE_OF_PAYMENT, RECIPIENT_NAME, RECIPIENT_PHONE_NUMBER, RECEIVER_ADDRESS, NOTE, SUB_TOTAL, DISCOUNT_AMOUNT, SHIPPING_FEE, GRAND_TOTAL)
+VALUES
+	(1, 1, 1, N'INV001', N'Online', 2, N'admin01', GETDATE(), GETDATE(), GETDATE(), N'Khách 1', 
+	N'0911123456', N'123 Đường A', N'Standard', 2500000.00, 250000.00, 30000.00, 2280000.00);
+GO
+
+INSERT INTO dbo.BILL_DETAIL
+	(BILL_ID, PRODUCT_DETAIL_ID, QUANTITY, PRICE, STATUS, PRODUCT_IMAGE, SIZE, PRODUCT_NAME)
+VALUES
+	(1, 1, 1, 1000000, 1, './images/nike-air-max-90-white.webp', N'EU 33', N'Sneaker Model 1');
+GO
+
+-- 17. Bảng PROMOTION & PROMOTION_DETAIL --
+
+INSERT INTO dbo.PROMOTION
+	(PROMOTION_CODE, NAME, TYPE, VALUE, START_DATE, END_DATE, STATUS, NOTE, CREATED_DATE, MODIFIED_DATE)
+VALUES
+	(N'SALE10', N'Giảm 10%', 1, 10.00, GETDATE(), DATEADD(day,30,GETDATE()), 1, N'Ưu đãi mùa hè', GETDATE(), GETDATE());
+GO
+
+INSERT INTO dbo.PROMOTION_DETAIL
+	(PROMOTION_ID, PRODUCT_DETAIL_ID, PROMOTION_VALUE, STATUS)
+VALUES
+	(1, 1, 10.00, 1);
+GO
+
+-- 18. Bảng INVENTORY (30 bản ghi) --
+
+INSERT INTO dbo.INVENTORY
+	(PRODUCT_DETAIL_ID, QUANTITY, MODIFIED_DATE)
+VALUES
+	(1, 10, GETDATE()),
+	(2, 10, GETDATE()),
+	(3, 10, GETDATE()),
+	(4, 10, GETDATE()),
+	(5, 10, GETDATE()),
+	(6, 10, GETDATE()),
+	(7, 10, GETDATE()),
+	(8, 10, GETDATE()),
+	(9, 10, GETDATE()),
+	(10, 10, GETDATE());
+GO
+
+-- 19. Bảng IMPORT_RECEIPT & DETAIL (5 phiếu) --
+
+INSERT INTO dbo.IMPORT_RECEIPT
+	(IMPORT_RECEIPT_CODE, EMPLOYEE_ID, IMPORT_DATE, TOTAL_AMOUNT, NOTE, STATUS)
+VALUES
+	(N'PN20250701', 1, GETDATE(), 1000000, N'Nhập hàng Nike 1', 1);
+GO
+
+INSERT INTO dbo.IMPORT_RECEIPT_DETAIL
+	(IMPORT_RECEIPT_ID, PRODUCT_DETAIL_ID, QUANTITY, UNIT_PRICE, TOTAL_PRICE, STATUS)
+VALUES
+	(1, 1, 5, 2000000.00, 10000000.00, 1);
 GO
 
 
+-- SELECT 
+--     P.ID AS id,
+--     P.PRODUCT_NAME,
+--     B.NAME AS BRAND_NAME,
+--     PD.PRICE,
+--     I.URL AS MAIN_IMAGE_URL
+-- FROM PRODUCT P
+-- JOIN BRAND B ON P.BRAND_ID = B.ID
+-- JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+-- JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.IS_MAIN = 1
+-- WHERE P.STATUS = 1
 
-SELECT 
-    P.ID AS id,
-    P.PRODUCT_NAME,
-    B.NAME AS BRAND_NAME,
-    PD.PRICE,
-    I.URL AS MAIN_IMAGE_URL
-FROM PRODUCT P
-JOIN BRAND B ON P.BRAND_ID = B.ID
-JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
-JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.IS_MAIN = 1
-WHERE P.STATUS = 1
+-- SELECT 
+--     P.ID AS productId,
+--     P.PRODUCT_NAME AS productName,
+--     B.NAME AS brandName,
+--     PD.PRICE AS price,
+--     I.URL AS imageUrl,
+--     I.IS_MAIN AS isMain
+-- FROM PRODUCT P
+-- JOIN BRAND B ON P.BRAND_ID = B.ID
+-- JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+-- JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
+-- WHERE P.STATUS = 1
 
-SELECT 
-    P.ID AS productId,
-    P.PRODUCT_NAME AS productName,
-    B.NAME AS brandName,
-    PD.PRICE AS price,
-    I.URL AS imageUrl,
-    I.IS_MAIN AS isMain
-FROM PRODUCT P
-JOIN BRAND B ON P.BRAND_ID = B.ID
-JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
-JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
-WHERE P.STATUS = 1
-
-SELECT 
-    P.ID AS productId,
-    P.PRODUCT_NAME AS productName,
-    B.NAME AS brandName,
-    PD.PRICE AS price,
-    STRING_AGG(I.URL + '|' + CAST(I.IS_MAIN AS VARCHAR), ',') AS images
-FROM PRODUCT P
-JOIN BRAND B ON P.BRAND_ID = B.ID
-JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
-JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
-WHERE P.STATUS = 1
-GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
-
-
-SELECT 
-    P.ID AS productId,
-    P.PRODUCT_NAME AS productName,
-    B.NAME AS brandName,
-    PD.PRICE AS price,
-    (
-        SELECT I2.URL 
-        FROM IMAGE I2 
-        WHERE I2.PRODUCT_DETAIL_ID = PD.ID 
-        ORDER BY I2.ID 
-        OFFSET 1 ROW FETCH NEXT 1 ROW ONLY
-    ) AS hoverImage
-FROM PRODUCT P
-JOIN BRAND B ON P.BRAND_ID = B.ID
-JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
-WHERE P.STATUS = 1
-GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+-- SELECT 
+--     P.ID AS productId,
+--     P.PRODUCT_NAME AS productName,
+--     B.NAME AS brandName,
+--     PD.PRICE AS price,
+--     STRING_AGG(I.URL + '|' + CAST(I.IS_MAIN AS VARCHAR), ',') AS images
+-- FROM PRODUCT P
+-- JOIN BRAND B ON P.BRAND_ID = B.ID
+-- JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+-- JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
+-- WHERE P.STATUS = 1
+-- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
-SELECT 
-    P.ID AS productId,
-    P.PRODUCT_NAME AS productName,
-    B.NAME AS brandName,
-    PD.PRICE AS price,
-    MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
-    MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
-FROM PRODUCT P
-JOIN BRAND B ON P.BRAND_ID = B.ID
+-- SELECT 
+--     P.ID AS productId,
+--     P.PRODUCT_NAME AS productName,
+--     B.NAME AS brandName,
+--     PD.PRICE AS price,
+--     (
+--         SELECT I2.URL 
+--         FROM IMAGE I2 
+--         WHERE I2.PRODUCT_DETAIL_ID = PD.ID 
+--         ORDER BY I2.ID 
+--         OFFSET 1 ROW FETCH NEXT 1 ROW ONLY
+--     ) AS hoverImage
+-- FROM PRODUCT P
+-- JOIN BRAND B ON P.BRAND_ID = B.ID
+-- JOIN PRODUCT_DETAIL PD ON PD.PRODUCT_ID = P.ID
+-- WHERE P.STATUS = 1
+-- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
-CROSS APPLY (
-    SELECT TOP 1 * 
-    FROM PRODUCT_DETAIL PD 
-    WHERE PD.PRODUCT_ID = P.ID
-    ORDER BY PD.ID
-) PD
+-- SELECT 
+--     P.ID AS productId,
+--     P.PRODUCT_NAME AS productName,
+--     B.NAME AS brandName,
+--     PD.PRICE AS price,
+--     MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
+--     MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
+-- FROM PRODUCT P
+-- JOIN BRAND B ON P.BRAND_ID = B.ID
 
 
-JOIN (
-    SELECT 
-        ID, PRODUCT_DETAIL_ID, URL,
-        ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
-    FROM IMAGE
-) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
-
-WHERE P.STATUS = 1
-GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+-- CROSS APPLY (
+--     SELECT TOP 1 * 
+--     FROM PRODUCT_DETAIL PD 
+--     WHERE PD.PRODUCT_ID = P.ID
+--     ORDER BY PD.ID
+-- ) PD
 
 
-SELECT 
-    P.ID AS productId,
-    PD.ID AS productDetailId,
-    P.PRODUCT_NAME AS productName,
-    B.NAME AS brandName,
-    C.NAME AS color,
-    P.DESCRIPTION AS descriptionProduct,
-    S.NAME AS size,
-    PD.PRICE AS price,
-    STRING_AGG(I.URL, ',') AS images
-FROM 
-    PRODUCT P
-JOIN 
-    PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
-JOIN 
-    BRAND B ON P.BRAND_ID = B.ID
-JOIN 
-    COLOR C ON PD.COLOR_ID = C.ID
-JOIN 
-    SIZE S ON PD.SIZE_ID = S.ID
-LEFT JOIN 
-    IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
- WHERE P.ID = :productId
-GROUP BY 
-    P.ID, PD.ID, P.PRODUCT_NAME, 
-    B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;
+-- JOIN (
+--     SELECT 
+--         ID, PRODUCT_DETAIL_ID, URL,
+--         ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
+--     FROM IMAGE
+-- ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
+
+-- WHERE P.STATUS = 1
+-- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+
+
+-- SELECT 
+--     P.ID AS productId,
+--     PD.ID AS productDetailId,
+--     P.PRODUCT_NAME AS productName,
+--     B.NAME AS brandName,
+--     C.NAME AS color,
+--     P.DESCRIPTION AS descriptionProduct,
+--     S.NAME AS size,
+--     PD.PRICE AS price,
+--     STRING_AGG(I.URL, ',') AS images
+-- FROM 
+--     PRODUCT P
+-- JOIN 
+--     PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
+-- JOIN 
+--     BRAND B ON P.BRAND_ID = B.ID
+-- JOIN 
+--     COLOR C ON PD.COLOR_ID = C.ID
+-- JOIN 
+--     SIZE S ON PD.SIZE_ID = S.ID
+-- LEFT JOIN 
+--     IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
+--  WHERE P.ID = :productId
+-- GROUP BY 
+--     P.ID, PD.ID, P.PRODUCT_NAME, 
+--     B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;
