@@ -1,9 +1,6 @@
 package com.poly.BE_main.dto;
 
-
 import java.math.BigDecimal;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,9 +16,5 @@ public class ProductDTO {
     private BigDecimal price;
     private String image1; // ảnh đầu tiên (chính)
     private String image2; // ảnh hover (thứ hai)
-
-
-
-
 
 }

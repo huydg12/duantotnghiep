@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.poly.BE_main.model.Brand;
 
 @Repository
-public interface BrandRepository extends JpaRepository<Brand, Integer>{
+public interface BrandRepository extends JpaRepository<Brand, Integer> {
 
 }

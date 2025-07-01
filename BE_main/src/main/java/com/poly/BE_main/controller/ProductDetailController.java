@@ -20,9 +20,9 @@ public class ProductDetailController {
     @Autowired
     ProductDetailService productDetailService;
 
-@GetMapping("/show/{productId}")
-public ResponseEntity<List<ProductDetailDTO>> showProductDetail(@PathVariable Integer productId) {
-    List<ProductDetailDTO> list = productDetailService.findAllProductDetailDTOByID(productId);
-    return ResponseEntity.ok(list);
-}
+    @GetMapping("/show/{productId}")
+    public ResponseEntity<List<ProductDetailDTO>> showProductDetail(@PathVariable Integer productId) {
+        List<ProductDetailDTO> list = productDetailService.findAllProductDetailDTOByID(productId);
+        return ResponseEntity.ok(list);
+    }
 }

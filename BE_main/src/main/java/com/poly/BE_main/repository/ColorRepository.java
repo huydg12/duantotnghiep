@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.poly.BE_main.model.Color;
 
 @Repository
-public interface ColorRepository extends JpaRepository<Color, Integer>{
+public interface ColorRepository extends JpaRepository<Color, Integer> {
 
 }

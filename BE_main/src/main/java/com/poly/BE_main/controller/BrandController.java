@@ -18,26 +18,26 @@ import com.poly.BE_main.service.BrandService;
 @RestController
 @RequestMapping("/brand")
 public class BrandController {
-@Autowired
-BrandService brandService;
+    @Autowired
+    BrandService brandService;
 
-@GetMapping("/show")
-public List<Brand>findAll(){
-    return brandService.findAll();
-}
+    @GetMapping("/show")
+    public List<Brand> findAll() {
+        return brandService.findAll();
+    }
 
-@PostMapping("/add")
-public Brand add(@RequestBody Brand b){
-    return brandService.create(b);
-}
+    @PostMapping("/add")
+    public Brand add(@RequestBody Brand b) {
+        return brandService.create(b);
+    }
 
-@DeleteMapping("/delete/{id}")
-public void delete(@PathVariable Integer id){
-    brandService.deleteById(id);
-}
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable Integer id) {
+        brandService.deleteById(id);
+    }
 
-@PutMapping("/update/{id}")
-    public Brand update (@PathVariable int id,@RequestBody Brand b){
+    @PutMapping("/update/{id}")
+    public Brand update(@PathVariable int id, @RequestBody Brand b) {
         return brandService.update(id, b);
     }
 }

@@ -29,7 +29,6 @@ public class ProductDetail {
     @JoinColumn(name = "COLOR_ID")
     private Color color;
 
-
     @Column(name = "PRICE")
     private BigDecimal price;
 

@@ -8,9 +8,9 @@ import org.springframework.data.repository.query.Param;
 
 import com.poly.BE_main.model.ProductDetail;
 
-public interface ProductDetailRepository  extends JpaRepository<ProductDetail, Integer> {
-        @Query(value = """
-                SELECT 
+public interface ProductDetailRepository extends JpaRepository<ProductDetail, Integer> {
+    @Query(value = """
+                SELECT
                     P.ID AS productId,
                     PD.ID AS productDetailId,
                     P.PRODUCT_NAME AS productName,
@@ -20,23 +20,23 @@ public interface ProductDetailRepository  extends JpaRepository<ProductDetail, I
                     S.NAME AS size,
                     PD.PRICE AS price,
                     STRING_AGG(I.URL, ',') AS images
-                FROM 
+                FROM
                     PRODUCT P
-                JOIN 
+                JOIN
                     PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
-                JOIN 
+                JOIN
                     BRAND B ON P.BRAND_ID = B.ID
-                JOIN 
+                JOIN
                     COLOR C ON PD.COLOR_ID = C.ID
-                JOIN 
+                JOIN
                     SIZE S ON PD.SIZE_ID = S.ID
-                LEFT JOIN 
+                LEFT JOIN
                     IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
                 WHERE P.ID = :productId
-                GROUP BY 
-                    P.ID, PD.ID, P.PRODUCT_NAME, 
+                GROUP BY
+                    P.ID, PD.ID, P.PRODUCT_NAME,
                     B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;
             """, nativeQuery = true)
-            List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
+    List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
 
 }

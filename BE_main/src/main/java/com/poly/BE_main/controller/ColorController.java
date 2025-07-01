@@ -33,12 +33,12 @@ public class ColorController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable Integer id){
+    public void delete(@PathVariable Integer id) {
         colorService.deleteById(id);
     }
 
     @PutMapping("/update/{id}")
-    public Color update(@PathVariable int id, @RequestBody Color c){
+    public Color update(@PathVariable int id, @RequestBody Color c) {
         return colorService.update(id, c);
     }
 }

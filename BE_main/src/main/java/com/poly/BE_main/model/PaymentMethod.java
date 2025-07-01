@@ -24,11 +24,11 @@ public class PaymentMethod {
     @Column(name = "MODIFIED_DATE")
     private LocalDateTime modifiedDate;
 
-    
     public PaymentMethod() {
     }
 
-    public PaymentMethod(Integer id, String name, String description, LocalDateTime createdDate, LocalDateTime modifiedDate) {
+    public PaymentMethod(Integer id, String name, String description, LocalDateTime createdDate,
+            LocalDateTime modifiedDate) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -36,7 +36,6 @@ public class PaymentMethod {
         this.modifiedDate = modifiedDate;
     }
 
-    
     public Integer getId() {
         return id;
     }

@@ -18,31 +18,38 @@ public class Role {
     private String RoleName;
     @Column(name = "DESCRIPTION")
     private String Description;
+
     public Role() {
     }
+
     public Role(int id, String roleName, String description) {
         Id = id;
         RoleName = roleName;
         Description = description;
     }
+
     public int getId() {
         return Id;
     }
+
     public void setId(int id) {
         Id = id;
     }
+
     public String getRoleName() {
         return RoleName;
     }
+
     public void setRoleName(String roleName) {
         RoleName = roleName;
     }
+
     public String getDescription() {
         return Description;
     }
+
     public void setDescription(String description) {
         Description = description;
     }
 
-    
 }

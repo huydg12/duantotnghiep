@@ -42,12 +42,9 @@ public class Product {
     @Column(name = "STATUS")
     private Integer Status;
 
-    
-
     public Product() {
     }
 
-    
     public Product(Integer id, String productName, Integer brandId, Integer styleId, Integer soleId, String description,
             String createdBy, LocalDateTime createdDate, Integer status) {
         Id = id;
@@ -133,5 +130,4 @@ public class Product {
         Status = status;
     }
 
-    
 }

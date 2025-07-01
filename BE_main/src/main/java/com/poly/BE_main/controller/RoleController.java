@@ -22,22 +22,22 @@ public class RoleController {
     RoleService roleService;
 
     @GetMapping("/show")
-    public List<Role>findall(){
+    public List<Role> findall() {
         return roleService.FindAll();
     }
 
     @PostMapping("/add")
-    public Role add(@RequestBody Role r){
+    public Role add(@RequestBody Role r) {
         return roleService.create(r);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable int id){
+    public void delete(@PathVariable int id) {
         roleService.delete(id);
     }
 
     @PutMapping("/update/{id}")
-    public Role update(@PathVariable int id, @RequestBody Role r){
+    public Role update(@PathVariable int id, @RequestBody Role r) {
         return roleService.update(id, r);
     }
 }

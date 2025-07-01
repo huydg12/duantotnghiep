@@ -22,22 +22,22 @@ public class PaymentMethodController {
     PaymentMethodService paymentMethodService;
 
     @GetMapping("/show")
-    public List<PaymentMethod>findAll(){
+    public List<PaymentMethod> findAll() {
         return paymentMethodService.findAll();
     }
 
     @PostMapping("/add")
-    public PaymentMethod add(@RequestBody PaymentMethod p){
+    public PaymentMethod add(@RequestBody PaymentMethod p) {
         return paymentMethodService.create(p);
     }
 
     @DeleteMapping("/delete/{id}")
-        public void delete(@PathVariable int id){
-            paymentMethodService.delete(id);
-        }
-    
+    public void delete(@PathVariable int id) {
+        paymentMethodService.delete(id);
+    }
+
     @PutMapping("/update/{id}")
-    public PaymentMethod update(@PathVariable int id, @RequestBody PaymentMethod p){
+    public PaymentMethod update(@PathVariable int id, @RequestBody PaymentMethod p) {
         return paymentMethodService.update(id, p);
     }
 }

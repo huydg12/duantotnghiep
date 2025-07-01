@@ -18,26 +18,26 @@ import com.poly.BE_main.service.SizeService;
 @RestController
 @RequestMapping("/size")
 public class SizeController {
-@Autowired
-SizeService sizeService;
+    @Autowired
+    SizeService sizeService;
 
-@GetMapping("/show")
-public List<Size>finall(){
-    return sizeService.finall();
-}
+    @GetMapping("/show")
+    public List<Size> finall() {
+        return sizeService.finall();
+    }
 
-@PostMapping("/add")
-public Size add(@RequestBody Size s){
-    return sizeService.create(s);
-}
+    @PostMapping("/add")
+    public Size add(@RequestBody Size s) {
+        return sizeService.create(s);
+    }
 
-@DeleteMapping("/delete/{id}")
-    public void  delete (@PathVariable int id){
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable int id) {
         sizeService.delete(id);
     }
 
-@PutMapping("/update/{id}")
-public Size update (@PathVariable int id , @RequestBody Size s){
-    return sizeService.update(id, s);
-}
+    @PutMapping("/update/{id}")
+    public Size update(@PathVariable int id, @RequestBody Size s) {
+        return sizeService.update(id, s);
+    }
 }
