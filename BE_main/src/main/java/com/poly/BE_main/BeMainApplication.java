@@ -16,6 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class BeMainApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BeMainApplication.class, args);
+		System.out.println("✅✅ Spring Boot Server is running on http://localhost:8080");
 	}
 
 }

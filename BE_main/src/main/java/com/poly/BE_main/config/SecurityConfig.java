@@ -15,18 +15,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/user/**").hasRole("USER")
-                .anyRequest().permitAll()
-            )
-            .formLogin()
-            .and()
-            .logout();
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf().disable() // disable nếu dùng postman
+        .authorizeHttpRequests(auth -> auth
+            .anyRequest().permitAll()
+        )
+        .formLogin().disable()
+        .httpBasic().disable();
 
-        return http.build();
-    }
+    return http.build();
+}
 }

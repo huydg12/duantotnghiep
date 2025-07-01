@@ -61,8 +61,8 @@ import Manage from './components/Manage.vue';
     </nav>
   </header>
   <div id="app">
-    <!-- <RouterView /> -->
-    <Manage/>
+    <RouterView />
+    <!-- <Manage/> -->
   </div>
   
 

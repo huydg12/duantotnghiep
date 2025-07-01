@@ -1037,59 +1037,59 @@ GO
 -- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
--- SELECT 
---     P.ID AS productId,
---     P.PRODUCT_NAME AS productName,
---     B.NAME AS brandName,
---     PD.PRICE AS price,
---     MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
---     MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
--- FROM PRODUCT P
--- JOIN BRAND B ON P.BRAND_ID = B.ID
+SELECT 
+    P.ID AS productId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    PD.PRICE AS price,
+    MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
+    MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
+FROM PRODUCT P
+JOIN BRAND B ON P.BRAND_ID = B.ID
 
 
--- CROSS APPLY (
---     SELECT TOP 1 * 
---     FROM PRODUCT_DETAIL PD 
---     WHERE PD.PRODUCT_ID = P.ID
---     ORDER BY PD.ID
--- ) PD
+CROSS APPLY (
+    SELECT TOP 1 * 
+    FROM PRODUCT_DETAIL PD 
+    WHERE PD.PRODUCT_ID = P.ID
+    ORDER BY PD.ID
+) PD
 
 
--- JOIN (
---     SELECT 
---         ID, PRODUCT_DETAIL_ID, URL,
---         ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
---     FROM IMAGE
--- ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
+JOIN (
+    SELECT 
+        ID, PRODUCT_DETAIL_ID, URL,
+        ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
+    FROM IMAGE
+) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
 
--- WHERE P.STATUS = 1
--- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+WHERE P.STATUS = 1
+GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
--- SELECT 
---     P.ID AS productId,
---     PD.ID AS productDetailId,
---     P.PRODUCT_NAME AS productName,
---     B.NAME AS brandName,
---     C.NAME AS color,
---     P.DESCRIPTION AS descriptionProduct,
---     S.NAME AS size,
---     PD.PRICE AS price,
---     STRING_AGG(I.URL, ',') AS images
--- FROM 
---     PRODUCT P
--- JOIN 
---     PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
--- JOIN 
---     BRAND B ON P.BRAND_ID = B.ID
--- JOIN 
---     COLOR C ON PD.COLOR_ID = C.ID
--- JOIN 
---     SIZE S ON PD.SIZE_ID = S.ID
--- LEFT JOIN 
---     IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
---  WHERE P.ID = :productId
--- GROUP BY 
---     P.ID, PD.ID, P.PRODUCT_NAME, 
---     B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;
+SELECT 
+    P.ID AS productId,
+    PD.ID AS productDetailId,
+    P.PRODUCT_NAME AS productName,
+    B.NAME AS brandName,
+    C.NAME AS color,
+    P.DESCRIPTION AS descriptionProduct,
+    S.NAME AS size,
+    PD.PRICE AS price,
+    STRING_AGG(I.URL, ',') AS images
+FROM 
+    PRODUCT P
+JOIN 
+    PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
+JOIN 
+    BRAND B ON P.BRAND_ID = B.ID
+JOIN 
+    COLOR C ON PD.COLOR_ID = C.ID
+JOIN 
+    SIZE S ON PD.SIZE_ID = S.ID
+LEFT JOIN 
+    IMAGE I ON PD.ID = I.PRODUCT_DETAIL_ID
+ WHERE :productId
+GROUP BY 
+    P.ID, PD.ID, P.PRODUCT_NAME, 
+    B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;

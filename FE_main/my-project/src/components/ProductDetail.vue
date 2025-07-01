@@ -1,82 +1,104 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Banner from './Banner.vue'
+import axios from 'axios'
 
-const imagesByColor = {
-  "Trắng": [
-    "./HinhAnh/anh1.webp",
-    "./HinhAnh/anh2.webp",
-    "./HinhAnh/anh3.webp",
-    "./HinhAnh/anh4.webp",
-    "./HinhAnh/anh5.webp",
-    "./HinhAnh/anh6.webp"
-  ],
-  "Đen": [
-    "./HinhAnh/anhd1.webp",
-    "./HinhAnh/anhd2.webp",
-    "./HinhAnh/anhd3.webp",
-    "./HinhAnh/anhd4.webp",
-    "./HinhAnh/anhd5.webp",
-    "./HinhAnh/anhd6.webp"
-  ]
+const route = useRoute()
+
+const quantity = ref(1)
+const selectedProduct = ref([])
+const selectedImage = ref('')
+const sizeList = Array.from({ length: 13 }, (_, i) => `EU ${33 + i}`)
+const availableSizes = ref([]) // nếu muốn lọc size sau này
+const fetchProductDetail = async () => {
+  const id = route.params.id
+
+  try {
+    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
+    selectedProduct.value = response.data
+    selectedProduct.value.images = selectedProduct.value.images
+  ? selectedProduct.value.images.split(',')  // 👈 chuyển chuỗi thành mảng
+  : []
+selectedImage.value = selectedProduct.value.images[0] || ''
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết sản phẩm', error)
+  }
 }
 
-const currentColor = ref("Trắng")
-const images = ref(imagesByColor[currentColor.value])
-const currentIndex = ref(0)
-
-const showImage = (index) => {
-  currentIndex.value = index
+const selectSize = (size) => {
+  selectedProduct.value.size = size
 }
 
-const prevImage = () => {
-  currentIndex.value = (currentIndex.value - 1 + images.value.length) % images.value.length
+const selectImage = (img) => {
+  selectedImage.value = img
 }
 
-const nextImage = () => {
-  currentIndex.value = (currentIndex.value + 1) % images.value.length
-}
+onMounted(() => {
+  fetchProductDetail()
+})
 
-const selectColor = (color) => {
-  currentColor.value = color
-  images.value = imagesByColor[color]
-  currentIndex.value = 0
-}
+
 </script>
 <template>
   <Banner title="" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
-  <div class="container bg-white rounded-4 shadow p-4">
+
+  <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct">
     <div class="row g-4 align-items-start">
       <!-- Hình ảnh -->
       <div class="col-md-6 position-relative">
-        <button class="image-nav-btn start-0" onclick="prevImage()">&#8592;</button>
-        <img id="mainProductImage" src="./HinhAnh/anh1.webp" alt="Sản phẩm" class="w-100 product-image rounded shadow">
-        <button class="image-nav-btn end-0" onclick="nextImage()">&#8594;</button>
+        <!-- Ảnh chính -->
+        <img
+          :src="selectedImage"
+          alt="Sản phẩm"
+          class="w-100 rounded shadow-sm border border-light"
+          style="max-height: 400px; object-fit: contain;"
+        />
+
+        <!-- Danh sách ảnh phụ -->
+        <div class="d-flex gap-2 mt-3 overflow-auto">
+          <img
+            v-for="(img, index) in selectedProduct.images"
+            :key="index"
+            :src="img"
+            alt="Ảnh phụ"
+            @click="selectImage(img)"
+            class="img-thumbnail border border-2"
+            :class="{ 'border-primary': selectedImage === img }"
+            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+          />
+        </div>
       </div>
+
+
 
       <!-- Thông tin sản phẩm -->
       <div class="col-md-6">
-        <h2 class="fw-semibold mb-2">Nike Air Force 1 07</h2>
-        <p class="text-muted mb-2">Thương hiệu: <strong>Nike</strong> | Mã: CW2288-001</p>
-        <p class="text-danger fs-4 fw-bold mb-4">2.000.000₫</p>
+        <h2 class="fw-semibold mb-2">{{ selectedProduct.productName }}</h2>
+        <p class="text-muted mb-2">Thương hiệu: <strong>{{ selectedProduct.brandName }}</strong> | Mã: {{ selectedProduct.productDetailId }}</p>
+        <p class="text-danger fs-4 fw-bold mb-4">{{ selectedProduct.price }}₫</p>
 
         <p class="mb-3">
           Màu sắc:
-          <button onclick="selectColor('Trắng')" class="color-btn">Trắng</button>
-          <button onclick="selectColor('Đen')" class="color-btn">Đen</button>
+          <span class="color-btn">{{ selectedProduct.color }}</span>
         </p>
 
         <div class="mb-3">
           Kích thước:
-          <button class="size-btn">40</button>
-          <button class="size-btn">41</button>
-          <button class="size-btn">42</button>
-          <button class="size-btn">43</button>
+          <button
+            v-for="size in sizeList"
+            :key="size"
+            class="size-btn"
+            :class="{ active: selectedProduct.size === size }"
+            @click="selectSize(size)"
+          >
+            {{ size.replace('EU ', '') }}
+          </button>
         </div>
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
-          <input type="number" value="1" min="1" class="form-control">
+          <input type="number" v-model="quantity" min="1" class="form-control">
         </div>
 
         <div class="d-flex gap-3 mb-4">
@@ -86,8 +108,7 @@ const selectColor = (color) => {
 
         <hr />
         <p class="text-muted">
-          Nike Air Force 1 07 mang lại sự thay đổi mới mẻ nhưng vẫn giữ bản sắc OG: lớp phủ khâu đẹp, kết thúc sạch sẽ
-          và đèn phản quang khiến bạn luôn tỏa sáng.
+          {{ selectedProduct.descriptionProduct }}
         </p>
       </div>
     </div>
@@ -134,5 +155,20 @@ const selectColor = (color) => {
 .color-btn:hover,
 .size-btn:hover {
   background-color: #e2e6ea;
+}
+
+.size-btn {
+  margin: 0 4px;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 5px;
+  background: white;
+  cursor: pointer;
+}
+
+.size-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
 }
 </style>

@@ -175,7 +175,7 @@ const filterSections = [
       <div class="col-lg-9">
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
       <div v-for="product in products" :key="product.id" class="col">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 shadow-sm" @click="goToDetail(product.productId)" style="cursor: pointer;">
             <div class="image-container position-relative">
               <img
                 :src="product.image1"
@@ -193,9 +193,7 @@ const filterSections = [
             <h5 class="card-title">{{ product.productName }}</h5>
             <p class="card-text text-muted">{{ product.brandName }}</p>
             <p class="card-text fw-bold text-danger">{{ product.price }}₫</p>
-            <button class="btn btn-outline-primary mt-auto" @click="goToDetail(product.productId)">
-              Xem chi tiết
-            </button>
+
           </div>
         </div>
       </div>
@@ -253,6 +251,15 @@ const filterSections = [
 
 .image-container:hover .image-front {
   opacity: 0;
+}
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  z-index: 2;
 }
 
 </style>
