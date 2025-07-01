@@ -1,33 +1,78 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Banner from './Banner.vue'
 import axios from 'axios'
 
 const route = useRoute()
 
 const quantity = ref(1)
-const selectedProduct = ref([])
+const selectedProduct = ref({})
 const selectedImage = ref('')
-const sizeList = Array.from({ length: 13 }, (_, i) => `EU ${33 + i}`)
-const availableSizes = ref([]) // nếu muốn lọc size sau này
-const fetchProductDetail = async () => {
-  const id = route.params.id
+const productVariants = ref([])
+const availableSizes = ref([])
 
-  try {
-    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
-    selectedProduct.value = response.data
-    selectedProduct.value.images = selectedProduct.value.images
-  ? selectedProduct.value.images.split(',')  // 👈 chuyển chuỗi thành mảng
-  : []
-selectedImage.value = selectedProduct.value.images[0] || ''
-  } catch (error) {
-    console.error('Lỗi khi lấy chi tiết sản phẩm', error)
+const sizeList = ref(['33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'])
+
+// Danh sách các màu là duy nhất
+const uniqueColors = computed(() => {
+  const colors = productVariants.value.map(p => p.color)
+  return [...new Set(colors)]
+})
+
+
+const selectColor = (color) => {
+  // Tìm sản phẩm đầu tiên có màu này để làm lựa chọn mặc định
+  const firstVariantOfColor = productVariants.value.find(p => p.color === color)
+  if (firstVariantOfColor) {
+    updateSelection(firstVariantOfColor)
   }
 }
 
 const selectSize = (size) => {
-  selectedProduct.value.size = size
+  const newSelectedProduct = productVariants.value.find(
+    p => p.color === selectedProduct.value.color && p.size === size
+  )
+  if (newSelectedProduct) {
+    selectedProduct.value = newSelectedProduct
+  }
+}
+
+const updateSelection = (variant) => {
+  // Cập nhật sản phẩm đang được chọn
+  selectedProduct.value = variant
+
+  // Xử lý lại chuỗi ảnh cho phiên bản vừa chọn
+  selectedImage.value.images = (variant.images && variant.images[0]) || ''
+
+  // Tìm tất cả size có sẵn cho màu hiện tại
+  const sizesForColor = productVariants.value
+    .filter(p => p.color === variant.color)
+    .map(p => p.size)
+  availableSizes.value = [...new Set(sizesForColor)]
+}
+
+const fetchProductDetail = async () => {
+  const id = route.params.id
+  try {
+    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
+    console.log("Dữ liệu API trả về: ", response.data)
+
+    // Kiểm tra API trả về mảng hợp lệ không
+    if (Array.isArray(response.data) && response.data.length > 0) {
+      const processedVariants = response.data.map(variant => ({
+        ...variant,
+        images: typeof variant.images === 'string' ? variant.images.split(',') : [],
+      }))
+      
+      productVariants.value = processedVariants
+      updateSelection(processedVariants[0]) // Chọn phiên bản đầu tiên làm mặc định
+    } else {
+      console.error("API không trả về dữ liệu sản phẩm hợp lệ.")
+    }
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết sản phẩm', error)
+  }
 }
 
 const selectImage = (img) => {
@@ -37,51 +82,42 @@ const selectImage = (img) => {
 onMounted(() => {
   fetchProductDetail()
 })
-
-
 </script>
+
 <template>
   <Banner title="" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
 
-  <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct">
+  <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
-      <!-- Hình ảnh -->
       <div class="col-md-6 position-relative">
-        <!-- Ảnh chính -->
-        <img
-          :src="selectedImage"
-          alt="Sản phẩm"
-          class="w-100 rounded shadow-sm border border-light"
-          style="max-height: 400px; object-fit: contain;"
-        />
-
-        <!-- Danh sách ảnh phụ -->
+        <img :src="selectedImage" alt="Sản phẩm" class="w-100 rounded shadow-sm border border-light"
+          style="max-height: 400px; object-fit: contain;" />
         <div class="d-flex gap-2 mt-3 overflow-auto">
-          <img
-            v-for="(img, index) in selectedProduct.images"
-            :key="index"
-            :src="img"
-            alt="Ảnh phụ"
-            @click="selectImage(img)"
-            class="img-thumbnail border border-2"
+          <img v-for="(img, index) in selectedProduct.images" :key="index" :src="img" alt="Ảnh phụ"
+            @click="selectImage(img)" class="img-thumbnail border border-2"
             :class="{ 'border-primary': selectedImage === img }"
-            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
-          />
+            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" />
         </div>
       </div>
 
-
-
-      <!-- Thông tin sản phẩm -->
       <div class="col-md-6">
         <h2 class="fw-semibold mb-2">{{ selectedProduct.productName }}</h2>
-        <p class="text-muted mb-2">Thương hiệu: <strong>{{ selectedProduct.brandName }}</strong> | Mã: {{ selectedProduct.productDetailId }}</p>
+        <p class="text-muted mb-2">Thương hiệu: <strong>{{ selectedProduct.brandName }}</strong> | Mã phiên bản: {{
+          selectedProduct.productDetailId }}</p>
         <p class="text-danger fs-4 fw-bold mb-4">{{ selectedProduct.price }}₫</p>
 
-        <p class="mb-3">
+        <div class="mb-3">
           Màu sắc:
-          <span class="color-btn">{{ selectedProduct.color }}</span>
-        </p>
+          <button
+            v-for="color in uniqueColors"
+            :key="color"
+            @click="selectColor(color)"
+            class="color-btn"
+            :class="{ active: selectedProduct.color === color }"
+          >
+            {{ color }}
+          </button>
+        </div>
 
         <div class="mb-3">
           Kích thước:
@@ -90,9 +126,10 @@ onMounted(() => {
             :key="size"
             class="size-btn"
             :class="{ active: selectedProduct.size === size }"
+            :disabled="!availableSizes.includes(size)"
             @click="selectSize(size)"
           >
-            {{ size.replace('EU ', '') }}
+            {{ size }}
           </button>
         </div>
 
@@ -107,13 +144,10 @@ onMounted(() => {
         </div>
 
         <hr />
-        <p class="text-muted">
-          {{ selectedProduct.descriptionProduct }}
-        </p>
+        <p class="text-muted">{{ selectedProduct.descriptionProduct }}</p>
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped>
@@ -166,9 +200,17 @@ onMounted(() => {
   cursor: pointer;
 }
 
+.color-btn.active,
 .size-btn.active {
   background: #007bff;
   color: white;
   border-color: #007bff;
+}
+
+.size-btn:disabled {
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  border-color: #dee2e6;
 }
 </style>
