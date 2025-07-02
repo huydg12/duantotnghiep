@@ -3,7 +3,6 @@ package com.poly.BE_main.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +23,7 @@ public class PromotionController {
 PromotionService promotionService;
 
 @GetMapping("/show")
-public List<Product>findAll(){
+public List<Promotion>findAll(){
     return promotionService.findAll();
 }
 
@@ -40,7 +39,7 @@ public void delete(@PathVariable Integer id){
 }
 
 @PutMapping("/update/{id}")
-public Promotion update(@PathVariable int id, @RequestBody Product p){
+public Promotion update(@PathVariable int id, @RequestBody Promotion p){
     return promotionService.update(id, p);
 }
 
