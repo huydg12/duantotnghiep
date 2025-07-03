@@ -64,7 +64,7 @@ const fetchProductDetail = async () => {
         ...variant,
         images: typeof variant.images === 'string' ? variant.images.split(',') : [],
       }))
-      
+
       productVariants.value = processedVariants
       updateSelection(processedVariants[0]) // Chọn phiên bản đầu tiên làm mặc định
     } else {
@@ -108,27 +108,17 @@ onMounted(() => {
 
         <div class="mb-3">
           Màu sắc:
-          <button
-            v-for="color in uniqueColors"
-            :key="color"
-            @click="selectColor(color)"
-            class="color-btn"
-            :class="{ active: selectedProduct.color === color }"
-          >
+          <button v-for="color in uniqueColors" :key="color" @click="selectColor(color)" class="color-btn"
+            :class="{ active: selectedProduct.color === color }">
             {{ color }}
           </button>
         </div>
 
         <div class="mb-3">
           Kích thước:
-          <button
-            v-for="size in sizeList"
-            :key="size"
-            class="size-btn"
-            :class="{ active: selectedProduct.size === size }"
-            :disabled="!availableSizes.includes(size)"
-            @click="selectSize(size)"
-          >
+          <button v-for="size in sizeList" :key="size" class="size-btn"
+            :class="{ active: selectedProduct.size === size }" :disabled="!availableSizes.includes(size)"
+            @click="selectSize(size)">
             {{ size }}
           </button>
         </div>
