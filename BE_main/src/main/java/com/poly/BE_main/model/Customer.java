@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,9 +24,6 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer Id;
-
-    @Column(name = "ACCOUNT_ID")
-    private Integer AccountId;
 
     @Column(name = "FULL_NAME", length = 255)
     private String FullName;
@@ -47,5 +46,7 @@ public class Customer {
     @Column(name = "CREATED_DATE")
     private LocalDateTime CreatedDate;
 
-
+    @OneToOne
+    @JoinColumn(name = "ACCOUNT_ID")
+    private Account account;
 }

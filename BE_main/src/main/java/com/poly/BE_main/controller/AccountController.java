@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.poly.BE_main.dto.AccountDTO;
 import com.poly.BE_main.dto.LoginDTO;
+import com.poly.BE_main.dto.RegisterDTO;
 import com.poly.BE_main.model.Account;
+import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.service.AccountService;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -21,7 +23,7 @@ import com.poly.BE_main.service.AccountService;
 @RequestMapping("/auth")
 public class AccountController {
     @Autowired
-    private final AccountService accountService;
+    private AccountService accountService;
 
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
@@ -42,4 +44,26 @@ public class AccountController {
         return ResponseEntity.ok(accountDTO);
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> login(@RequestBody RegisterDTO registerDTO) {
+        Account account = new Account();
+        account.setPhone(registerDTO.getPhone());
+        account.setEmail(registerDTO.getEmail());
+        account.setUsername(registerDTO.getUsername());
+        account.setPassword(registerDTO.getPassword());
+        account.setRoleId(3);
+
+        account = accountService.createAccount(account);
+
+        Customer customer = new Customer();
+        customer.setFullName(registerDTO.getFullname());
+        customer.setNumberPhone(registerDTO.getPhone());
+        customer.setEmail(registerDTO.getEmail());
+        customer.setAccount(account);
+
+        accountService.createCustomer(customer);
+
+        return ResponseEntity.ok("Đăng ký thành công");
+    }
+    
 }
