@@ -26,11 +26,11 @@ public class AccountService {
         return accountRepository.findByUsername(username);
     }
 
-    public Account createAccount(Account account){
+    public Account createAccount(Account account) {
         return accountRepository.save(account);
     }
 
-    public Customer createCustomer(Customer customer){
+    public Customer createCustomer(Customer customer) {
         return customerRepository.save(customer);
     }
 }

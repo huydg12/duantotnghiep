@@ -1,6 +1,7 @@
 package com.poly.BE_main.model;
 
 import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,13 +9,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "IMPORT_RECEIPT_DETAIL")
+@Table(name = "IMPORT_RECEIPT_DETAIL", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ImportReceiptDetail {
-    
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-    @Column(name="ID")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private int id;
 
     @Column(name = "IMPORT_RECEIPT_ID")
@@ -34,75 +41,5 @@ public class ImportReceiptDetail {
 
     @Column(name = "STATUS")
     private int status;
-
-    public ImportReceiptDetail() {
-    }
-
-    public ImportReceiptDetail(int id, Integer importReceiptId, Integer productDetailId, int quantity, BigDecimal unitPrice,
-            BigDecimal totalPrice, int status) {
-        this.id = id;
-        this.importReceiptId = importReceiptId;
-        this.productDetailId = productDetailId;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.totalPrice = totalPrice;
-        this.status = status;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Integer getImportReceiptId() {
-        return importReceiptId;
-    }
-
-    public void setImportReceiptId(Integer importReceiptId) {
-        this.importReceiptId = importReceiptId;
-    }
-
-    public Integer getProductDetailId() {
-        return productDetailId;
-    }
-
-    public void setProductDetailId(Integer productDetailId) {
-        this.productDetailId = productDetailId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public void setUnitPrice(BigDecimal unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
 
 }

@@ -1,30 +1,32 @@
 package com.poly.BE_main.service;
 
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Sole;
 import com.poly.BE_main.repository.SoleRepository;
+
 @Service
 public class SoleService {
     @Autowired
     SoleRepository soleRepository;
 
-    public List<Sole>findAll(){
+    public List<Sole> findAll() {
         return soleRepository.findAll();
     }
 
-    public Sole create(Sole s){
+    public Sole create(Sole s) {
         return soleRepository.save(s);
     }
 
-    public void delete(Integer id){
+    public void delete(Integer id) {
         soleRepository.deleteById(id);
     }
 
-    public Sole update(int id, Sole sUpdate){
-        return soleRepository.findById(id).map(s ->{
+    public Sole update(int id, Sole sUpdate) {
+        return soleRepository.findById(id).map(s -> {
             s.setName(sUpdate.getName());
             s.setDescription(sUpdate.getDescription());
             return soleRepository.save(s);

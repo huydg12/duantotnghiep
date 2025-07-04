@@ -44,8 +44,7 @@ public class ProductDetailService {
                     description,
                     size,
                     price,
-                    images
-            );
+                    images);
         }).collect(Collectors.toList());
     }
 }

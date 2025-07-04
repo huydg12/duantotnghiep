@@ -31,7 +31,6 @@ public class CustomerService {
 
     public Customer update(int id, Customer cUpdate){
         return customerRepository.findById(id).map(c ->{
-            c.setAccountId(cUpdate.getAccountId());
             c.setFullName(cUpdate.getFullName());
             c.setGender(cUpdate.getGender());
             c.setEmail(cUpdate.getEmail());

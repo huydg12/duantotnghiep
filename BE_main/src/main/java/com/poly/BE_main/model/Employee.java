@@ -9,45 +9,47 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @Entity
-@Table (name = "EMPLOYEE", schema = "dbo")
+@Table(name = "EMPLOYEE", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private Integer Id;
+    private Integer id;
 
     @Column(name = "ACCOUNT_ID")
-    private Integer AccountId;
+    private Integer accountId;
 
     @Column(name = "FULL_NAME", length = 255)
-    private String FullName;
+    private String fullName;
 
     @Column(name = "GENDER", length = 45)
-    private String Gender;
+    private String gender;
 
     @Column(name = "EMAIL", length = 255)
-    private String Email;
+    private String email;
 
     @Column(name = "NUMBER_PHONE", length = 45)
-    private String NumberPhone;
+    private String numberPhone;
 
     @Column(name = "BIRTH_OF_DATE")
-    private LocalDate BirthOfDate;
+    private LocalDate birthOfDate;
 
     @Column(name = "IS_ACTIVE")
-    private Boolean IsActive;
+    private Boolean isActive;
 
     @Column(name = "CREATED_BY")
-    private String CreatedBy;
+    private String createdBy;
 
     @Column(name = "CREATED_DATE")
-    private LocalDateTime CreatedDate;
+    private LocalDateTime createdDate;
 
 }

@@ -4,30 +4,30 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.repository.BillRepository;
 
-
 @Service
 public class BillService {
-    
+
     @Autowired
     BillRepository billRepository;
 
-    public List<Bill> findAll(){
+    public List<Bill> findAll() {
         return billRepository.findAll();
     }
 
-    public Bill create(Bill i){
+    public Bill create(Bill i) {
         return billRepository.save(i);
     }
 
-    public void delete(Integer id){
+    public void delete(Integer id) {
         billRepository.deleteById(id);
     }
 
-    public Bill update(int id, Bill bUpdate){
-        return billRepository.findById(id).map(i ->{
+    public Bill update(int id, Bill bUpdate) {
+        return billRepository.findById(id).map(i -> {
             i.setCustomerId(bUpdate.getCustomerId());
             i.setEmployeeId(bUpdate.getEmployeeId());
             i.setPtttId(bUpdate.getPtttId());

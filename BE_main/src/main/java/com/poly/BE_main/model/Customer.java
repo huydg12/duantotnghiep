@@ -11,40 +11,41 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+
 @Entity
 @Table(name = "CUSTOMER", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Customer {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
 
     @Column(name = "FULL_NAME", length = 255)
-    private String FullName;
+    private String fullName;
 
     @Column(name = "GENDER", length = 45)
-    private String Gender;
+    private String gender;
 
     @Column(name = "EMAIL", length = 255)
-    private String Email;
+    private String email;
 
     @Column(name = "NUMBER_PHONE", length = 45)
-    private String NumberPhone;
+    private String numberPhone;
 
     @Column(name = "BIRTH_OF_DATE")
-    private LocalDate BirthOfDate;
+    private LocalDate birthOfDate;
 
     @Column(name = "STATUS")
-    private Integer Status;
+    private Integer status;
 
     @Column(name = "CREATED_DATE")
-    private LocalDateTime CreatedDate;
+    private LocalDateTime createdDate;
 
     @OneToOne
     @JoinColumn(name = "ACCOUNT_ID")

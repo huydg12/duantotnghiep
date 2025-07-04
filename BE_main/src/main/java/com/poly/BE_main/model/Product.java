@@ -9,125 +9,43 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
 @Table(name = "PRODUCT", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private Integer Id;
+    private Integer id;
 
     @Column(name = "PRODUCT_NAME", length = 255)
-    private String ProductName;
+    private String productName;
 
     @Column(name = "BRAND_ID")
-    private Integer BrandId;
+    private Integer brandId;
 
     @Column(name = "STYLE_ID")
-    private Integer StyleId;
+    private Integer styleId;
 
     @Column(name = "SOLE_ID")
-    private Integer SoleId;
+    private Integer soleId;
 
     @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
-    private String Description;
+    private String description;
 
     @Column(name = "CREATED_BY", length = 255)
-    private String CreatedBy;
+    private String createdBy;
 
     @Column(name = "CREATED_DATE")
-    private LocalDateTime CreatedDate;
+    private LocalDateTime createdDate;
 
     @Column(name = "STATUS")
-    private Integer Status;
-
-    public Product() {
-    }
-
-    public Product(Integer id, String productName, Integer brandId, Integer styleId, Integer soleId, String description,
-            String createdBy, LocalDateTime createdDate, Integer status) {
-        Id = id;
-        ProductName = productName;
-        BrandId = brandId;
-        StyleId = styleId;
-        SoleId = soleId;
-        Description = description;
-        CreatedBy = createdBy;
-        CreatedDate = createdDate;
-        Status = status;
-    }
-
-    public Integer getId() {
-        return Id;
-    }
-
-    public void setId(Integer id) {
-        Id = id;
-    }
-
-    public String getProductName() {
-        return ProductName;
-    }
-
-    public void setProductName(String productName) {
-        ProductName = productName;
-    }
-
-    public Integer getBrandId() {
-        return BrandId;
-    }
-
-    public void setBrandId(Integer brandId) {
-        BrandId = brandId;
-    }
-
-    public Integer getStyleId() {
-        return StyleId;
-    }
-
-    public void setStyleId(Integer styleId) {
-        StyleId = styleId;
-    }
-
-    public Integer getSoleId() {
-        return SoleId;
-    }
-
-    public void setSoleId(Integer soleId) {
-        SoleId = soleId;
-    }
-
-    public String getDescription() {
-        return Description;
-    }
-
-    public void setDescription(String description) {
-        Description = description;
-    }
-
-    public String getCreatedBy() {
-        return CreatedBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        CreatedBy = createdBy;
-    }
-
-    public LocalDateTime getCreatedDate() {
-        return CreatedDate;
-    }
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        CreatedDate = createdDate;
-    }
-
-    public Integer getStatus() {
-        return Status;
-    }
-
-    public void setStatus(Integer status) {
-        Status = status;
-    }
+    private Integer status;
 
 }

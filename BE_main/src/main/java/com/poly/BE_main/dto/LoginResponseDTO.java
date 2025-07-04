@@ -5,11 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponseDTO {
     private String accessToken;
     private AccountDTO user;
 
-    // Getter/Setter
 }

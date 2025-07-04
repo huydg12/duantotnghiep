@@ -8,10 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 import com.poly.BE_main.model.CartDetail;
 
-public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>{
+public interface CartDetailRepository extends JpaRepository<CartDetail, Integer> {
     @Query(value = """
             WITH RepresentativeProductDetail AS (
-                SELECT 
+                SELECT
                     PRODUCT_ID,
                     COLOR_ID,
                     MIN(ID) AS REPRESENTATIVE_PD_ID
@@ -19,7 +19,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 GROUP BY PRODUCT_ID, COLOR_ID
             )
 
-            SELECT 
+            SELECT
                 CD.ID                  AS cartDetailId,
                 C.ID                   AS cartId,
                 CU.ID                  AS customerId,
@@ -39,14 +39,15 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
             JOIN COLOR CO ON PD.COLOR_ID = CO.ID
 
             -- Lấy product detail đại diện theo màu
-            LEFT JOIN RepresentativeProductDetail RPD 
+            LEFT JOIN RepresentativeProductDetail RPD
                 ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
 
             -- Lấy ảnh chính (is_main = 1) từ bản ghi đại diện
-            LEFT JOIN IMAGE I 
+            LEFT JOIN IMAGE I
                 ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID AND I.IS_MAIN = 1
 
             WHERE CU.ID = :customerId
                         """, nativeQuery = true)
     List<Object[]> findAllCartDetailByCustomer(@Param("customerId") Integer customerId);
+    
 }

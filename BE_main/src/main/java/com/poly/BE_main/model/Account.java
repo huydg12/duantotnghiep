@@ -8,23 +8,24 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
+@Table(name = "ACCOUNT", schema = "dbo", uniqueConstraints = { @UniqueConstraint(columnNames = "USERNAME") })
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "ACCOUNT", schema = "dbo", uniqueConstraints = { @UniqueConstraint(columnNames = "USERNAME") })
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private int Id;
+    private int id;
 
     @Column(name = "USERNAME", length = 255)
     private String username;
@@ -41,6 +42,11 @@ public class Account {
     @Column(name = "CREATED_DATE")
     private LocalDateTime createDate;
 
+    @PrePersist
+    void onCrete() {
+        this.createDate = LocalDateTime.now();
+    }
+
     @Column(name = "IS_ACTIVE")
     private boolean isActive;
 
@@ -49,5 +55,5 @@ public class Account {
 
     @OneToOne(mappedBy = "account")
     private Customer customer;
-    
+
 }

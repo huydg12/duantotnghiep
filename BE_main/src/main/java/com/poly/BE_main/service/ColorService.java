@@ -7,26 +7,27 @@ import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Color;
 import com.poly.BE_main.repository.ColorRepository;
+
 @Service
 public class ColorService {
     @Autowired
     ColorRepository colorRepository;
 
-    public List<Color>FinAll(){
+    public List<Color> FinAll() {
         return colorRepository.findAll();
     }
 
-    public Color create(Color c){
+    public Color create(Color c) {
         colorRepository.save(c);
         return c;
     }
 
-    public  void deleteById(Integer id){
+    public void deleteById(Integer id) {
         colorRepository.deleteById(id);
     }
 
-    public Color update(int id,  Color cUpdate){
-        return colorRepository.findById(id).map(c ->{
+    public Color update(int id, Color cUpdate) {
+        return colorRepository.findById(id).map(c -> {
             c.setName(cUpdate.getName());
             c.setDescription(cUpdate.getDescription());
             return colorRepository.save(c);

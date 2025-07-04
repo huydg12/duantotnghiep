@@ -6,15 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-
+@AllArgsConstructor
 public class ProductDTO {
-    private Integer productId; // hoặc int nếu không cần nullable
+    private Integer productId; 
     private String productName;
     private String brandName;
     private BigDecimal price;
-    private String image1; // ảnh đầu tiên (chính)
-    private String image2; // ảnh hover (thứ hai)
+    private String image1; 
+    private String image2;
 
 }

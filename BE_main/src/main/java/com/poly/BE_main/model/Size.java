@@ -7,49 +7,23 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "SIZE")
+@Table(name = "SIZE", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Size {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private int Id;
+    private int id;
     @Column(name = "NAME")
-    private String Name;
+    private String name;
     @Column(name = "DESCRIPTION")
-    private String Description;
-
-    public Size() {
-    }
-
-    public Size(int id, String name, String description) {
-        Id = id;
-        Name = name;
-        Description = description;
-    }
-
-    public int getId() {
-        return Id;
-    }
-
-    public void setId(int id) {
-        Id = id;
-    }
-
-    public String getName() {
-        return Name;
-    }
-
-    public void setName(String name) {
-        Name = name;
-    }
-
-    public String getDescription() {
-        return Description;
-    }
-
-    public void setDescription(String description) {
-        Description = description;
-    }
+    private String description;
 
 }

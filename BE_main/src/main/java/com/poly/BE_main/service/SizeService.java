@@ -13,20 +13,20 @@ public class SizeService {
     @Autowired
     SizeRepository sizeRepository;
 
-    public List<Size>finall(){
+    public List<Size> finall() {
         return sizeRepository.findAll();
     }
 
-    public Size create(Size s){
+    public Size create(Size s) {
         return sizeRepository.save(s);
     }
 
-    public void delete(Integer id){
+    public void delete(Integer id) {
         sizeRepository.deleteById(id);
     }
 
-    public Size update(int id, Size sUpdate){
-        return sizeRepository.findById(id).map(s ->{
+    public Size update(int id, Size sUpdate) {
+        return sizeRepository.findById(id).map(s -> {
             s.setName(sUpdate.getName());
             s.setDescription(sUpdate.getDescription());
             return sizeRepository.save(s);

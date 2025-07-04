@@ -1,14 +1,12 @@
 package com.poly.BE_main.dto;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class CartDetailDTO {
     private int cartDetailId;
     private int cartId;

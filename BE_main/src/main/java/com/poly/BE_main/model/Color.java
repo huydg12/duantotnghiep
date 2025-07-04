@@ -7,60 +7,25 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "COLOR")
+@Table(name = "COLOR", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Color {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private Integer Id;
+    private Integer dd;
     @Column(name = "NAME")
-    private String Name;
+    private String name;
     @Column(name = "DESCRIPTION")
-    private String Description;
+    private String description;
     @Column(name = "CODE")
-    private String Code;
-
-    public Color() {
-    }
-
-    public Color(Integer id, String name, String description, String code) {
-        Id = id;
-        Name = name;
-        Description = description;
-        Code = code;
-    }
-
-    public Integer getId() {
-        return Id;
-    }
-
-    public void setId(Integer id) {
-        Id = id;
-    }
-
-    public String getName() {
-        return Name;
-    }
-
-    public void setName(String name) {
-        Name = name;
-    }
-
-    public String getDescription() {
-        return Description;
-    }
-
-    public void setDescription(String description) {
-        Description = description;
-    }
-
-    public String getCode() {
-        return Code;
-    }
-
-    public void setCode(String code) {
-        Code = code;
-    }
+    private String code;
 
 }

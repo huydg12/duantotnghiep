@@ -6,16 +6,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table  (name = "CART_DETAIL")
-
+@Table(name = "CART_DETAIL", schema = "dbo")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CartDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

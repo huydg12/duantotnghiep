@@ -13,24 +13,24 @@ public class EmployeeService {
     @Autowired
     EmployeeRepository employeeRepository;
 
-    public List<Employee> findAll(){
+    public List<Employee> findAll() {
         return employeeRepository.findAll();
     }
 
-    public Employee create(Employee e){
+    public Employee create(Employee e) {
         employeeRepository.save(e);
         return e;
     }
 
-    public void deleteById(Integer id){
+    public void deleteById(Integer id) {
         employeeRepository.deleteById(id);
     }
 
-    public Employee update(Employee e){
+    public Employee update(Employee e) {
         return employeeRepository.save(e);
     }
 
-    public Employee update(int id, Employee eUpdate){
+    public Employee update(int id, Employee eUpdate) {
         return employeeRepository.findById(id).map(e -> {
             e.setAccountId(eUpdate.getAccountId());
             e.setFullName(eUpdate.getFullName());
