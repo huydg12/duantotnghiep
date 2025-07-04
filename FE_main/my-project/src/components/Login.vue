@@ -5,28 +5,38 @@ import { useRouter } from 'vue-router';
 import axios from 'axios'
 
 const router = useRouter();
-
+import { useUserStore } from '../stores/userStore';
 const username = ref("");
 const password = ref("");
-
+const errorMessage = ref("");
+const userStore = useUserStore(); // khởi tạo store
 const handleLogin = async () => {
+    errorMessage.value = ""; // reset lỗi trước khi gửi
   try {
     const response = await axios.post("http://localhost:8080/auth/login", {
       username: username.value,
       password: password.value
     })
 
-    const account = response.data
-    if (account.roleId === 1 || account.roleId === 3) {
-      router.push("/manage");
-    } else {
-      router.push("/home");
-    }
+    const data = response.data
+
+    // Lưu token vào localStorage
+    localStorage.setItem("accessToken", data.accessToken);
+    // Lưu thông tin user vào localStorage (nếu cần)
+    localStorage.setItem("user", JSON.stringify(data.user));
+        userStore.setUser(data.user); // cập nhật reactive
+    // Điều hướng dựa trên roleId
+if (data.user.roleId === 1 || data.user.roleId === 3) {
+  router.push("/manage").then(() => window.location.reload());
+} else {
+  router.push("/home").then(() => window.location.reload());
+}
   } catch (error) {
-    console.log(account)
+    console.error(error);
+    errorMessage.value = "Tên tài khoản hoặc mật khẩu không đúng!";
   }
 
-}
+};
 
 </script>
 
@@ -43,6 +53,7 @@ const handleLogin = async () => {
     <div class="mb-3 text-end">
       <router-link to="/resetPass" class="text-decoration-none text-primary">Quên mật khẩu?</router-link>
     </div>
+    <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
     <button type="submit" class="btn btn-dark w-100 fw-semibold">ĐĂNG NHẬP</button>
 
   </form>

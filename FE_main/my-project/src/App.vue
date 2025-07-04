@@ -1,10 +1,28 @@
 <script setup>
 import Logo from '/images/logo.png';
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useUserStore } from './stores/userStore';
+import { onMounted } from 'vue';
 
+const userStore = useUserStore();
 const router = useRouter()
 const searchText = ref('')
+
+const userInfo = ref(JSON.parse(localStorage.getItem('user')))
+const user = computed(() => userInfo.value)
+onMounted(() => {
+  userStore.loadUserFromLocalStorage(); // Đọc lại từ localStorage khi load trang
+});
+// Hàm đăng xuất
+const handleLogout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("user");
+  userStore.setUser(null); // Reset userStore
+  userInfo.value = null;
+  router.push("/auth/login");
+};
+
 
 // Hàm xử lý khi nhấn Enter
 const handleSearch = () => {
@@ -59,13 +77,30 @@ const handleSearch = () => {
 
           <a href="#" title="Yêu thích"><i class="bi bi-heart-fill text-white"></i></a>
           <router-link to="/cart" title="Giỏ hàng"><i class="bi bi-bag-fill text-white"></i></router-link>
-          <router-link to="/auth/login" title="Đăng nhập"><i class="bi bi-person-circle text-white"></i></router-link>
+          <!-- Nếu đã đăng nhập -->
+            <div v-if="userStore.user" class="dropdown">
+              <a class="text-white dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li class="dropdown-item fw-semibold text-uppercase">{{ userStore.user.name }}</li>
+                <li><router-link class="dropdown-item" to="/informationCustomer">Thông tin cá nhân</router-link></li>
+
+                <li><a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">Đăng xuất</a></li>
+              </ul>
+            </div>
+
+            <!-- Nếu chưa đăng nhập -->
+            <router-link v-else to="/auth/login" title="Đăng nhập">
+              <i class="bi bi-person-circle text-white"></i>
+            </router-link>
         </div>
       </div>
     </nav>
   </header>
 
   <div id="app">
+
     <RouterView />
   </div>
 
