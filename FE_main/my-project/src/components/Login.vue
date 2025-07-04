@@ -17,15 +17,15 @@ const handleLogin = async () => {
     })
 
     const account = response.data
-    if (account.roleId === 1 || account.roleId === 2) {
+    if (account.roleId === 1 || account.roleId === 3) {
       router.push("/manage");
     } else {
-      // router.push("/home");
+      router.push("/home");
     }
   } catch (error) {
-    console.log(username) 
+    console.log(account)
   }
-  
+
 }
 
 </script>
@@ -48,4 +48,5 @@ const handleLogin = async () => {
   </form>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>
