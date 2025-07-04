@@ -1,10 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute,useRouter } from 'vue-router'
 import Banner from './Banner.vue'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 
 const quantity = ref(1)
 const selectedProduct = ref({})
@@ -12,7 +13,14 @@ const selectedImage = ref('')
 const productVariants = ref([])
 const availableSizes = ref([])
 
-const sizeList = ref(['33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'])
+
+const addToCart = () => {
+  router.push('/cart') // Chuyển hướng đến trang giỏ hàng
+}
+
+
+
+const sizeList = ref(['EU 33', 'EU 34', 'EU 35', 'EU 36', 'EU 37', 'EU 38', 'EU 39', 'EU 40', 'EU 41', 'EU 42', 'EU 43', 'EU 44', 'EU 45'])
 
 // Danh sách các màu là duy nhất
 const uniqueColors = computed(() => {
@@ -43,7 +51,8 @@ const updateSelection = (variant) => {
   selectedProduct.value = variant
 
   // Xử lý lại chuỗi ảnh cho phiên bản vừa chọn
-  selectedImage.value.images = (variant.images && variant.images[0]) || ''
+  selectedImage.value = (variant.images && variant.images[0]) || ''
+    console.log('Variant.images:', variant.images)
 
   // Tìm tất cả size có sẵn cho màu hiện tại
   const sizesForColor = productVariants.value
@@ -62,11 +71,13 @@ const fetchProductDetail = async () => {
     if (Array.isArray(response.data) && response.data.length > 0) {
       const processedVariants = response.data.map(variant => ({
         ...variant,
-        images: typeof variant.images === 'string' ? variant.images.split(',') : [],
+        images: Array.isArray(variant.images) ? variant.images : [],
       }))
 
       productVariants.value = processedVariants
+      console.log("Dữ liệu đã xử lý:", processedVariants)
       updateSelection(processedVariants[0]) // Chọn phiên bản đầu tiên làm mặc định
+      
     } else {
       console.error("API không trả về dữ liệu sản phẩm hợp lệ.")
     }
@@ -89,16 +100,29 @@ onMounted(() => {
 
   <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
-      <div class="col-md-6 position-relative">
-        <img :src="selectedImage" alt="Sản phẩm" class="w-100 rounded shadow-sm border border-light"
-          style="max-height: 400px; object-fit: contain;" />
-        <div class="d-flex gap-2 mt-3 overflow-auto">
-          <img v-for="(img, index) in selectedProduct.images" :key="index" :src="img" alt="Ảnh phụ"
-            @click="selectImage(img)" class="img-thumbnail border border-2"
-            :class="{ 'border-primary': selectedImage === img }"
-            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" />
-        </div>
+<div class="col-md-6 position-relative">
+      <!-- Ảnh chính -->
+      <img
+        :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage"
+        alt="Sản phẩm"
+        class="w-100 rounded shadow-sm border border-light"
+        style="max-height: 400px; object-fit: contain;"
+      />
+
+      <!-- Danh sách ảnh phụ -->
+      <div class="d-flex gap-2 mt-3 overflow-auto">
+        <img
+          v-for="(img, index) in selectedProduct.images"
+          :key="index"
+          :src="img.startsWith('./') ? img.replace('./', '/') : img"
+          alt="Ảnh phụ"
+          @click="selectImage(img)"
+          class="img-thumbnail border border-2"
+          :class="{ 'border-primary': selectedImage === img }"
+          style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+        />
       </div>
+    </div>
 
       <div class="col-md-6">
         <h2 class="fw-semibold mb-2">{{ selectedProduct.productName }}</h2>
@@ -114,14 +138,22 @@ onMounted(() => {
           </button>
         </div>
 
-        <div class="mb-3">
-          Kích thước:
-          <button v-for="size in sizeList" :key="size" class="size-btn"
-            :class="{ active: selectedProduct.size === size }" :disabled="!availableSizes.includes(size)"
-            @click="selectSize(size)">
-            {{ size }}
-          </button>
-        </div>
+          <div class="mb-3">
+            Kích thước:
+            <button
+              v-for="size in sizeList"
+              :key="size"
+              class="size-btn"
+              :class="[
+                { active: selectedProduct.size === size },
+                { unavailable: !availableSizes.includes(size) }
+              ]"
+              :disabled="!availableSizes.includes(size)"
+              @click="selectSize(size)"
+            >
+              {{ size }}
+            </button>
+          </div>
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
@@ -129,7 +161,7 @@ onMounted(() => {
         </div>
 
         <div class="d-flex gap-3 mb-4">
-          <button class="btn btn-primary product-button fw-semibold">Thêm vào giỏ</button>
+          <button class="btn btn-primary product-button fw-semibold" @click="addToCart(selectedProduct.productDetailId)">Thêm vào giỏ</button>
           <button class="btn btn-danger product-button fw-semibold">Mua ngay</button>
         </div>
 
