@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import com.poly.BE_main.dto.ProductDTO;
 import com.poly.BE_main.model.Product;
 import com.poly.BE_main.repository.ProductRepository;
@@ -60,6 +60,23 @@ public class ProductService {
         BigDecimal price = (BigDecimal) row[3];
         String image1 = (String) row[4]; // Ảnh chính
         String image2 = (String) row[5]; // Ảnh hover
+
+        products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+    }
+
+    return products;
+}
+    public List<ProductDTO> searchByKeyword(String keyword) {
+    List<Object[]> results = productRepository.searchByKeyword(keyword);
+    List<ProductDTO> products = new ArrayList<>();
+
+    for (Object[] row : results) {
+        Integer productId = ((Number) row[0]).intValue();
+        String productName = (String) row[1];
+        String brandName = (String) row[2];
+        BigDecimal price = (BigDecimal) row[3];
+        String image1 = (String) row[4];
+        String image2 = (String) row[5];
 
         products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
     }
