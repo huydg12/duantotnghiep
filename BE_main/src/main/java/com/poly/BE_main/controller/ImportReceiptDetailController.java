@@ -11,36 +11,33 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.poly.BE_main.model.Bill;
-import com.poly.BE_main.service.BillService;
+import com.poly.BE_main.model.ImportReceiptDetail;
+import com.poly.BE_main.service.ImportReceiptDetailService;
 
 @RestController
-@RequestMapping("/bill")
-public class BillController {
-
+@RequestMapping("/importReceiptDetail")
+public class ImportReceiptDetailController {
+    
     @Autowired
-    BillService billService;
+    ImportReceiptDetailService importReceiptDetailService;
 
     @GetMapping("/show")
-    public List<Bill> findALl(){
-        return billService.findAll();
+    public List<ImportReceiptDetail> findALL(){
+        return importReceiptDetailService.findAll();
     }
 
-    @PostMapping("/create")
-    public Bill create(@RequestBody Bill i){
-        return billService.create(i);
+    @PostMapping("create")
+    public ImportReceiptDetail create(@RequestBody ImportReceiptDetail i){
+        return importReceiptDetailService.create(i);
     }
 
     @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable Integer id){
-        billService.delete(id);
+        importReceiptDetailService.delete(id);
     }
 
     @PutMapping("/update/{id}")
-    public Bill update(@PathVariable int id, @RequestBody Bill i){
-        return billService.update(id, i);
+    public ImportReceiptDetail update(@PathVariable int id, @RequestBody ImportReceiptDetail i){
+        return importReceiptDetailService.update(id, i);
     }
-
-    
 }
