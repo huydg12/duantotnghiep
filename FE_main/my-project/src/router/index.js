@@ -12,6 +12,9 @@ import Contact from "../components/Contact.vue";
 import Cart from "../components/Cart.vue";
 import ResetPass from "../components/ResetPass.vue";
 import VerifyCode from "../components/VerifyCode.vue";
+import Register from "../components/Register.vue";
+import Auth from "../components/Auth.vue";
+import Manage from "../components/Manage.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -25,11 +28,7 @@ const router = createRouter({
       name: "home",
       component: Home,
     },
-    {
-      path: "/login",
-      name: "login",
-      component: Login,
-    },
+
     {
       path: "/introduce",
       name: "introduce",
@@ -42,14 +41,31 @@ const router = createRouter({
       component: Product,
     },
     {
+      path: "/contact",
+      name: "contact",
+      component: Contact,
+    },
+    {
       path: "/cart",
       name: "cart",
       component: Cart,
     },
     {
-      path: "/contact",
-      name: "contact",
-      component: Contact,
+      path: "/auth",
+      component: Auth,
+      redirect: "/auth/login",
+      children: [
+        {
+          path: "login",
+          name: "Login",
+          component: Login,
+        },
+        {
+          path: "register",
+          name: "Register",
+          component: Register,
+        },
+      ],
     },
     {
       path: "/payment",
@@ -70,6 +86,11 @@ const router = createRouter({
       path: "/productDetail/:id",
       name: "productDetail",
       component: ProductDetail,
+    },
+    {
+      path: "/manage",
+      name: "Manage",
+      component: Manage,
     },
   ],
 });

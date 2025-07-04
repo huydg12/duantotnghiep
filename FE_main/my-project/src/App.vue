@@ -2,7 +2,7 @@
 
 import Logo from '/images/logo.png';
 import { RouterLink, RouterView } from 'vue-router'
-import Manage from './components/Manage.vue';
+import Auth from './components/Auth.vue';
 
 </script>
 
@@ -55,17 +55,15 @@ import Manage from './components/Manage.vue';
           </div>
           <a href="#" title="Yêu thích"><i class="bi bi-heart-fill"></i></a>
           <router-link to="/cart" title="Giỏ hàng"><i class="bi bi-bag-fill"></i></router-link>
-          <router-link to="/login" title="Đăng nhập"><i class="bi bi-person-circle"></i></router-link>
+          <router-link to="/auth/login" title="Đăng nhập"><i class="bi bi-person-circle"></i></router-link>
         </div>
       </div>
     </nav>
   </header>
   <div id="app">
     <RouterView />
-    <!-- <Manage/> -->
   </div>
   
-
   <footer class="footer pt-5 pb-4">
     <div class="container-xl">
       <div class="row g-5">

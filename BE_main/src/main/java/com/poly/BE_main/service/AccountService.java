@@ -1,6 +1,5 @@
 package com.poly.BE_main.service;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +10,14 @@ import com.poly.BE_main.repository.AccountRepository;
 
 @Service
 public class AccountService {
-@Autowired
-AccountRepository accountRepository;
+    @Autowired
+    private final AccountRepository accountRepository;
 
-public Optional<Account> getAccountByUsername(String username) {
+    public AccountService(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
+
+    public Optional<Account> getAccountByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
 }
