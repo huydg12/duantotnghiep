@@ -50,4 +50,9 @@ public void delete(@PathVariable Integer id){
 public Product update(@PathVariable int id, @RequestBody Product p){
     return productService.update(id, p);
 }
+@GetMapping("/search")
+public ResponseEntity<List<ProductDTO>>searchProduct(String keyword){
+    List<ProductDTO> results = productService.searchByKeyword(keyword);
+    return ResponseEntity.ok(results);
+}
 }

@@ -11,7 +11,8 @@ import org.springframework.context.annotation.ComponentScan;
 		"com.poly.BE_main.repository",
 		"com.poly.BE_main.service",
 		"com.poly.BE_main.config",
-		"com.poly.BE_main.dto"
+		"com.poly.BE_main.dto",
+		"com.poly.BE_main.utils"
 })
 public class BeMainApplication {
 	public static void main(String[] args) {
