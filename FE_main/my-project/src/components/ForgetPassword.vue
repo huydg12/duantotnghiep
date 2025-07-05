@@ -1,30 +1,23 @@
 <script setup>
-function goToConfirmPage() {
-  const email = document.getElementById("emailInput").value.trim();
-  if (email !== "") {
-    window.location.href = "xacNhanMa.html";
-  }
-  return false;
-}
+import Banner from './Banner.vue';
 </script>
 <template>
+  <Banner title="Quên mật khẩu" breadcrumb="Quên mật khẩu"
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="custom-box">
     <!-- Mũi tên quay lại -->
-    <a href="dangnhap.html" class="back-arrow">&#8592;</a>
+    <a href="/auth/login" class="back-arrow">&#8592;</a>
 
     <!-- Tiêu đề -->
     <h2 class="text-center fw-bold text-dark mb-4">Quên mật khẩu</h2>
-
-    <form onsubmit="return goToConfirmPage()">
+    <form>
       <div class="mb-3">
-        <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ*</label>
+        <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ</label>
         <input type="email" id="emailInput" required placeholder="Nhập địa chỉ email" class="form-control" />
       </div>
-
       <button type="submit" class="btn btn-dark w-100 mt-3 fw-semibold">
         GỬI YÊU CẦU
       </button>
-
       <p class="info-text">
         Hệ thống sẽ gửi đường dẫn đặt lại mật khẩu đến email của bạn (nếu có tồn
         tại trong hệ thống).

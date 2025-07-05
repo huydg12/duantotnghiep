@@ -5,12 +5,12 @@ import Home from "../components/Home.vue";
 import Payment from "../components/Payment.vue";
 import ProductDetail from "../components/ProductDetail.vue";
 import InformationCustomer from "../components/InformationCustomer.vue";
-import ForgetPass from "../components/ForgetPass.vue";
+import ForgetPassword from "../components/ForgetPassword.vue";
 import Introduce from "../components/Introduce.vue";
 import Product from "../components/Product.vue";
 import Contact from "../components/Contact.vue";
 import Cart from "../components/Cart.vue";
-import ResetPass from "../components/ResetPass.vue";
+import ResertPassword from "../components/ResertPassword.vue";
 import VerifyCode from "../components/VerifyCode.vue";
 import Register from "../components/Register.vue";
 import Auth from "../components/Auth.vue";
@@ -24,11 +24,10 @@ const router = createRouter({
       component: Home,
     },
     {
-      path: "/informationCustomer",
-      name: "informationCustomer",
+      path: "/informationcustomer",
+      name: "informationcustomer",
       component: InformationCustomer,
     },
-
 
     {
       path: "/home",
@@ -48,6 +47,11 @@ const router = createRouter({
       component: Product,
     },
     {
+      path: "/productdetail/:id",
+      name: "productdetail",
+      component: ProductDetail,
+    },
+    {
       path: "/contact",
       name: "contact",
       component: Contact,
@@ -58,45 +62,45 @@ const router = createRouter({
       component: Cart,
     },
     {
+      path: "/payment",
+      name: "payment",
+      component: Payment,
+    },
+    {
       path: "/auth",
       component: Auth,
       redirect: "/auth/login",
       children: [
         {
           path: "login",
-          name: "Login",
+          name: "login",
           component: Login,
         },
         {
           path: "register",
-          name: "Register",
+          name: "register",
           component: Register,
         },
       ],
     },
     {
-      path: "/payment",
-      name: "payment",
-      component: Payment,
+      path: "/forgetpassword",
+      name: "forgetpassword",
+      component: ForgetPassword,
     },
     {
-      path: "/resetPass",
-      name: "resetPass",
-      component: ResetPass,
-    },
-    {
-      path: "/verifyCode",
-      name: "verifyCode",
+      path: "/verifycode",
+      name: "verifycode",
       component: VerifyCode,
     },
     {
-      path: "/productDetail/:id",
-      name: "productDetail",
-      component: ProductDetail,
+      path: "/resertpassword",
+      name: "resertpassword",
+      component: ResertPassword,
     },
     {
       path: "/manage",
-      name: "Manage",
+      name: "manage",
       component: Manage,
     },
   ],

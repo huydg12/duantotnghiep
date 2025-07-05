@@ -1,4 +1,5 @@
 <script setup>
+import Banner from './Banner.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -23,11 +24,13 @@ function changePassword() {
 </script>
 
 <template>
+  <Banner title="Đổi mật khẩu" breadcrumb="Đổi mật khẩu"
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="container">
     <div class="bg-white shadow rounded p-4 mt-5 mx-auto" style="max-width: 480px;">
       <!-- Header: mũi tên trái + tiêu đề giữa -->
       <div class="position-relative mb-4 text-center">
-        <router-link to="/login" class="back-arrow position-absolute start-0 top-50 translate-middle-y text-dark fs-5">
+        <router-link to="/auth/login" class="back-arrow position-absolute start-0 top-50 translate-middle-y text-dark fs-5">
           &#8592;
         </router-link>
         <h2 class="fs-4 fw-bold mb-0">Đổi Mật Khẩu</h2>

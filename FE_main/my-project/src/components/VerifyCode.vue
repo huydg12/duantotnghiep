@@ -1,18 +1,20 @@
 <script setup>
-
+import Banner from './Banner.vue';
 </script>
 <template>
+  <Banner title="Xác nhận mã" breadcrumb="Xác nhận mã"
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="container">
     <div class="xacnhan-container mx-auto">
       <!-- Mũi tên quay lại -->
-      <router-link to="/resetPass" class="back-arrow">&#8592;</router-link>
+      <router-link to="/forgetpassword" class="back-arrow">&#8592;</router-link>
 
       <!-- Tiêu đề -->
       <h1 class="text-center fw-bold text-dark mb-4">Xác nhận mã</h1>
 
       <form onsubmit="return handleXacNhan(event)">
         <div class="mb-3">
-          <label class="form-label fw-semibold">NHẬP MÃ XÁC NHẬN*</label>
+          <label class="form-label fw-semibold">NHẬP MÃ XÁC NHẬN</label>
           <input type="text" required placeholder="******" class="form-control code-input">
         </div>
 

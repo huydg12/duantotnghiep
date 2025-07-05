@@ -7,14 +7,14 @@ const route = useRoute();
 const router = useRouter();
 
 const titleBanner = computed(() => {
-    if (route.path.includes('/login')) return "Đăng Nhập"
-    return "Đăng Ký"
-})
+    if (route.path.includes("/login")) return "Đăng Nhập";
+    return "Đăng Ký";
+});
 
 const breadcrumbBanner = computed(() => {
-    if (route.path.includes('/login')) return "Đăng Nhập"
-    return "Đăng Ký"
-})
+    if (route.path.includes("/login")) return "Đăng Nhập";
+    return "Đăng Ký";
+});
 function switchTab(tab) {
     router.push(`/auth/${tab}`);
 }
