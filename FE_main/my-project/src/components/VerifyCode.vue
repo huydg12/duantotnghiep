@@ -1,23 +1,47 @@
 <script setup>
-import Banner from './Banner.vue';
+import Banner from "./Banner.vue";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+import { useForgotPasswordStore } from "../stores/emailStore";
+
+const store = useForgotPasswordStore();
+const router = useRouter();
+const otpCode = ref("");
+
+const handleCode = async () => {
+  try {
+    const response = await axios.post("http://localhost:8080/auth/verifycode", {
+      otpCode: otpCode.value,
+      email: store.email,
+    });
+
+    if (response.status === 200) {
+      alert("Xác nhận mã thành công");
+      router.push("/auth/resetpassword");
+    } else {
+      alert("Mã xác nhận không hợp lệ");
+    }
+  } catch (error) {
+    console.error("Lỗi xác nhận mã:", error);
+    alert("Mã xác nhận không đúng hoặc đã hết hạn.");
+  }
+};
 </script>
 <template>
   <Banner title="Xác nhận mã" breadcrumb="Xác nhận mã"
     backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="container">
     <div class="xacnhan-container mx-auto">
-      <!-- Mũi tên quay lại -->
-      <router-link to="/forgetpassword" class="back-arrow">&#8592;</router-link>
+      <router-link to="/auth/forgetpassword" class="back-arrow">&#8592;</router-link>
 
-      <!-- Tiêu đề -->
       <h1 class="text-center fw-bold text-dark mb-4">Xác nhận mã</h1>
 
-      <form onsubmit="return handleXacNhan(event)">
+      <form @submit.prevent="handleCode">
         <div class="mb-3">
           <label class="form-label fw-semibold">NHẬP MÃ XÁC NHẬN</label>
-          <input type="text" required placeholder="******" class="form-control code-input">
+          <input v-model="otpCode" type="text" required placeholder="******" class="form-control code-input" />
         </div>
-
         <button type="submit" class="btn btn-dark w-100 confirm-btn mt-2">
           XÁC NHẬN
         </button>
@@ -28,7 +52,6 @@ import Banner from './Banner.vue';
       </form>
     </div>
   </div>
-
 </template>
 
 <style scoped>

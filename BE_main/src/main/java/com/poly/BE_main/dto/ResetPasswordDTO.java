@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ForgetPassworDTO {
+public class ResetPasswordDTO {
     private String email;
     private String otpCode;
     private String newPassword;

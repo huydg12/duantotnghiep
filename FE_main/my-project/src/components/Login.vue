@@ -51,7 +51,7 @@ if (data.user.roleId === 1 || data.user.roleId === 3) {
       <input v-model="password" type="password" class="form-control" placeholder="Nhập mật khẩu">
     </div>
     <div class="mb-3 text-end">
-      <router-link to="/forgetpassword" class="text-decoration-none text-primary">Quên mật khẩu?</router-link>
+      <router-link to="/auth/forgetpassword" class="text-decoration-none text-primary">Quên mật khẩu?</router-link>
     </div>
     <div v-if="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
     <button type="submit" class="btn btn-dark w-100 fw-semibold">ĐĂNG NHẬP</button>

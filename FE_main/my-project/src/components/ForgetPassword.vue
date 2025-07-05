@@ -1,19 +1,51 @@
 <script setup>
-import Banner from './Banner.vue';
+import Banner from "./Banner.vue";
+import { ref } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import { useForgotPasswordStore } from "../stores/emailStore";
+
+const store = useForgotPasswordStore();
+const email = ref("");
+const router = useRouter();
+
+const sendRequest = async () => {
+  try {
+    const response = await axios.post("http://localhost:8080/auth/forgetpassword", {
+      email: email.value,
+    });
+    alert("Gửi OTP thành công, vui lòng kiểm tra email!");
+
+    store.email = email.value;
+    router.push("/auth/verifycode");
+  } catch (error) {
+    alert("Gửi OTP thất bại");
+  }
+};
 </script>
 <template>
-  <Banner title="Quên mật khẩu" breadcrumb="Quên mật khẩu"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+  <Banner
+    title="Quên mật khẩu"
+    breadcrumb="Quên mật khẩu"
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"
+  />
   <div class="custom-box">
     <!-- Mũi tên quay lại -->
     <a href="/auth/login" class="back-arrow">&#8592;</a>
 
     <!-- Tiêu đề -->
     <h2 class="text-center fw-bold text-dark mb-4">Quên mật khẩu</h2>
-    <form>
+    <form @submit.prevent="sendRequest">
       <div class="mb-3">
         <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ</label>
-        <input type="email" id="emailInput" required placeholder="Nhập địa chỉ email" class="form-control" />
+        <input
+          v-model="email"
+          type="email"
+          id="emailInput"
+          required
+          placeholder="Nhập địa chỉ email"
+          class="form-control"
+        />
       </div>
       <button type="submit" class="btn btn-dark w-100 mt-3 fw-semibold">
         GỬI YÊU CẦU

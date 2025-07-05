@@ -10,11 +10,12 @@ import Introduce from "../components/Introduce.vue";
 import Product from "../components/Product.vue";
 import Contact from "../components/Contact.vue";
 import Cart from "../components/Cart.vue";
-import ResertPassword from "../components/ResertPassword.vue";
+import ResetPassword from "../components/ResetPassword.vue";
 import VerifyCode from "../components/VerifyCode.vue";
 import Register from "../components/Register.vue";
 import Auth from "../components/Auth.vue";
 import Manage from "../components/Manage.vue";
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -84,19 +85,19 @@ const router = createRouter({
       ],
     },
     {
-      path: "/forgetpassword",
+      path: "/auth/forgetpassword",
       name: "forgetpassword",
       component: ForgetPassword,
     },
     {
-      path: "/verifycode",
+      path: "/auth/verifycode",
       name: "verifycode",
       component: VerifyCode,
     },
     {
-      path: "/resertpassword",
-      name: "resertpassword",
-      component: ResertPassword,
+      path: "/auth/resetpassword",
+      name: "resetpassword",
+      component: ResetPassword,
     },
     {
       path: "/manage",

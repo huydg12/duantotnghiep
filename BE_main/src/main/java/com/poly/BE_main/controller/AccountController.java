@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.poly.BE_main.dto.AccountDTO;
+import com.poly.BE_main.dto.ForgetPasswordDTO;
 import com.poly.BE_main.dto.LoginDTO;
 import com.poly.BE_main.dto.RegisterDTO;
+import com.poly.BE_main.dto.ResetPasswordDTO;
+import com.poly.BE_main.dto.VerifyCodeDTO;
 import com.poly.BE_main.dto.LoginResponseDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
@@ -75,6 +78,24 @@ public class AccountController {
         accountService.createCustomer(customer);
 
         return ResponseEntity.ok("Đăng ký thành công");
+    }
+
+    @PostMapping("/forgetpassword")
+    public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordDTO forgetPasswordDTO) {
+        accountService.forgetPassword(forgetPasswordDTO.getEmail());
+        return ResponseEntity.ok("OTP đã được gửi");
+    }
+
+    @PostMapping("/verifycode")
+    public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeDTO verifyCodeDTO) {
+        accountService.verifyCode(verifyCodeDTO.getEmail(), verifyCodeDTO.getOtpCode());
+        return ResponseEntity.ok("OTP hợp lệ");
+    }
+
+    @PostMapping("/resetpassword")
+    public ResponseEntity<?> resertPassword(@RequestBody ResetPasswordDTO resertPasswordDTO) {
+        accountService.resertPassword(resertPasswordDTO.getEmail(), resertPasswordDTO.getNewPassword());
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 
 }
