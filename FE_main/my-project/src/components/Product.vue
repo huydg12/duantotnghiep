@@ -9,7 +9,7 @@ const products = ref([])
 
 
 const goToDetail = (id) => {
-  router.push(`/productDetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
+  router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
 }
 
 
