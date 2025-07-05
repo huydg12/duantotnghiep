@@ -1,5 +1,6 @@
 package com.poly.BE_main.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +32,9 @@ public class CartDetailService {
             Integer productDetailId = (Integer) obj[5];
             String size = (String) obj[6];
             String color = (String) obj[7];
-            Integer quantity = (Integer) obj[8];
-            String images = (String) obj[9];
+            BigDecimal price = (BigDecimal) obj[8];
+            Integer quantity = (Integer) obj[9];
+            String images = (String) obj[10];
 
             return new CartDetailDTO(
                     cartDetailId,
@@ -43,6 +45,7 @@ public class CartDetailService {
                     productDetailId,
                     size,
                     color,
+                    price,
                     quantity,
                     images);
         }).collect(Collectors.toList());

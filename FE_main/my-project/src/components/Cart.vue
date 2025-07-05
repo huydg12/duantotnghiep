@@ -1,20 +1,56 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted  } from "vue";
 import Banner from "./Banner.vue";
+import axios from "axios";
 
-const cartItems = ref([
-  {
-    id: "CW2288-001",
-    name: "Nike Air Force 1",
-    size: 42,
-    price: 2000000,
-    quantity: 1,
-    image: "/images/anh1.webp",
-  },
-]);
 
-function removeItem(productID) {
-  cartItems.value = cartItems.value.filter((item) => item.id !== productID);
+
+
+
+
+const cartItems = ref([]);
+
+// Lấy customerId từ localStorage (dữ liệu user lưu khi đăng nhập)
+let customerId = 1;
+// const userJson = localStorage.getItem("user");
+
+// if (userJson) {
+//   try {
+//     const user = JSON.parse(userJson);
+//     customerId = user.id;
+//     console.log("✅ Customer ID:", customerId);
+//   } catch (error) {
+//     console.error("❌ Lỗi khi parse userJson:", error);
+//   }
+// } else {
+//   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
+// }
+
+const fetchCartDetail = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/cartDetail/showCartDetail/${customerId}`);
+    cartItems.value = response.data;
+console.log("response.data:", response.data); // <--- check kỹ dòng này
+    console.log('IMG', cartItems.value.map(item => item.images));
+  } catch (error) {
+    console.error('Lỗi hiển thị sản phẩm', error);
+  }
+}
+
+
+onMounted(() => {
+  if (customerId) {
+    fetchCartDetail();
+  } else {
+    console.error("Không tìm thấy customerId trong localStorage");
+  }
+});
+
+
+
+
+function removeItem(cartDetailId) {
+  cartItems.value = cartItems.value.filter((item) => item.cartDetailId !== cartDetailId);
 }
 
 const totalPrice = computed(() => {
@@ -39,13 +75,13 @@ function formatCurrency(value) {
 
     <div v-if="cartItems && cartItems.length > 0">
       <div id="cartItems">
-        <div v-for="item in cartItems" :key="item.id" class="row align-items-center g-3 mb-4 cart-item">
+        <div v-for="item in cartItems" :key="item.cartDetailId" class="row align-items-center g-3 mb-4 cart-item">
           <div class="col-12 col-md-2 text-center">
-            <img src="/images/anh1.webp" :alt="item.name" class="img-fluid rounded" style="max-width: 96px; height: auto" />
+            <img :src="item.images" :alt="item.productName" class="img-fluid rounded" style="max-width: 96px; height: auto" />
           </div>
           <div class="col-12 col-md-4">
-            <h6 class="mb-1 fw-medium">{{ item.name }}</h6>
-            <small class="text-muted">Mã: {{ item.id }} | Size: {{ item.size }}</small>
+            <h6 class="mb-1 fw-medium">{{ item.productName }}</h6>
+            <small class="text-muted">Color: {{ item.color }} | Size: {{ item.size }}</small>
           </div>
           <div class="col-6 col-md-2">
             <p class="text-danger fw-semibold mb-0">
@@ -56,7 +92,7 @@ function formatCurrency(value) {
             <input type="number" v-model="item.quantity" min="1" class="form-control text-center quantity" />
           </div>
           <div class="col-12 col-md-2 text-md-end">
-            <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.id)">
+            <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.cartDetailId)">
               Xóa
             </button>
           </div>
