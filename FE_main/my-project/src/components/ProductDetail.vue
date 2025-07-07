@@ -6,16 +6,70 @@ import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
-
+const showToast = ref(false)
 const quantity = ref(1)
 const selectedProduct = ref({})
 const selectedImage = ref('')
 const productVariants = ref([])
 const availableSizes = ref([])
 
+const cartId = ref(null)
+let customerId = null;
+const userJson = localStorage.getItem("user");
 
-const addToCart = () => {
-  router.push('/cart') // Chuyển hướng đến trang giỏ hàng
+if (userJson) {
+  try {
+    const user = JSON.parse(userJson);
+    customerId = user.customerId;
+    console.log("✅ Customer ID:", customerId);
+  } catch (error) {
+    console.error("❌ Lỗi khi parse userJson:", error);
+  }
+} else {
+  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
+}
+
+const findCartIdByCustomerId = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/cart/getCartId/${customerId}`)
+    console.log("📦 cartId trả về:", response.data)
+    cartId.value = response.data
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy cartId:", error)
+  }
+}
+
+
+
+
+const addToCart = async () => {
+  try {
+    const payload = {
+      cartId: cartId.value, // Sử dụng cartId đã lấy từ API
+      productDetailId: selectedProduct.value.productDetailId,
+      quantity: quantity.value
+    }
+        console.log("📦 Payload gửi lên /cartDetail/add:", payload)
+
+    // Kiểm tra từng phần tử riêng biệt
+    console.log("🆔 cartId:", cartId.value)
+    console.log("🛒 productDetailId:", selectedProduct.value?.productDetailId)
+    console.log("🔢 quantity:", quantity.value)
+
+    // Kiểm tra có dữ liệu nào là undefined/null không
+    if (!payload.cartId || !payload.productDetailId || !payload.quantity || payload.quantity <= 0) {
+      alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.")
+      return
+    }
+    await axios.post('http://localhost:8080/cartDetail/add', payload)
+    showToast.value = true
+    setTimeout(() => {
+      showToast.value = false
+    }, 3000)
+  } catch (error) {
+    console.error("❌ Lỗi khi thêm vào giỏ hàng:", error)
+    alert("Thêm vào giỏ hàng thất bại.")
+  }
 }
 
 
@@ -92,6 +146,7 @@ const selectImage = (img) => {
 
 onMounted(() => {
   fetchProductDetail()
+  findCartIdByCustomerId() // <-- THÊM DÒNG NÀY
 })
 </script>
 
@@ -161,12 +216,31 @@ onMounted(() => {
         </div>
 
         <div class="d-flex gap-3 mb-4">
-          <button class="btn btn-primary product-button fw-semibold" @click="addToCart(selectedProduct.productDetailId)">Thêm vào giỏ</button>
+          <button class="btn btn-primary product-button fw-semibold" @click="addToCart()">Thêm vào giỏ</button>
           <button class="btn btn-danger product-button fw-semibold">Mua ngay</button>
         </div>
 
         <hr />
         <p class="text-muted">{{ selectedProduct.descriptionProduct }}</p>
+      </div>
+    </div>
+  </div>
+  <!-- Toast thông báo thêm vào giỏ thành công -->
+  <div
+    v-if="showToast"
+    class="position-fixed top-0 end-0 p-3"
+    style="z-index: 1055;"
+  >
+    <div class="toast align-items-center show bg-success text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Đã thêm sản phẩm vào giỏ hàng!
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          @click="showToast = false"
+        ></button>
       </div>
     </div>
   </div>
@@ -234,5 +308,30 @@ onMounted(() => {
   color: #adb5bd;
   cursor: not-allowed;
   border-color: #dee2e6;
+}
+.toast {
+  animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+  min-width: 250px;
+  max-width: 300px;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 </style>

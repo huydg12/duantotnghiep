@@ -52,6 +52,12 @@ public class AccountController {
         String token = jwtUtil.generateToken(account.getUsername());
 
         AccountDTO accountDTO = new AccountDTO(account);
+        if (account.getRoleId() == 2) {
+        Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
+        customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
+    }
+
+
         LoginResponseDTO response = new LoginResponseDTO(token, accountDTO);
 
         return ResponseEntity.ok(response);
@@ -65,7 +71,7 @@ public class AccountController {
         account.setUsername(registerDTO.getUsername());
         account.setPassword(registerDTO.getPassword());
         account.setActive(true);
-        account.setRoleId(3);
+        account.setRoleId(2);
 
         account = accountService.createAccount(account);
 

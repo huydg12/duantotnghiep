@@ -33,7 +33,9 @@ public class AccountService {
     public Optional<Account> getAccountByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
-
+    public Optional<Customer> getCustomerByAccountId(int accountId) {
+        return customerRepository.findByAccountId(accountId);
+    }
     public Account createAccount(Account account) {
         return accountRepository.save(account);
     }

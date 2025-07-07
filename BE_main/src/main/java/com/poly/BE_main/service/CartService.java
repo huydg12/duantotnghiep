@@ -1,14 +1,25 @@
 package com.poly.BE_main.service;
 
-import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.poly.BE_main.model.Cart;
+import com.poly.BE_main.repository.CartRepository;
 
-public interface CartService {
-    List<Cart> findAll();
+@Service
+public class CartService {
+    @Autowired
+    private CartRepository cartRepository;
 
-    Cart findById(Long id);
+    public CartService(CartRepository cartRepository) {
+        this.cartRepository = cartRepository;
+    }
 
-    Cart save(Cart cart);
+    public void add(Cart cart) {
+        cartRepository.save(cart);
+    }
 
-    void deleteById(Long id);
+    public Integer getCartIdByCustomerId(Integer customerId) {
+    return cartRepository.findCartIdByCustomerId(customerId);
+    }
 }

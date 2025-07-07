@@ -3,7 +3,14 @@ import { ref, onMounted } from 'vue';
 
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
+const checkoutItems = ref([]);
 
+onMounted(() => {
+  const stored = sessionStorage.getItem("checkoutItems");
+  if (stored) {
+    checkoutItems.value = JSON.parse(stored);
+  }
+});
 const newAddressForm = ref(null);
 
 // Mở popup chọn địa chỉ
@@ -35,6 +42,10 @@ const handleOverlayClick = (e) => {
     if (newAddressForm.value) newAddressForm.value.reset();
   }
 };
+// Hàm format tiền VND
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
+};
 </script>
 
 <template>
@@ -51,25 +62,41 @@ const handleOverlayClick = (e) => {
       Phường Kênh Dương, Quận Lê Chân, Hải Phòng
     </div>
 
-    <!-- Sản phẩm -->
-    <div class="row fw-semibold border-bottom py-2 mt-4">
-      <div class="col-6">Sản phẩm</div>
-      <div class="col-2 text-end">Đơn giá</div>
-      <div class="col-2 text-center">Số lượng</div>
-      <div class="col-2 text-end">Thành tiền</div>
-    </div>
-    <div class="row align-items-center border-bottom py-3">
-      <div class="col-6 d-flex">
-        <img src="./HinhAnh/anh1.webp" alt="Sản phẩm" class="img-thumbnail me-3" style="width: 80px;" />
-        <div>
-          <div class="fw-medium">Nike Air Force 1 07</div>
-          <div class="text-muted small">Màu: Trắng | Size: 42</div>
+<!-- Sản phẩm -->
+<div class="row fw-semibold border-bottom py-2 mt-4">
+  <div class="col-6">Sản phẩm</div>
+  <div class="col-2 text-end">Đơn giá</div>
+  <div class="col-2 text-center">Số lượng</div>
+  <div class="col-2 text-end">Thành tiền</div>
+</div>
+
+<div v-if="checkoutItems.length > 0">
+  <div
+    v-for="item in checkoutItems"
+    :key="item.cartDetailId"
+    class="row align-items-center border-bottom py-3"
+  >
+    <div class="col-6 d-flex">
+      <img
+        :src="item.images"
+        :alt="item.productName"
+        class="img-thumbnail me-3"
+        style="width: 80px;"
+      />
+      <div>
+        <div class="fw-medium">{{ item.productName }}</div>
+        <div class="text-muted small">
+          Màu: {{ item.color }} | Size: {{ item.size }}
         </div>
       </div>
-      <div class="col-2 text-end">2.000.000₫</div>
-      <div class="col-2 text-center">1</div>
-      <div class="col-2 text-end fw-semibold">2.000.000₫</div>
     </div>
+    <div class="col-2 text-end">{{ formatCurrency(item.price) }}</div>
+    <div class="col-2 text-center">{{ item.quantity }}</div>
+    <div class="col-2 text-end fw-semibold">
+      {{ formatCurrency(item.price * item.quantity) }}
+    </div>
+  </div>
+</div>
 
     <!-- Phương thức thanh toán -->
     <h5 class="fw-semibold mt-4">Phương thức thanh toán</h5>

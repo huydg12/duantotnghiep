@@ -14,12 +14,13 @@ public class AccountDTO {
     private String username;
     private int roleId;
     private String email;
-
+    private Integer customerId; 
     public AccountDTO(Account account) {
         this.id = account.getId();
         this.username = account.getUsername();
         this.roleId = account.getRoleId();
         this.email = account.getEmail();
+        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ Customer
     }
 
 }

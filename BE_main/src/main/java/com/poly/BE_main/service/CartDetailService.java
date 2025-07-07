@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.dto.CartDetailDTO;
 import com.poly.BE_main.model.CartDetail;
+import com.poly.BE_main.model.Product;
 import com.poly.BE_main.repository.CartDetailRepository;
+import com.poly.BE_main.repository.CartRepository;
 
 @Service
 public class CartDetailService {
@@ -53,6 +55,19 @@ public class CartDetailService {
 
     public void add(CartDetail cartDetail) {
         cartDetailRepository.save(cartDetail);
+    }
+          public CartDetail update(int id, CartDetail cartDetail) {
+        return cartDetailRepository.findById(id).map(c -> {
+            c.setId(cartDetail.getId());
+            c.setProductDetailId(cartDetail.getProductDetailId());
+            c.setQuantity(cartDetail.getQuantity());
+            return cartDetailRepository.save(c);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
+    }
+
+         
+    public void deleteById(Integer id) {
+        cartDetailRepository.deleteById(id);
     }
 
 }

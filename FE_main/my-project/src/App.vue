@@ -10,10 +10,20 @@ const router = useRouter()
 const searchText = ref('')
 
 const userInfo = ref(JSON.parse(localStorage.getItem('user')))
-const user = computed(() => userInfo.value)
-onMounted(() => {
-  userStore.loadUserFromLocalStorage(); // Đọc lại từ localStorage khi load trang
-});
+// Hàm đồng bộ từ localStorage → userStore
+const syncUserFromStorage = () => {
+  const userJson = localStorage.getItem('user')
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson)
+      userStore.setUser(user)
+      console.log("✅ Đồng bộ user từ localStorage:", user)
+    } catch (e) {
+      console.error("❌ Lỗi parse user từ localStorage:", e)
+    }
+  }
+}
+
 // Hàm đăng xuất
 const handleLogout = () => {
   localStorage.removeItem("accessToken");
@@ -30,6 +40,10 @@ const handleSearch = () => {
     router.push({ path: '/product', query: { keyword: searchText.value } })
   }
 }
+// Khi app khởi tạo
+onMounted(() => {
+  syncUserFromStorage()
+})
 </script>
 
 <template>
