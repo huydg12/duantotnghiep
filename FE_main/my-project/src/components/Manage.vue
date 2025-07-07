@@ -1,12 +1,13 @@
 <script setup>
 import { ref, shallowRef, defineAsyncComponent } from "vue";
+
 // shallowRef để tối ưu các component => thay đổi cả component
 const activeComponent = shallowRef(
   defineAsyncComponent(() => import("./manage/StatisticsManagement.vue"))
 );
 
 // Ref theo dõi mục menu đang được chọn
-const activeTarget  = ref("StatisticsManagement");
+const activeTarget = ref("StatisticsManagement");
 
 // Map các component và dùng defineAsyncComponent
 const componentMap = {
@@ -16,6 +17,27 @@ const componentMap = {
   ),
   ProductAttributeManagement: defineAsyncComponent(() =>
     import("./manage/ProductAttributeManagement.vue")
+  ),
+  BrandManagement: defineAsyncComponent(() =>
+    import("./manage/BrandManagement.vue")
+  ),
+  CategoryManagement: defineAsyncComponent(() =>
+    import("./manage/CategoryManagement.vue")
+  ),
+  CollarManagement: defineAsyncComponent(() =>
+    import("./manage/CollarManagement.vue")
+  ),
+  SizeManagement: defineAsyncComponent(() =>
+    import("./manage/SizeManagement.vue")
+  ),
+  SoleManagement: defineAsyncComponent(() =>
+    import("./manage/SoleManagement.vue")
+  ),
+  ColorManagement: defineAsyncComponent(() =>
+    import("./manage/ColorManagement.vue")
+  ),
+  ImageManagement: defineAsyncComponent(() =>
+    import("./manage/ImageManagement.vue")
   ),
   InvoiceManagement: defineAsyncComponent(() =>
     import("./manage/InvoiceManagement.vue")
@@ -64,14 +86,13 @@ const menuItems = [
     label: "Thuộc tính",
     icon: "fa-solid fa-sliders",
     sub: [
-      { label: "Hãng", target: "hang", icon: "fa-solid fa-tags" },
-      { label: "Size", target: "size", icon: "fa-solid fa-ruler-horizontal" },
-      { label: "Màu", target: "mau", icon: "fa-solid fa-palette" },
-      {
-        label: "Thể loại",
-        target: "loaigiay",
-        icon: "fa-solid fa-shoe-prints",
-      },
+      { label: "Hãng", target: "BrandManagement", icon: "fa-solid fa-tags" },
+      { label: "Loại", target: "CategoryManagement", icon: "fa-solid fa-shapes" },
+      { label: "Đế", target: "SoleManagement", icon: "fa-solid fa-shoe-prints" },
+      { label: "Cổ", target: "CollarManagement", icon: "fa-solid fa-socks" },
+      { label: "Size", target: "SizeManagement", icon: "fa-solid fa-ruler-horizontal" },
+      { label: "Màu", target: "ColorManagement", icon: "fa-solid fa-palette" },
+      { label: "Ảnh", target: "ImageManagement", icon: "fa-solid fa-image" },
     ],
   },
   {
@@ -224,7 +245,7 @@ function handleClick(target) {
 }
 
 .submenu-collapse {
-  background-color: rgba(0,0,0,0.2);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 .submenu-collapse .nav-link {
@@ -234,10 +255,11 @@ function handleClick(target) {
 
 
 .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
-    transition: transform 0.3s ease;
+  transition: transform 0.3s ease;
 }
+
 .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .main-content {
