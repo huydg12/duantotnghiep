@@ -27,7 +27,7 @@ public class BillDetailService {
 
     public BillDetail update(int id, BillDetail bUpdate) {
         return billDetailRepository.findById(id).map(i -> {
-            i.setBillId(bUpdate.getBillId());
+            i.setBill(bUpdate.getBill());
             i.setProductDetailId(bUpdate.getProductDetailId());
             i.setQuantity(bUpdate.getQuantity());
             i.setPrice(bUpdate.getPrice());

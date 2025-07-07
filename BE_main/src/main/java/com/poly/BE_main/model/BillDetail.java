@@ -2,11 +2,15 @@ package com.poly.BE_main.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -25,8 +29,6 @@ public class BillDetail {
     @Column(name = "ID")
     private int id;
 
-    @Column(name = "BILL_ID")
-    private int billId;
 
     @Column(name = "PRODUCT_DETAIL_ID")
     private int productDetailId;
@@ -49,4 +51,8 @@ public class BillDetail {
     @Column(name = "PRODUCT_NAME")
     private String productName;
 
+    @ManyToOne
+    @JoinColumn(name = "BILL_ID")
+    @JsonBackReference // ✅ Thêm dòng này
+    private Bill bill;
 }

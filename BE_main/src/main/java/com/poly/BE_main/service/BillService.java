@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Bill;
+import com.poly.BE_main.model.BillDetail;
 import com.poly.BE_main.repository.BillRepository;
 
 @Service
@@ -18,8 +19,14 @@ public class BillService {
         return billRepository.findAll();
     }
 
-    public Bill create(Bill i) {
-        return billRepository.save(i);
+    public Bill create(Bill bill) {
+    // Gán bill cho từng billDetail (quan hệ 2 chiều)
+    for (BillDetail detail : bill.getBillDetails()) {
+        detail.setBill(bill);
+    }
+
+    // Lưu cả bill và các billDetail liên quan
+    return billRepository.save(bill);
     }
 
     public void delete(Integer id) {
