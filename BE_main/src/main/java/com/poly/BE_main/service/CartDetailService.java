@@ -5,12 +5,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.poly.BE_main.dto.CartDetailDTO;
 import com.poly.BE_main.model.CartDetail;
 
 import com.poly.BE_main.repository.CartDetailRepository;
+
+import jakarta.transaction.Transactional;
 
 
 @Service
@@ -68,6 +73,13 @@ public class CartDetailService {
          
     public void deleteById(Integer id) {
         cartDetailRepository.deleteById(id);
+    }
+        public boolean existsProductDetailInCarDetail(Integer cartId, Integer productDetailId) {
+        return cartDetailRepository.existsByCartIdAndProductDetailId(cartId, productDetailId);
+    }
+    @Transactional
+    public void updateQuantity(Integer cartId, Integer productDetailId, Integer quantity) {
+        cartDetailRepository.updateQuantityByCartIdAndProductDetailId(cartId, productDetailId, quantity);
     }
 
 }

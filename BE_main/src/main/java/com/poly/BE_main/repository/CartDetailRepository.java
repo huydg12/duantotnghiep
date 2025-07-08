@@ -3,6 +3,7 @@ package com.poly.BE_main.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -50,5 +51,28 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
             WHERE CU.ID = :customerId
                         """, nativeQuery = true)
     List<Object[]> findAllCartDetailByCustomer(@Param("customerId") Integer customerId);
-    
+
+
+    @Query(value = """
+        SELECT CASE 
+                WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) 
+                ELSE CAST(0 AS BIT) 
+            END 
+        FROM CART_DETAIL 
+        WHERE CART_ID = :cartId 
+        AND PRODUCT_DETAIL_ID = :productDetailId
+        """, nativeQuery = true)
+    boolean existsByCartIdAndProductDetailId(@Param("cartId") Integer cartId, @Param("productDetailId") Integer productDetailId);
+    // ✅ Hàm cập nhật quantity
+    @Modifying
+    @Query(value = """
+        UPDATE CART_DETAIL
+        SET QUANTITY = QUANTITY + :quantity
+        WHERE CART_ID = :cartId AND PRODUCT_DETAIL_ID = :productDetailId
+        """, nativeQuery = true)
+    void updateQuantityByCartIdAndProductDetailId(
+        @Param("cartId") Integer cartId,
+        @Param("productDetailId") Integer productDetailId,
+        @Param("quantity") Integer quantity
+    );
 }

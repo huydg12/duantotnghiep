@@ -41,7 +41,6 @@ const findCartIdByCustomerId = async () => {
 
 
 
-
 const addToCart = async () => {
   try {
     const payload = {
@@ -61,7 +60,26 @@ const addToCart = async () => {
       alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.")
       return
     }
-    await axios.post('http://localhost:8080/cartDetail/add', payload)
+    // Gọi API kiểm tra xem productDetail đã có trong giỏ chưa
+    const checkUrl = `http://localhost:8080/cartDetail/exists?cartId=${payload.cartId}&productDetailId=${payload.productDetailId}`
+    const checkResponse = await axios.get(checkUrl)
+
+
+  if (checkResponse.data === true) {
+      // Đã tồn tại → cập nhật số lượng mới
+      console.log("🔍 checkResponse.data:", checkResponse.data)
+      const updatePayload = {
+        cartId: payload.cartId,
+        productDetailId: payload.productDetailId,
+        quantity: payload.quantity // số lượng muốn thêm
+      }
+      await axios.put('http://localhost:8080/cartDetail/updateQuantity', updatePayload)
+      console.log("✅ Đã cập nhật số lượng trong giỏ")
+    } else {
+      // Chưa tồn tại → thêm mới
+      await axios.post('http://localhost:8080/cartDetail/add', payload)
+      console.log("✅ Đã thêm mới vào giỏ hàng")
+    }
     showToast.value = true
     setTimeout(() => {
       showToast.value = false
@@ -141,6 +159,22 @@ const fetchProductDetail = async () => {
   }
 }
 
+const buyNow = () => {
+  const checkoutItem = {
+    productDetailId: selectedProduct.value.productDetailId,
+    productName: selectedProduct.value.productName,
+    brandName: selectedProduct.value.brandName,
+    color: selectedProduct.value.color,
+    size: selectedProduct.value.size,
+    price: selectedProduct.value.price,
+    quantity: quantity.value,
+    images: selectedProduct.value.images?.[0] || ""
+  }
+
+  sessionStorage.setItem("checkoutItems", JSON.stringify([checkoutItem]))
+  router.push("/payment")
+}
+
 const selectImage = (img) => {
   selectedImage.value = img
 }
@@ -218,7 +252,7 @@ onMounted(() => {
 
         <div class="d-flex gap-3 mb-4">
           <button class="btn btn-primary product-button fw-semibold" @click="addToCart()">Thêm vào giỏ</button>
-          <button class="btn btn-danger product-button fw-semibold">Mua ngay</button>
+          <button class="btn btn-danger product-button fw-semibold" @click="buyNow()">Mua ngay</button>
         </div>
 
         <hr />
