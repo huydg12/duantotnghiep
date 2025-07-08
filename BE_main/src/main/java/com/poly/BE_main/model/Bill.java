@@ -2,12 +2,17 @@ package com.poly.BE_main.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -94,5 +99,9 @@ public class Bill {
 
     @Column(name = "GRAND_TOTAL")
     private BigDecimal grandTotal;
+
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL)
+    @JsonManagedReference // ✅ Thêm dòng này
+    private List<BillDetail> billDetails;
 
 }

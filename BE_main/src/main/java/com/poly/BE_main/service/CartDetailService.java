@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.dto.CartDetailDTO;
 import com.poly.BE_main.model.CartDetail;
-import com.poly.BE_main.model.Product;
+
 import com.poly.BE_main.repository.CartDetailRepository;
-import com.poly.BE_main.repository.CartRepository;
+
 
 @Service
 public class CartDetailService {

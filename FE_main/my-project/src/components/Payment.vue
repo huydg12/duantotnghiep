@@ -1,16 +1,132 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-
+import { ref, onMounted,computed  } from 'vue';
+import axios from 'axios';
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
 const checkoutItems = ref([]);
+const CustomerData = ref(null);
+const note = ref(""); // Ghi chú đơn hàng
+const userJson = localStorage.getItem("user");
+let customerId = null;
+const discountAmount = 100000;
+const shippingFee = 30000;
 
+const subTotal = computed(() =>
+  checkoutItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
+);
+
+const grandTotal = computed(() =>
+  subTotal.value - discountAmount + shippingFee
+);
+
+if (userJson) {
+  try {
+    const user = JSON.parse(userJson);
+    customerId = user.customerId;
+    console.log("✅ Customer ID:", customerId);
+  } catch (error) {
+    console.error("❌ Lỗi khi parse userJson:", error);
+  }
+} else {
+  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
+}
 onMounted(() => {
   const stored = sessionStorage.getItem("checkoutItems");
   if (stored) {
     checkoutItems.value = JSON.parse(stored);
   }
+    if (customerId) {
+    findCustomerByAccountId();
+  }
 });
+
+
+// Hàm tính toán tổng tiền hàng (subtotal)
+
+
+
+const findCustomerByAccountId = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/customer/findByAccountId/${customerId}`);
+    CustomerData.value = response.data[0];
+    console.log("Thông tin khách hàng:", response.data);
+  } catch (err) {
+    console.error("Lỗi tìm kiếm khách hàng:", err);
+  }
+};
+
+const selectedPaymentMethod = ref("CASH"); // Mặc định là CASH
+
+// Mapping phương thức thanh toán sang ID trong DB
+const paymentMethodMapping = {
+  CASH: 1,
+  MOMO: 2,
+  QR: 3
+};
+// Hàm tạo billPayload động
+const generateBillPayload = () => {
+  const _subTotal = subTotal.value
+  const _discountAmount = 100000 // sau này nếu có khuyến mãi thì thay vào
+  const _shippingFee = 30000
+  const _grandTotal = grandTotal.value
+
+  const today = new Date().toISOString().split("T")[0]
+
+  const billDetails = checkoutItems.value.map(item => ({
+    productDetailId: item.productDetailId,
+    quantity: item.quantity,
+    price: item.price,
+    status: 1,
+    productImage: item.images,
+    size: item.size,
+    productName: item.productName
+  }))
+
+  return {
+    customerId: customerId,
+    employeeId: null,
+    ptttId: paymentMethodMapping[selectedPaymentMethod.value] || 1, // Mặc định là CASH
+    code: "HD" + Math.floor(Math.random() * 100000), // auto code
+    billType: "ONLINE",
+    status: 1,
+    createdBy: customerId,
+    createdDate: today,
+    shippingDate: today,
+    dateOfPayment: null,
+    recipientName: CustomerData.value.fullName,
+    recipientPhoneNumber: CustomerData.value.numberPhone,
+    receiverAddress: null,
+    addressMethod: "GIAO_TAN_NOI",
+    estimatedDeliveryDate: today,
+    modifiedBy: null,
+    modifiedDate: today,
+    note: note.value,
+    statusPayment: "CHUA_THANH_TOAN",
+    subTotal: _subTotal,
+    discountAmount: _discountAmount,
+    shippingFee: _shippingFee,
+    grandTotal: _grandTotal,
+    billDetails: billDetails
+  }
+}
+
+
+const createBill = async () => {
+  try {
+    const payload = generateBillPayload();
+    console.log("Payload gửi lên:", payload); // ✅ debug
+    const response = await axios.post("http://localhost:8080/bill/add", payload);
+    console.log("Đơn hàng đã tạo:", response.data);
+
+    alert("Đặt hàng thành công!");
+    sessionStorage.removeItem("checkoutItems"); // nếu có lưu local
+  } catch (err) {
+    console.error("Lỗi tạo đơn hàng:", err);
+    alert("Đặt hàng thất bại!");
+  }
+};
+
+
 const newAddressForm = ref(null);
 
 // Mở popup chọn địa chỉ
@@ -46,6 +162,10 @@ const handleOverlayClick = (e) => {
 const formatCurrency = (value) => {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 };
+
+
+
+
 </script>
 
 <template>
@@ -102,54 +222,75 @@ const formatCurrency = (value) => {
     <h5 class="fw-semibold mt-4">Phương thức thanh toán</h5>
     <div class="border rounded bg-white p-3 mt-2">
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="COD" id="cod" checked>
-        <label class="form-check-label" for="cod">Thanh toán khi nhận hàng (COD)</label>
+        <input class="form-check-input" type="radio" name="paymentMethod" value="CASH" id="Cash" v-model="selectedPaymentMethod" checked>
+        <label class="form-check-label" for="paymentCash">Thanh toán khi nhận hàng</label>
       </div>
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="momo">
-        <label class="form-check-label" for="momo">Ví MoMo</label>
+        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="momo" v-model="selectedPaymentMethod">
+        <label class="form-check-label" for="paymentMomo">Ví MoMo</label>
       </div>
       <div class="form-check">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="qr">
-        <label class="form-check-label" for="qr">Quét mã QR ngân hàng</label>
+        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="qr" v-model="selectedPaymentMethod">
+        <label class="form-check-label" for="paymentQR">Quét mã QR ngân hàng</label>
       </div>
     </div>
-
+    <textarea
+      class="form-control"
+      id="note"
+      name="note"
+      rows="3"
+      placeholder="Nhập ghi chú cho đơn hàng..."
+      v-model="note"
+  ></textarea>
     <!-- Mã khuyến mãi -->
     <h5 class="mt-4 fw-medium">Mã khuyến mãi</h5>
     <div class="input-group mt-2">
       <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
       <button class="btn btn-outline-primary">Áp dụng</button>
     </div>
-
+    <!-- Ghi chú đơn hàng -->
+    <h5 class="fw-semibold mt-4">Ghi chú đơn hàng</h5>
+    <div class="border rounded bg-white p-3 mt-2">
+      <div class="form-group">
+        <label for="note" class="form-label">Ghi chú</label>
+        <textarea
+          class="form-control"
+          id="note"
+          name="note"
+          rows="3"
+          placeholder="Nhập ghi chú cho đơn hàng..."
+          v-model="note"
+        ></textarea>
+      </div>
+    </div>
     <!-- Tổng kết -->
     <div class="border-top mt-4 pt-3">
       <h5 class="fw-medium">Thông tin đơn hàng</h5>
       <div class="d-flex justify-content-between mt-2">
         <span>Tạm tính:</span>
-        <span>2.000.000₫</span>
+        <span>{{ formatCurrency(subTotal) }}</span>
       </div>
       <div class="d-flex justify-content-between">
         <span>Phí vận chuyển:</span>
-        <span>30.000₫</span>
+        <span>{{ formatCurrency(shippingFee) }}</span>
       </div>
       <div class="d-flex justify-content-between">
         <span>Khuyến mãi:</span>
-        <span>-100.000₫</span>
+        <span>{{ formatCurrency(-discountAmount) }}</span>
       </div>
       <hr>
       <div class="d-flex justify-content-between fw-bold fs-5">
         <span>Tổng thanh toán:</span>
-        <span>1.930.000₫</span>
+        <span>{{ formatCurrency(grandTotal) }}</span>
       </div>
     </div>
 
     <!-- Nút thanh toán -->
     <div class="text-end mt-4">
-      <button class="btn btn-success px-4">Thanh toán</button>
+      <button class="btn btn-success px-4" @click="createBill">Thanh toán</button>
     </div>
   </div>
-
+  
   <!-- Popup chọn địa chỉ -->
   <div v-if="showAddressOverlay" @click="handleOverlayClick"
     class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
@@ -216,6 +357,7 @@ const formatCurrency = (value) => {
       </form>
     </div>
   </div>
+
 </template>
 
 <style scoped>

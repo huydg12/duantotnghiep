@@ -1,15 +1,22 @@
 <script setup>
-import { ref, computed } from 'vue'
+import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 
-const brands = ref([
-    { id: 1, name: 'Nike', description: 'Giày thể thao' },
-    { id: 2, name: 'Adidas', description: 'Thời trang năng động' },
-    { id: 3, name: 'Vans', description: 'Thể thao đa năng' },
-    { id: 4, name: 'New Blance', description: 'Thể thao đa năng' },
-    { id: 5, name: 'Converse', description: 'Thể thao đa năng' },
-    { id: 6, name: 'Puma', description: 'Thể thao đa năng' },
-    { id: 7, name: 'Reebok', description: 'Thể thao đa năng' },
-])
+const brands = ref([])
+
+const fetchBrand = async() => {
+    try{
+        const response = await axios.get('http://localhost:8080/brand/show')
+        brands.value = response.data
+        console.log(brands.value)
+    }catch(error){
+        console.log('Lỗi hiển thị hãng ' + error)
+    }
+}
+
+onMounted(() => {
+    fetchBrand()
+})
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -34,6 +41,36 @@ function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page
     }
+}
+
+async function saveBrand() {
+    try{
+        if(isEditing.value){
+            await axios.put(`http://localhost:8080/brand/update/${form.value.id}`,form.value)
+        }else{
+            await axios.post('http://localhost:8080/brand/add',form.value)
+        }
+        await fetchBrand()
+        resetForm()
+    }catch(error){
+        console.log('Lỗi lưu hãng',error)
+    }
+}
+
+function editBrand(brand){
+    form.value = {...brand}
+    isEditing.value = true
+}
+
+async function deleteBrand(id) {
+    try{
+    if(confirm('Bạn có chắc chắn là muốn xóa hãng này không ?')){
+        await axios.delete(`http://localhost:8080/brand/delete/${id}`)
+        await fetchBrand()
+    }
+}catch(error){
+    console.error('lỗi khi xóa hãng ' + error)
+}
 }
 
 </script>

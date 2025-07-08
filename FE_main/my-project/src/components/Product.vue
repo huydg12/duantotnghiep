@@ -12,10 +12,6 @@ const goToDetail = (id) => {
   router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
 }
 
-
-
-
-
 const fetchProducts = async () => {
   try {
     const response = await axios.get('http://localhost:8080/product/showSPdto') // Thay thế bằng API thực tế

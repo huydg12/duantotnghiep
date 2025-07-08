@@ -1,15 +1,51 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+const soles = ref([])
 
-const soles = ref([
-    { id: 1, name: 'Cup Sole', description: 'Giày thể thao' },
-    { id: 2, name: 'Vulcanized Sole', description: 'Thời trang năng động' },
-    { id: 3, name: 'EVA Sole', description: 'Thể thao đa năng' },
-    { id: 4, name: 'Rubber Sole', description: 'Thể thao đa năng' },
-    { id: 5, name: 'Air Sole', description: 'Thể thao đa năng' },
-    { id: 6, name: 'Boost Sole', description: 'Thể thao đa năng' },
-    { id: 7, name: 'Zoom Sole', description: 'Thể thao đa năng' },
-])
+const fetchSole = async() => {
+    try{
+        const response = await axios.get('http://localhost:8080/sole/show')
+        soles.value = response.data
+        console.log(soles.value)
+    }catch(error){
+        console.log('lỗi hiển thị ', error)
+    }
+}
+
+onMounted(() => {
+    fetchSole()
+})
+
+async function saveSole() {
+    try{
+        if(isEditing.value){
+            await axios.put(`http://localhost:8080/sole/update/${form.value.id}`, form.value)
+        }else{
+            await axios.post('http://localhost:8080/sole/add', form.value)
+        }
+        await fetchSole()
+        resetForm()
+    }catch(error){
+        console.log('lỗi save ', error)
+    }
+}
+
+function editSole(sole){
+    form.value = {...sole}
+    isEditing.value = true
+} 
+
+async function deleteSole(id) {
+    try{
+        if(confirm ('Bạn có chắc là muốn xóa đế giày không ')){
+        await axios.delete(`http://localhost:8080/sole/delete/${id}`)
+        await fetchSole()
+        }
+    }catch(error){
+        console.log('lỗi xóa ', error)
+    }
+}
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -42,7 +78,7 @@ function goToPage(page) {
         <h2 class="text-center mb-4 fw-bold">Quản Lý Đế</h2>
 
         <!-- Form -->
-        <form @submit.prevent="" class="border p-4 rounded bg-light mb-4">
+        <form @submit.prevent="saveSole" class="border p-4 rounded bg-light mb-4">
             <div class="mb-3">
                 <label class="form-label">Tên đế</label>
                 <input v-model="form.name" required class="form-control" />
@@ -75,7 +111,7 @@ function goToPage(page) {
                         <td class="text-wrap">{{ soles.description }}</td>
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editSole(soles)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteSole(soles)"> Xoá </button>
+                            <button class="btn btn-danger btn-sm" @click="deleteSole(soles.id)"> Xoá </button>
                         </td>
                     </tr>
                 </tbody>

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.poly.BE_main.dto.CustomerInfoDTO;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.service.CustomerService;
 
@@ -42,5 +43,10 @@ public class CustomerController {
     @PutMapping("/update/{id}")
     public Customer update(@PathVariable int id, @RequestBody Customer c) {
         return customerService.update(id, c);
+    }
+
+    @GetMapping("/findByAccountId/{accountId}")
+    public List<CustomerInfoDTO> findByAccountId(@PathVariable Integer accountId) {
+        return customerService.findByAccountId(accountId);
     }
 }

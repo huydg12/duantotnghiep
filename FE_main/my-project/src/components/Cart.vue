@@ -85,6 +85,7 @@ function handleCheckout() {
     .filter(item => selectedItems.value.includes(item.cartDetailId))
     .map(item => ({
       cartDetailId: item.cartDetailId,
+      productDetailId: item.productDetailId,
       images: item.images,
       productName: item.productName,
       color: item.color,
@@ -100,7 +101,19 @@ function handleCheckout() {
   // 👉 Điều hướng sang trang thanh toán
   router.push("/payment");
 }
+// Tính toán trạng thái "chọn tất cả"
+const isAllSelected = computed(() => {
+  return cartItems.value.length > 0 && selectedItems.value.length === cartItems.value.length;
+});
 
+// Hàm chọn hoặc bỏ chọn tất cả
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedItems.value = [];
+  } else {
+    selectedItems.value = cartItems.value.map(item => item.cartDetailId);
+  }
+};
 </script>
 <template>
   <Banner title="Giỏ Hàng" breadcrumb="Giỏ hàng"
