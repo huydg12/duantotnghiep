@@ -30,8 +30,8 @@ public class Product {
     @Column(name = "BRAND_ID")
     private Integer brandId;
 
-    @Column(name = "STYLE_ID")
-    private Integer styleId;
+    @Column(name = "CATEGORY_ID")
+    private Integer categoryId;
 
     @Column(name = "SOLE_ID")
     private Integer soleId;

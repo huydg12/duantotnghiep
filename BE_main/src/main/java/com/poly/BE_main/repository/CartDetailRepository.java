@@ -26,7 +26,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 P.ID                   AS productId,
                 P.PRODUCT_NAME         AS productName,
                 PD.ID                  AS productDetailId,
-                S.NAME                 AS size,
+                S.EU                   AS size,
                 CO.NAME                AS color,
                 PD.PRICE               AS price,
                 CD.QUANTITY            AS quantity,

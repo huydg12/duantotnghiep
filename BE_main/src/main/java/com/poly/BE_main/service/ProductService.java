@@ -35,7 +35,7 @@ public class ProductService {
         return productRepository.findById(id).map(p -> {
             p.setProductName(pUpdate.getProductName());
             p.setBrandId(pUpdate.getBrandId());
-            p.setStyleId(pUpdate.getStyleId());
+            p.setCategoryId(pUpdate.getCategoryId());
             p.setSoleId(pUpdate.getSoleId());
             p.setDescription(pUpdate.getDescription());
             p.setCreatedBy(pUpdate.getCreatedBy());

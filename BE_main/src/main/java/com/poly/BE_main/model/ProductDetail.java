@@ -36,6 +36,9 @@ public class ProductDetail {
     private Size size;
 
     @ManyToOne
+    @JoinColumn(name = "COLLAR_ID")
+    private Color collar;
+    @ManyToOne
     @JoinColumn(name = "COLOR_ID")
     private Color color;
 

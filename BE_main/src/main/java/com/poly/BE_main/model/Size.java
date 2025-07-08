@@ -21,8 +21,8 @@ public class Size {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
-    @Column(name = "NAME")
-    private String name;
+    @Column(name = "EU")
+    private String eu;
     @Column(name = "DESCRIPTION")
     private String description;
 

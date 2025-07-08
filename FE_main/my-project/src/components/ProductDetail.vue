@@ -74,7 +74,8 @@ const addToCart = async () => {
 
 
 
-const sizeList = ref(['EU 33', 'EU 34', 'EU 35', 'EU 36', 'EU 37', 'EU 38', 'EU 39', 'EU 40', 'EU 41', 'EU 42', 'EU 43', 'EU 44', 'EU 45'])
+const sizeList = ref(['35', '36', '36.5', '37', '37.5', '38', '38.5', '39', '40', '40.5', '41',
+ '42', '42.5', '43', '44', '44.5', '45', '46','47', '48'])
 
 // Danh sách các màu là duy nhất
 const uniqueColors = computed(() => {

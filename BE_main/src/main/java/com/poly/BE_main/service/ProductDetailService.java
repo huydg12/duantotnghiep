@@ -26,10 +26,11 @@ public class ProductDetailService {
             String productName = (String) obj[2];
             String brandName = (String) obj[3];
             String color = (String) obj[4];
-            String description = (String) obj[5];
-            String size = (String) obj[6];
-            BigDecimal price = (BigDecimal) obj[7];
-            String imageString = (String) obj[8];
+            String collar = (String) obj[5]; // Assuming collar is at index 5
+            String description = (String) obj[6];
+            String size = (String) obj[7];
+            BigDecimal price = (BigDecimal) obj[8];
+            String imageString = (String) obj[9];
 
             List<String> images = (imageString != null && !imageString.isEmpty())
                     ? Arrays.asList(imageString.split(","))
@@ -41,6 +42,7 @@ public class ProductDetailService {
                     productName,
                     brandName,
                     color,
+                    collar,
                     description,
                     size,
                     price,

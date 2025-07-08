@@ -27,7 +27,7 @@ public class SizeService {
 
     public Size update(int id, Size sUpdate) {
         return sizeRepository.findById(id).map(s -> {
-            s.setName(sUpdate.getName());
+            s.setEu(sUpdate.getEu());
             s.setDescription(sUpdate.getDescription());
             return sizeRepository.save(s);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy Size có id: " + id));

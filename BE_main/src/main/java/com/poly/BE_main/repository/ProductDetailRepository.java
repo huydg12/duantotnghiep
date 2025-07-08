@@ -25,8 +25,9 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                 P.PRODUCT_NAME AS productName,
                 B.NAME AS brandName,
                 C.NAME AS color,
+                CL.NAME AS collar,
                 P.DESCRIPTION AS descriptionProduct,
-                S.NAME AS size,
+                S.EU AS size,
                 PD.PRICE AS price,
                 STRING_AGG(I.URL, ',') AS images
             FROM
@@ -35,13 +36,14 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
             JOIN BRAND B ON P.BRAND_ID = B.ID
             JOIN COLOR C ON PD.COLOR_ID = C.ID
             JOIN SIZE S ON PD.SIZE_ID = S.ID
+            LEFT JOIN COLLAR CL ON PD.COLLAR_ID = CL.ID
             LEFT JOIN RepresentativeProductDetail RPD
                 ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
             LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID
             WHERE P.ID = :productId
             GROUP BY
                 P.ID, PD.ID, P.PRODUCT_NAME,
-                B.NAME, C.NAME, P.DESCRIPTION, S.NAME, PD.PRICE;
+                B.NAME, C.NAME, P.DESCRIPTION, S.EU, CL.NAME, PD.PRICE;
                         """, nativeQuery = true)
     List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
 

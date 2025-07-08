@@ -12,11 +12,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "STYLE", schema = "dbo")
+@Table(name = "CATEGORY", schema = "dbo")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Style {
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
