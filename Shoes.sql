@@ -1,7 +1,7 @@
-CREATE DATABASE Shoes;
-GO
-USE [Shoes];
-GO
+-- CREATE DATABASE Shoes;
+-- GO
+-- USE [Shoes];
+-- GO
 
 -- BẢNG BRAND --
 SET ANSI_NULLS ON
@@ -80,11 +80,7 @@ GO
 CREATE TABLE [dbo].[SIZE]
 (
 	[ID] [int] IDENTITY(1,1),
-	[CM] DECIMAL(4,1),
-	[US] NVARCHAR(10),
-	[UK] NVARCHAR(10),
-	[EU] NVARCHAR(10),
-	[GENDER] NVARCHAR(10),
+	[EU] [varchar](10),
 	[DESCRIPTION] [varchar](255),
 	PRIMARY KEY CLUSTERED 
 (
@@ -789,52 +785,30 @@ VALUES
 GO
 
 -- 5. Bảng SIZE (size 33–45) -- 
-
--- SIZE GIÀY NAM
 INSERT INTO SIZE
-	(CM, US, UK, EU, GENDER, DESCRIPTION)
+	(EU, DESCRIPTION)
 VALUES
-	(24.5, '6.5', '6', '39', N'Nam', 'Nam chân nhỏ'),
-	(25.0, '7', '6.5', '40', N'Nam', 'Nam phổ biến'),
-	(25.5, '7.5', '7', '40.5', N'Nam', 'Nam chân vừa'),
-	(26.0, '8', '7.5', '41', N'Nam', 'Nam trung bình'),
-	(26.5, '8.5', '8', '42', N'Nam', 'Nam trung bình'),
-	(27.0, '9', '8.5', '42.5', N'Nam', 'Nam trung bình'),
-	(27.5, '9.5', '9', '43', N'Nam', 'Nam trung – to'),
-	(28.0, '10', '9.5', '44', N'Nam', 'Nam to'),
-	(28.5, '10.5', '10', '44.5', N'Nam', 'Nam chân to'),
-	(29.0, '11', '10.5', '45', N'Nam', 'Nam ngoại cỡ'),
-	(30.0, '12', '11.5', '46', N'Nam', 'Nam rất to');
+	('35', N'Phù hợp chân rất nhỏ, nữ hoặc trẻ em'),
+	('36', N'Nữ chân nhỏ hoặc Unisex'),
+	('36.5', N'Nữ phổ biến hoặc Unisex'),
+	('37', N'Nữ phổ biến'),
+	('37.5', N'Nữ/Unisex thường gặp'),
+	('38', N'Unisex trung bình'),
+	('38.5', N'Nam chân nhỏ, Unisex'),
+	('39', N'Nam/Nữ phổ biến, Unisex'),
+	('40', N'Nam chân vừa'),
+	('40.5', N'Nam trung bình'),
+	('41', N'Nam trung bình'),
+	('42', N'Nam phổ biến nhất'),
+	('42.5', N'Nam chân to'),
+	('43', N'Nam phổ biến tại Việt Nam'),
+	('44', N'Nam ngoại cỡ nhẹ'),
+	('44.5', N'Nam to, thể thao'),
+	('45', N'Nam to, hàng US size'),
+	('46', N'Nam rất to, ngoại cỡ'),
+	('47', N'Dành cho người chân ngoại cỡ'),
+	('48', N'Rất hiếm, đặt riêng');
 GO
-
--- SIZE GIÀY NỮ
-INSERT INTO SIZE
-	(CM, US, UK, EU, GENDER, DESCRIPTION)
-VALUES
-	(21.5, '4', '2', '34.5', N'Nữ', 'Nữ chân nhỏ'),
-	(22.0, '4.5', '2.5', '35', N'Nữ', 'Nữ phổ biến'),
-	(22.5, '5', '3', '35.5', N'Nữ', 'Nữ phổ biến'),
-	(23.0, '5.5', '3.5', '36', N'Nữ', 'Nữ trung bình'),
-	(23.5, '6', '4', '36.5', N'Nữ', 'Nữ trung bình'),
-	(24.0, '6.5', '4.5', '37', N'Nữ', 'Nữ trung bình'),
-	(24.5, '7', '5', '37.5', N'Nữ', 'Nữ chân hơi to'),
-	(25.0, '7.5', '5.5', '38', N'Nữ', 'Nữ chân to'),
-	(25.5, '8', '6', '39', N'Nữ', 'Nữ ngoại cỡ'),
-	(26.0, '8.5', '6.5', '40', N'Nữ', 'Nữ ngoại cỡ');
-GO
-
--- SIZE GIÀY UNISEX
-INSERT INTO SIZE
-	(CM, US, UK, EU, GENDER, DESCRIPTION)
-VALUES
-	(23.0, '5', '4', '37', N'Unisex', 'Unisex phổ biến'),
-	(24.0, '6', '5', '38', N'Unisex', 'Unisex thường dùng'),
-	(25.0, '7', '6', '39', N'Unisex', 'Unisex trung bình'),
-	(26.0, '8', '7', '41', N'Unisex', 'Unisex trung bình'),
-	(27.0, '9', '8', '42.5', N'Unisex', 'Unisex phổ biến'),
-	(28.0, '10', '9', '44', N'Unisex', 'Unisex to');
-GO
-
 
 -- 6. Bảng COLOR (12 màu) --
 
