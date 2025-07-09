@@ -1,15 +1,52 @@
 <script setup>
-import { ref, computed } from 'vue'
+import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 
-const categories = ref([
-    { id: 1, name: 'Lifestyle', description: 'Giày thể thao' },
-    { id: 2, name: 'Running', description: 'Thời trang năng động' },
-    { id: 3, name: 'Basketball', description: 'Thời trang năng động' },
-    { id: 4, name: 'Skateboarding', description: 'Giày thể thao' },
-    { id: 5, name: 'Retro', description: 'Thời trang năng động' },
-    { id: 6, name: 'Chunky', description: 'Thời trang năng động' },
-    { id: 7, name: 'Slip-on', description: 'Thời trang năng động' }, 
-])
+const categories = ref([])
+
+const fetchCategories  =  async () => {
+    try{
+    const response = await axios.get('http://localhost:8080/style/show')
+    categories.value = response.data
+    console.log(categories)
+    }catch(error){
+        console.log('lỗi hiển thị ', error)
+    }
+}
+
+onMounted(()=>{
+    fetchCategories()
+})
+
+async function saveCategories(){
+    try{
+        if(isEditing.value){
+            await axios.put(`http://localhost:8080/style/update/${form.value.id}`, form.value)
+        }else{
+            await axios.post('http://localhost:8080/style/add', form.value)
+        }
+        fetchCategories()
+        resetForm()
+    }catch(error){
+        console.log('lỗi save',error)
+    }
+}
+
+function editCategories(category){
+    form.value = {...category}
+    isEditing.value=true
+}
+
+async function deleteCategories(id) {
+    try{
+        if(confirm('Bạn  có chắc là muốn xóa loại này không')){
+        await axios.delete(`http://localhost:8080/style/delete/${id}`)
+        await fetchCategories()
+        }
+    }catch(error){
+        console.log('lỗi khi xóa loại ', error)
+    }
+} 
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -42,7 +79,7 @@ function goToPage(page) {
         <h2 class="text-center mb-4 fw-bold">Quản Lý Loại</h2>
 
         <!-- Form -->
-        <form @submit.prevent="" class="border p-4 rounded bg-light mb-4">
+        <form @submit.prevent="saveCategories" class="border p-4 rounded bg-light mb-4">
             <div class="mb-3">
                 <label class="form-label">Tên loại</label>
                 <input v-model="form.name" required class="form-control" />
@@ -69,13 +106,13 @@ function goToPage(page) {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="categories in paginatedCategories" :key="categories.id">
-                        <td class="text-center">{{ categories.id }}</td>
-                        <td>{{ categories.name }}</td>
-                        <td class="text-wrap">{{ categories.description }}</td>
+                    <tr v-for="category in paginatedCategories" :key="category.id">
+                        <td class="text-center">{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td class="text-wrap">{{ category.description }}</td>
                         <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editCategory(categories)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteCategory(categories.id)"> Xoá </button>
+                            <button class="btn btn-success btn-sm me-2" @click="editCategories(category)"> Sửa </button>
+                            <button class="btn btn-danger btn-sm" @click="deleteCategories(category.id)"> Xoá </button>
                         </td>
                     </tr>
                 </tbody>

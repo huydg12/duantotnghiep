@@ -1,11 +1,52 @@
 <script setup>
-import { ref, computed } from 'vue'
+import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 
-const collars = ref([
-    { id: 1, name: 'Cổ thấp', description: '' },
-    { id: 2, name: 'Cổ trung', description: '' },
-    { id: 3, name: 'Cổ cao', description: '' },
-])
+const collars = ref([])
+
+const fetchCollar = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/collar/show')
+    collars.value = response.data
+    console.log(response)
+  } catch (error) {
+    console.log("lỗi hiển thị ", error)
+  }
+}
+
+onMounted(()=>{
+fetchCollar()
+})
+
+async function saveCollar() {
+    try{
+        if(isEditing.value){
+            await axios.put(`http://localhost:8080/collar/update/${form.value.id}`,form.value)
+        }else{
+            await axios.post('http://localhost:8080/collar/add', form.value)
+        }
+        fetchCollar()
+        resetForm()
+    }catch(error){
+        console.log('lỗi save ', error)
+    }
+}
+
+async function editCollar(collar) {
+    form.value = {...collar}
+    isEditing.value = true
+}
+
+async function deleteCollar(id) {
+    try{
+        if(confirm ('bạn có chắc là muốn xóa loại này không')){
+        await axios.delete(`http://localhost:8080/collar/delete/${id}`)
+        await fetchCollar()
+        }
+    }catch(error){
+        console.log('lỗi xóa',error)
+    }
+}
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -38,7 +79,7 @@ function goToPage(page) {
         <h2 class="text-center mb-4 fw-bold">Quản Lý Cổ</h2>
 
         <!-- Form -->
-        <form @submit.prevent="" class="border p-4 rounded bg-light mb-4">
+        <form @submit.prevent="saveCollar" class="border p-4 rounded bg-light mb-4">
             <div class="mb-3">
                 <label class="form-label">Tên cổ</label>
                 <input v-model="form.name" required class="form-control" />
