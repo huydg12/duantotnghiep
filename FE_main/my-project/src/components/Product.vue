@@ -16,7 +16,7 @@ const fetchProducts = async () => {
   try {
     const response = await axios.get('http://localhost:8080/product/showSPdto') // Thay thế bằng API thực tế
     products.value = response.data
-    console.log(products.value)
+    console.log("sản phẩm", products.value)
   } catch (error) {
     console.error('Lỗi hiển thị sản phẩm', error)
   }

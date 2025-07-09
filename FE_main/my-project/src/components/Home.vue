@@ -1,81 +1,45 @@
 <script setup>
-import { computed, ref } from "vue";
-
+import { computed, ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+const router = useRouter()
 // Mảng chứa tất cả sản phẩmm
-const allProducts = ref([
-    {
-        id: 1,
-        name: "Nike Air Force 1",
-        price: 2500000,
-        brand: "nike",
-        image: "https://via.placeholder.com/300x200?text=Nike+AF1",
-        featured: true,
-    },
-    {
-        id: 2,
-        name: "Adidas Ultraboost 22",
-        price: 2900000,
-        brand: "adidas",
-        image: "https://via.placeholder.com/300x200?text=Ultraboost",
-        featured: true,
-    },
-    {
-        id: 3,
-        name: "Converse Chuck 70",
-        price: 1800000,
-        brand: "converse",
-        image: "https://via.placeholder.com/300x200?text=Chuck+70",
-        featured: true,
-    },
-    {
-        id: 4,
-        name: "Vans Old Skool",
-        price: 1600000,
-        brand: "vans",
-        image: "https://via.placeholder.com/300x200?text=Vans+Old+Skool",
-        featured: true,
-    },
-    {
-        id: 5,
-        name: "Nike Dunk Low",
-        price: 2700000,
-        brand: "nike",
-        image: "https://via.placeholder.com/300x200?text=Nike+Dunk",
-    },
-    {
-        id: 6,
-        name: "Nike Air Jordan 1",
-        price: 3500000,
-        brand: "nike",
-        image: "https://via.placeholder.com/300x200?text=Jordan+1",
-    },
-    {
-        id: 7,
-        name: "Adidas Stan Smith",
-        price: 2100000,
-        brand: "adidas",
-        image: "https://via.placeholder.com/300x200?text=Stan+Smith",
-    },
-    {
-        id: 8,
-        name: "Adidas NMD_R1",
-        price: 3200000,
-        brand: "adidas",
-        image: "https://via.placeholder.com/300x200?text=NMD+R1",
-    },
-]);
+const products = ref([]);
+const allProducts = ref([]);
+const goToDetail = (id) => {
+  router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
+}
+const fetchTop4Products = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/product/top4') // Thay thế bằng API thực tế
+    products.value = response.data
+    console.log("sản phẩm nổi bật",products.value)
+  } catch (error) {
+    console.error('Lỗi hiển thị sản phẩm', error)
+  }
+}
 
-// Lấy sản phẩm nổi bật
-const featuredProducts = computed(() => {
-    return allProducts.value.filter((p) => p.featured).slice(0, 4);
-});
+const fetchAllProducts = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/product/showSPdto') // Thay thế bằng API thực tế
+    allProducts.value = response.data
+    console.log("sản phẩm", allProducts.value)
+  } catch (error) {
+    console.error('Lỗi hiển thị sản phẩm', error)
+  }
+}
+onMounted(() => {
+  fetchTop4Products();
+  fetchAllProducts();
+}) 
+
 
 // State reactive để theo dõi brand được chọn
 const selectedBrand = ref("nike");
 
 // Lấy sản phẩm theo brand
 const productsByBrand = computed(() => {
-    return allProducts.value.filter((p) => p.brand == selectedBrand.value);
+  return allProducts.value.filter(p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase());
 });
 
 // Hàm để thay đổi brand khi click button
@@ -120,22 +84,33 @@ function formatCurrency(value) {
                 </div>
 
                 <div class="row g-4">
-                    <div class="col-12 col-sm-6 col-md-3" v-for="product in featuredProducts" :key="product.id">
-                        <div class="card h-100 product-card">
-                            <img :src="product.image" class="card-img-top" :alt="product.name" />
+                    <div class="col-12 col-sm-6 col-md-3" v-for="product in products" :key="product.productId">
+                        <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+                            <div class="image-container position-relative">
+                            <img
+                                :src="product.image1"
+                                class="product-image image-front"
+                                :alt="product.productName"
+                            />
+                            <img
+                                :src="product.image2"
+                                class="product-image image-hover position-absolute top-0 start-0"
+                                :alt="product.productName"
+                            />
+                            </div>
                             <div class="card-body d-flex flex-column text-center">
-                                <h5 class="cart-title">{{ product.name }}</h5>
+                                <h5 class="cart-title">{{ product.productName  }}</h5>
                                 <p class="product-price mt-1">
                                     {{ formatCurrency(product.price) }}
                                 </p>
-                                <button class="btn btn-buy mt-auto">Thêm vào giỏ</button>
+                                <button class="btn btn-buy mt-auto"@click="goToDetail(product.productId)">Xem chi tiết</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-center mt-5">
-                    <a href="#tat-ca-san-pham" class="btn btn-dark px-4 py-2">Xem Tất Cả Sản Phẩm</a>
+                    <router-link to="/product" class="btn btn-dark px-4 py-2">Xem Tất Cả Sản Phẩm</router-link>
                 </div>
             </div>
         </section>
@@ -151,28 +126,30 @@ function formatCurrency(value) {
                 </div>
 
                 <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
-                    <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">
-                        Nike
-                    </button>
-                    <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">
-                        Adidas
-                    </button>
-                    <button class="btn" :class="{ active: selectedBrand === 'converse' }"
-                        @click="selectBrand('converse')">
-                        Converse
-                    </button>
-                    <button class="btn" :class="{ active: selectedBrand === 'vans' }" @click="selectBrand('vans')">
-                        Vans
-                    </button>
+                    <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
+                    <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">Adidas</button>
+                    <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
+                    <button class="btn" :class="{ active: selectedBrand === 'converse' }" @click="selectBrand('converse')">Converse</button>
+                    <button class="btn" :class="{ active: selectedBrand === 'new balance' }" @click="selectBrand('new balance')">New Balance</button>
+
                 </div>
 
                 <div id="product-list-container">
                     <div class="row g-4">
-                        <div class="col-6 col-md-3" v-for="product in productsByBrand" :key="product.id">
-                            <div class="card h-100 product-card">
-                                <img :src="product.image" class="card-img-top" :alt="product.name" />
+                        <div class="col-6 col-md-3" v-for="product in productsByBrand" :key="product.productId">
+                            <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+                                <img
+                                    :src="product.image1"
+                                    class="product-image image-front"
+                                    :alt="product.productName"
+                                />
+                                <img
+                                    :src="product.image2"
+                                    class="product-image image-hover position-absolute top-0 start-0"
+                                    :alt="product.productName"
+                                />
                                 <div class="card-body text-center">
-                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <h6 class="card-title">{{ product.productName }}</h6>
                                     <p class="product-price">{{ formatCurrency(product.price) }}</p>
                                 </div>
                             </div>
@@ -283,5 +260,35 @@ function formatCurrency(value) {
 
 #product-list-container .product-list {
     transition: opacity 0.5s ease;
+}
+.image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.image-front,
+.image-hover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: opacity 0.3s ease;
+  border-radius: 8px;
+}
+
+.image-hover {
+  opacity: 0;
+  z-index: 1;
+}
+
+.image-container:hover .image-hover {
+  opacity: 1;
+}
+
+.image-container:hover .image-front {
+  opacity: 0;
 }
 </style>

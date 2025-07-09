@@ -62,6 +62,23 @@ async function removeItem(cartDetailId) {
   }
 }
 
+async function updateQuantity(cartDetailId, quantity) {
+  if (quantity < 1) {
+    alert("Số lượng tối thiểu là 1");
+    return;
+  }
+
+  try {
+    await axios.put(`http://localhost:8080/cartDetail/updateQuantityByCartDetailID/${cartDetailId}`, {
+      quantity: quantity,
+    });
+    // Bạn có thể thêm thông báo hoặc cập nhật giao diện tại đây nếu cần
+  } catch (error) {
+    console.error("Lỗi khi cập nhật số lượng:", error);
+    alert("Cập nhật số lượng thất bại.");
+  }
+}
+
 // ✅ Chỉ tính tổng tiền của sản phẩm được chọn
 const totalPrice = computed(() => {
   return cartItems.value.reduce((total, item) => {
@@ -154,7 +171,13 @@ const toggleSelectAll = () => {
             </p>
           </div>
           <div class="col-1">
-            <input type="number" v-model="item.quantity" min="1" class="form-control text-center quantity" />
+            <input
+              type="number"
+              v-model="item.quantity"
+              min="1"
+              class="form-control text-center quantity"
+              @change="updateQuantity(item.cartDetailId, item.quantity)"
+            />
           </div>
         <!-- Nút Xóa -->
         <div class="col-2 d-flex justify-content-end">

@@ -82,4 +82,13 @@ public class CartDetailService {
         cartDetailRepository.updateQuantityByCartIdAndProductDetailId(cartId, productDetailId, quantity);
     }
 
+    public void upateQuantityByCartDetailID(Integer cartDetailId, Integer quantity){
+                CartDetail cartDetail = cartDetailRepository.findById(cartDetailId)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy cartDetail"));
+
+        cartDetail.setQuantity(quantity);
+        cartDetailRepository.save(cartDetail); // Hibernate tự tạo UPDATE
+    }
+    
+
 }

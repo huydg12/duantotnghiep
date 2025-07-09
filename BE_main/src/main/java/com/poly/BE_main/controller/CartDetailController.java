@@ -1,6 +1,7 @@
 package com.poly.BE_main.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -63,5 +64,12 @@ public class CartDetailController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi cập nhật số lượng: " + e.getMessage());
         }
+    }
+
+    @PutMapping("/updateQuantityByCartDetailID/{id}")
+    public ResponseEntity<?> updateQuantity(@PathVariable Integer id, @RequestBody Map<String, Integer> body) {
+    Integer quantity = body.get("quantity");
+    cartDetailService.upateQuantityByCartDetailID(id, quantity);
+    return ResponseEntity.ok("Cập nhật thành công");
     }
 }

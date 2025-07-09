@@ -3,6 +3,7 @@ package com.poly.BE_main.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,5 +82,18 @@ public class ProductService {
 
     return products;
 }
+
+    public List<ProductDTO> getTop4ListProducts() {
+        List<Object[]> results = productRepository.findTop4ListProucts();
+        return results.stream().map(row -> new ProductDTO(
+                (Integer) row[0],                  // productId
+                (String) row[1],                   // productName
+                (String) row[2],                   // brandName
+                (BigDecimal) row[3],               // price
+                (String) row[4],                   // image1
+                (String) row[5]                    // image2
+        )).collect(Collectors.toList());
+    }
+
 
 }

@@ -55,4 +55,10 @@ public ResponseEntity<List<ProductDTO>>searchProduct(String keyword){
     List<ProductDTO> results = productService.searchByKeyword(keyword);
     return ResponseEntity.ok(results);
 }
+
+@GetMapping("/top4")
+public List<ProductDTO> getTop4Products() {
+    return productService.getTop4ListProducts();
+}
+
 }
