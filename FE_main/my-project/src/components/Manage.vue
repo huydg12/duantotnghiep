@@ -48,6 +48,15 @@ const componentMap = {
   CustomerManagement: defineAsyncComponent(() =>
     import("./manage/CustomerManagement.vue")
   ),
+  AccountManagement: defineAsyncComponent(() =>
+    import("./manage/AccountManagement.vue")
+  ),
+  PromotionManagement: defineAsyncComponent(() =>
+    import("./manage/PromotionManagement.vue")
+  ),
+  ImportReceiptManagement: defineAsyncComponent(() =>
+    import("./manage/ImportReceiptManagement.vue")
+  ),
   WarehouseManagement: defineAsyncComponent(() =>
     import("./manage/WarehouseManagement.vue")
   ),
@@ -112,6 +121,24 @@ const menuItems = [
     label: "Khách hàng",
     target: "CustomerManagement",
     icon: "fa-solid fa-users",
+  },
+  {
+    id: "account",
+    label: "Tài khoản",
+    target: "AccountManagement",
+    icon: "fa-solid fa-user-cog",
+  },
+  {
+    id: "promotion",
+    label: "Khuyến mãi",
+    target: "PromotionManagement",
+    icon: "fa-solid fa-tag",
+  },
+  {
+    id: "importreceipt",
+    label: "Phiếu nhập",
+    target: "ImportReceiptManagement",
+    icon: "fa-solid fa-clipboard-list",
   },
   {
     id: "warehouse",
