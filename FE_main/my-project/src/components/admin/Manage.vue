@@ -3,7 +3,7 @@ import { ref, shallowRef, defineAsyncComponent } from "vue";
 
 // shallowRef để tối ưu các component => thay đổi cả component
 const activeComponent = shallowRef(
-  defineAsyncComponent(() => import("./manage/StatisticsManagement.vue"))
+  defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
 );
 
 // Ref theo dõi mục menu đang được chọn
@@ -11,60 +11,60 @@ const activeTarget = ref("StatisticsManagement");
 
 // Map các component và dùng defineAsyncComponent
 const componentMap = {
-  Sell: defineAsyncComponent(() => import("./manage/Sell.vue")),
+  Sell: defineAsyncComponent(() => import("../dashboard/Sell.vue")),
   ProductManagement: defineAsyncComponent(() =>
-    import("./manage/ProductManagement.vue")
+    import("../dashboard/ProductManagement.vue")
   ),
   ProductAttributeManagement: defineAsyncComponent(() =>
-    import("./manage/ProductAttributeManagement.vue")
+    import("../dashboard/ProductAttributeManagement.vue")
   ),
   BrandManagement: defineAsyncComponent(() =>
-    import("./manage/BrandManagement.vue")
+    import("../dashboard/BrandManagement.vue")
   ),
   CategoryManagement: defineAsyncComponent(() =>
-    import("./manage/CategoryManagement.vue")
+    import("../dashboard/CategoryManagement.vue")
   ),
   CollarManagement: defineAsyncComponent(() =>
-    import("./manage/CollarManagement.vue")
+    import("../dashboard/CollarManagement.vue")
   ),
   SizeManagement: defineAsyncComponent(() =>
-    import("./manage/SizeManagement.vue")
+    import("../dashboard/SizeManagement.vue")
   ),
   SoleManagement: defineAsyncComponent(() =>
-    import("./manage/SoleManagement.vue")
+    import("../dashboard/SoleManagement.vue")
   ),
   ColorManagement: defineAsyncComponent(() =>
-    import("./manage/ColorManagement.vue")
+    import("../dashboard/ColorManagement.vue")
   ),
   ImageManagement: defineAsyncComponent(() =>
-    import("./manage/ImageManagement.vue")
+    import("../dashboard/ImageManagement.vue")
   ),
   InvoiceManagement: defineAsyncComponent(() =>
-    import("./manage/InvoiceManagement.vue")
+    import("../dashboard/InvoiceManagement.vue")
   ),
   StaffManagement: defineAsyncComponent(() =>
-    import("./manage/StaffManagement.vue")
+    import("../dashboard/StaffManagement.vue")
   ),
   CustomerManagement: defineAsyncComponent(() =>
-    import("./manage/CustomerManagement.vue")
+    import("../dashboard/CustomerManagement.vue")
   ),
   AccountManagement: defineAsyncComponent(() =>
-    import("./manage/AccountManagement.vue")
+    import("../dashboard/AccountManagement.vue")
   ),
   PromotionManagement: defineAsyncComponent(() =>
-    import("./manage/PromotionManagement.vue")
+    import("../dashboard/PromotionManagement.vue")
   ),
   ImportReceiptManagement: defineAsyncComponent(() =>
-    import("./manage/ImportReceiptManagement.vue")
+    import("../dashboard/ImportReceiptManagement.vue")
   ),
   WarehouseManagement: defineAsyncComponent(() =>
-    import("./manage/WarehouseManagement.vue")
+    import("../dashboard/WarehouseManagement.vue")
   ),
   StatisticsManagement: defineAsyncComponent(() =>
-    import("./manage/StatisticsManagement.vue")
+    import("../dashboard/StatisticsManagement.vue")
   ),
   PersonalInformation: defineAsyncComponent(() =>
-    import("./manage/PersonalInformation.vue")
+    import("../dashboard/PersonalInformation.vue")
   ),
 };
 
@@ -72,7 +72,7 @@ const componentMap = {
 function loadContent(target) {
   activeComponent.value =
     componentMap[target] ||
-    defineAsyncComponent(() => import("./manage/NotFound.vue"));
+    defineAsyncComponent(() => import("../dashboard/NotFound.vue"));
   activeTarget.value = target;
 }
 

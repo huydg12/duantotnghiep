@@ -1,5 +1,5 @@
 <script setup>
-import Banner from './Banner.vue';
+import Banner from "../common/Banner.vue";
 import { onMounted } from 'vue';
 </script>
 <template>

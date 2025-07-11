@@ -1,5 +1,5 @@
 <script setup>
-import Banner from './Banner.vue';
+import Banner from "../common/Banner.vue";
 </script>
 <template>
     <Banner title="Giới thiệu" breadcrumb='Giới thiệu' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />

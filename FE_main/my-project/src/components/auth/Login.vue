@@ -1,11 +1,10 @@
 <script setup>
-
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios'
 
 const router = useRouter();
-import { useUserStore } from '../stores/userStore';
+import { useUserStore } from '../../stores/userStore';
 const username = ref("");
 const password = ref("");
 const errorMessage = ref("");
