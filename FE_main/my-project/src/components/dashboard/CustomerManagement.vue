@@ -79,6 +79,7 @@ async function deleteCustomer(id) {
 
 const form = ref({
     id: null,
+    accountId: null,
     fullName: '',
     gender: '',
     email: '',
@@ -102,6 +103,7 @@ const paginatedCustomers = computed(() => {
 function resetForm() {
     form.value = {
         id: null,
+        accountId: null,
         fullName: '',
         gender: '',
         email: '',

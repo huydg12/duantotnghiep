@@ -81,8 +81,8 @@ const form = ref({
     numberPhone: "",
     birthOfDate: "",
     isActive: true,
-    createdBy: "",
-    createdDate: "",
+    createdBy: "admin",
+    createdDate: getVietnamDateTimeLocalFormat,
 });
 
 const isEditing = ref(false);
@@ -205,7 +205,7 @@ function goToPage(page) {
                         <td class="text-center">{{ employee.gender }}</td>
                         <td class="text-center">{{ employee.email }}</td>
                         <td class="text-center">{{ employee.numberPhone }}</td>
-                        <td class="text-center">{{ employee.birthOfDate }}</td>
+                        <td class="text-center">{{ formatDateTime(employee.birthOfDate) }}</td>
                         <td class="text-center">
                             <span v-if="employee.isActive" class="badge bg-success">Hoạt động</span>
                             <span v-else class="badge bg-danger">Không hoạt động</span>
