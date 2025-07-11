@@ -2,19 +2,80 @@
 import axios from "axios";
 import { ref, computed, onMounted } from "vue";
 
-const customers = ref([
-    {
-        id: 1,
-        accountId: null,
-        fullName: "Nguyễn Văn A",
-        gender: "Nam",
-        email: "a@gmail.com",
-        numberPhone: "0123456789",
-        birthOfDate: "1998-01-01",
-        status: 1,
-        createdDate: new Date().toISOString(),
-    },
-]);
+const customers = ref([]);
+
+const fetchCustomer = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/customer/show');
+        customers.value = response.data;
+        console.log(customers.value);
+    } catch (error) {
+        console.log('Lỗi hiển thị', error);
+    }
+};
+
+onMounted(() => {
+    fetchCustomer();
+});
+
+async function saveCustomer() {
+    try {
+        if (isEditing.value) {
+            await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
+        } else {
+            const newCustomer = {
+                ...form.value,
+                createdDate: new Date().toISOString()
+            };
+            await axios.post('http://localhost:8080/customer/add', newCustomer);
+        }
+        await fetchCustomer();
+        resetForm();
+    } catch (error) {
+        console.log('Lỗi save customer', error);
+    }
+}
+
+function editCustomer(customer) {
+    form.value = { ...customer };
+    isEditing.value = true;
+}
+
+function getVietnamDateTimeLocalFormat() {
+    const now = new Date();
+    const vietnamOffset = 7 * 60;
+    const localOffset = now.getTimezoneOffset();
+    const totalOffset = vietnamOffset + localOffset;
+    const vietnamTime = new Date(now.getTime() + totalOffset * 60000);
+
+    const year = vietnamTime.getFullYear();
+    const month = String(vietnamTime.getMonth() + 1).padStart(2, '0');
+    const day = String(vietnamTime.getDate()).padStart(2, '0');
+    const hours = String(vietnamTime.getHours()).padStart(2, '0');
+    const minutes = String(vietnamTime.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function formatDateTime(datetimeStr) {
+    const date = new Date(datetimeStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+async function deleteCustomer(id) {
+    try{
+        if(confirm('Bạn có chắc chắn muốn xóa khách hàng này không ?')){
+            await axios.delete(`http://localhost:8080/customer/delete/${id}`)
+            await fetchCustomer()
+        }
+    }catch(error){
+        console.log('Lỗi delete', error)
+    }
+}
+
 
 const form = ref({
     id: null,
@@ -24,7 +85,7 @@ const form = ref({
     numberPhone: '',
     birthOfDate: '',
     status: 1,
-    createdDate: new Date().toISOString()
+    createdDate: getVietnamDateTimeLocalFormat()
 });
 
 const isEditing = ref(false);
@@ -47,7 +108,6 @@ function resetForm() {
         numberPhone: '',
         birthOfDate: '',
         status: 1,
-        createdDate: new Date().toISOString()
     };
     isEditing.value = false;
 }
@@ -57,24 +117,17 @@ function goToPage(page) {
         currentPage.value = page;
     }
 }
-
-function formatDateTime(datetimeStr) {
-    const date = new Date(datetimeStr);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-}
 </script>
+
 <template>
     <div class="container py-4">
         <h2 class="text-center mb-4 fw-bold">Quản Lý Khách Hàng</h2>
 
         <!-- Form -->
-        <form @submit.prevent="saveBrand" class="border p-4 rounded bg-light mb-4">
+        <form @submit.prevent="saveCustomer" class="border p-4 rounded bg-light mb-4">
             <div class="mb-3">
                 <label class="form-label">Họ tên</label>
-                <input v-model="form.name" required class="form-control" />
+                <input v-model="form.fullName" required class="form-control" />
             </div>
             <div class="mb-3">
                 <label class="form-label d-block">Giới tính</label>
@@ -89,32 +142,26 @@ function formatDateTime(datetimeStr) {
             </div>
             <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input v-model="form.name" required class="form-control" />
+                <input v-model="form.email" required class="form-control" />
             </div>
             <div class="mb-3">
                 <label class="form-label">Số điện thoại</label>
-                <input v-model="form.name" required class="form-control" />
+                <input v-model="form.numberPhone" required class="form-control" />
             </div>
             <div class="mb-3">
                 <label class="form-label">Ngày sinh</label>
-                <input type="date" v-model="form.name" required class="form-control" />
+                <input type="date" v-model="form.birthOfDate" required class="form-control" />
             </div>
             <div class="mb-3">
                 <label class="form-label d-block">Trạng thái</label>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-active" value="Hoạt động"
-                        v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="status-active" value="1" v-model="form.status" />
                     <label class="form-check-label" for="status-active">Hoạt động</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-inactive" value="Không hoạt động"
-                        v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="status-inactive" value="2" v-model="form.status" />
                     <label class="form-check-label" for="status-inactive">Không hoạt động</label>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ngày tạo</label>
-                <input type="date" v-model="form.name" required class="form-control" />
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
@@ -144,24 +191,24 @@ function formatDateTime(datetimeStr) {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="customers in paginatedCustomers" :key="customers.id">
-                        <td class="text-center">{{ customers.id }}</td>
-                        <td class="text-center">{{ customers.accountId }}</td>
-                        <td class="text-center">{{ customers.fullName }}</td>
-                        <td class="text-center">{{ customers.gender }}</td>
-                        <td class="text-center">{{ customers.email }}</td>
-                        <td class="text-center">{{ customers.numberPhone }}</td>
-                        <td class="text-center">{{ customers.birthOfDate }}</td>
+                    <tr v-for="customer in paginatedCustomers" :key="customer.id">
+                        <td class="text-center">{{ customer.id }}</td>
+                        <td class="text-center">{{ customer.accountId }}</td>
+                        <td class="text-center">{{ customer.fullName }}</td>
+                        <td class="text-center">{{ customer.gender }}</td>
+                        <td class="text-center">{{ customer.email }}</td>
+                        <td class="text-center">{{ customer.numberPhone }}</td>
+                        <td class="text-center">{{ formatDateTime(customer.birthOfDate) }}</td>
                         <td class="text-center">
-                            <span v-if="customers.status === 1" class="badge bg-success">Hoạt động</span>
+                            <span v-if="customer.status === 1" class="badge bg-success">Hoạt động</span>
                             <span v-else class="badge bg-danger">Không hoạt động</span>
                         </td>
-                        <td class="text-center">{{ formatDateTime(customers.createdDate) }}</td>
+                        <td class="text-center">{{ formatDateTime(customer.createdDate) }}</td>
                         <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editBrand(customers)">
+                            <button class="btn btn-success btn-sm me-2" @click="editCustomer(customer)">
                                 Sửa
                             </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteBrand(customers.id)">
+                            <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.id)">
                                 Xoá
                             </button>
                         </td>
@@ -170,7 +217,7 @@ function formatDateTime(datetimeStr) {
             </table>
         </div>
 
-        <!-- Phân Trang -->
+        <!-- Pagination -->
         <nav>
             <ul class="pagination justify-content-center mt-4 custom-pagination">
                 <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -178,11 +225,9 @@ function formatDateTime(datetimeStr) {
                         «
                     </button>
                 </li>
-
                 <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
                     <button class="page-link" @click="goToPage(page)">{{ page }}</button>
                 </li>
-
                 <li class="page-item" :class="{ disabled: currentPage === totalPages }">
                     <button class="page-link" @click="goToPage(currentPage + 1)">
                         »

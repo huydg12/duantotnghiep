@@ -3,6 +3,8 @@ package com.poly.BE_main.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -49,5 +51,6 @@ public class Customer {
 
     @OneToOne
     @JoinColumn(name = "ACCOUNT_ID")
+    @JsonManagedReference
     private Account account;
 }

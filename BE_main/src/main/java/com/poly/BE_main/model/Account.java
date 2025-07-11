@@ -2,6 +2,8 @@ package com.poly.BE_main.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -54,6 +56,7 @@ public class Account {
     private int roleId;
 
     @OneToOne(mappedBy = "account")
+    @JsonBackReference
     private Customer customer;
 
 }
