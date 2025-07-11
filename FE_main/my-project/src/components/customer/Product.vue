@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Banner from './Banner.vue'
+import Banner from "../common/Banner.vue";
 import axios from 'axios'
 
 const router = useRouter()

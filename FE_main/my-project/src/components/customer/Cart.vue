@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted  } from "vue";
-import Banner from "./Banner.vue";
+import Banner from "../common/Banner.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 

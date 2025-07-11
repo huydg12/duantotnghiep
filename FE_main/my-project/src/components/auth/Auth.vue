@@ -1,6 +1,8 @@
 <script setup>
+import Header from "../layout/Header.vue";
+import Footer from "../layout/Footer.vue";
+import Banner from "../common/Banner.vue";
 import { computed } from "vue";
-import Banner from "./Banner.vue";
 import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
@@ -21,6 +23,7 @@ function switchTab(tab) {
 </script>
 
 <template>
+    <Header />
     <Banner :title="titleBanner" :breadcrumb="breadcrumbBanner"
         backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
     <div class="bg-light">
@@ -45,6 +48,7 @@ function switchTab(tab) {
             </div>
         </div>
     </div>
+    <Footer />
 </template>
 
 <style scoped></style>

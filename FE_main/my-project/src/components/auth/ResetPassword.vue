@@ -1,9 +1,9 @@
 <script setup>
-import Banner from './Banner.vue';
+import Banner from "../common/Banner.vue";
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { useForgotPasswordStore } from "../stores/emailStore";
+import { useForgotPasswordStore } from "../../stores/emailStore";
 
 const store = useForgotPasswordStore();
 const newPassword = ref('');

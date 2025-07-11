@@ -1,72 +1,58 @@
 import { createRouter, createWebHistory } from "vue-router";
+// Layout
+import CustomerLayout from "../components/layout/CustomerLayout.vue";
 
-import Login from "../components/Login.vue";
-import Home from "../components/Home.vue";
-import Payment from "../components/Payment.vue";
-import ProductDetail from "../components/ProductDetail.vue";
-import InformationCustomer from "../components/InformationCustomer.vue";
-import ForgetPassword from "../components/ForgetPassword.vue";
-import Introduce from "../components/Introduce.vue";
-import Product from "../components/Product.vue";
-import Contact from "../components/Contact.vue";
-import Cart from "../components/Cart.vue";
-import ResetPassword from "../components/ResetPassword.vue";
-import VerifyCode from "../components/VerifyCode.vue";
-import Register from "../components/Register.vue";
-import Auth from "../components/Auth.vue";
-import Manage from "../components/Manage.vue";
+// Customer Pages
+import Home from "../components/customer/Home.vue";
+import Payment from "../components/customer/Payment.vue";
+import ProductDetail from "../components/customer/ProductDetail.vue";
+import InformationCustomer from "../components/customer/InformationCustomer.vue";
+import Introduce from "../components/customer/Introduce.vue";
+import Product from "../components/customer/Product.vue";
+import Contact from "../components/customer/Contact.vue";
+import Cart from "../components/customer/Cart.vue";
+
+// Auth Pages
+import Auth from "../components/auth/Auth.vue";
+import Login from "../components/auth/Login.vue";
+import Register from "../components/auth/Register.vue";
+import ForgetPassword from "../components/auth/ForgetPassword.vue";
+import ResetPassword from "../components/auth/ResetPassword.vue";
+import VerifyCode from "../components/auth/VerifyCode.vue";
+
+// Admin Page
+import Manage from "../components/admin/Manage.vue";
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // Layout customer
     {
       path: "/",
-      name: "app",
-      component: Home,
-    },
-    {
-      path: "/informationcustomer",
-      name: "informationcustomer",
-      component: InformationCustomer,
+      component: CustomerLayout,
+      children: [
+        { path: "", redirect: "/home" },
+        { path: "home", name: "home", component: Home },
+        { path: "product", name: "product", component: Product },
+        {
+          path: "productdetail/:id",
+          name: "productdetail",
+          component: ProductDetail,
+        },
+        { path: "contact", name: "contact", component: Contact },
+        { path: "cart", name: "cart", component: Cart },
+        { path: "payment", name: "payment", component: Payment },
+        { path: "introduce", name: "introduce", component: Introduce },
+        {
+          path: "informationcustomer",
+          name: "informationcustomer",
+          component: InformationCustomer,
+        },
+      ],
     },
 
-    {
-      path: "/home",
-      name: "home",
-      component: Home,
-    },
-
-    {
-      path: "/introduce",
-      name: "introduce",
-      component: Introduce,
-    },
-
-    {
-      path: "/product",
-      name: "product",
-      component: Product,
-    },
-    {
-      path: "/productdetail/:id",
-      name: "productdetail",
-      component: ProductDetail,
-    },
-    {
-      path: "/contact",
-      name: "contact",
-      component: Contact,
-    },
-    {
-      path: "/cart",
-      name: "cart",
-      component: Cart,
-    },
-    {
-      path: "/payment",
-      name: "payment",
-      component: Payment,
-    },
+    // Auth
     {
       path: "/auth",
       component: Auth,
@@ -99,6 +85,8 @@ const router = createRouter({
       name: "resetpassword",
       component: ResetPassword,
     },
+
+    // Manage
     {
       path: "/manage",
       name: "manage",
