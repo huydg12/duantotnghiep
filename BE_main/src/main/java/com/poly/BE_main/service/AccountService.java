@@ -1,6 +1,7 @@
 package com.poly.BE_main.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Account;
+import com.poly.BE_main.model.Brand;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.repository.AccountRepository;
 import com.poly.BE_main.repository.CustomerRepository;
@@ -30,12 +32,15 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
+    // Auth
     public Optional<Account> getAccountByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
+
     public Optional<Customer> getCustomerByAccountId(int accountId) {
         return customerRepository.findByAccountId(accountId);
     }
+
     public Account createAccount(Account account) {
         return accountRepository.save(account);
     }
@@ -91,4 +96,23 @@ public class AccountService {
         return String.valueOf((int) (Math.random() * 900000) + 100000);
     }
 
+    // Account
+    public List<Account> findAll() {
+        return accountRepository.findAll();
+    }
+
+    public Account create(Account account) {
+        return accountRepository.save(account);
+    }
+
+    public void deleteById(Integer id) {
+        accountRepository.deleteById(id);
+    }
+
+    public Account update(int id, Account account) {
+        return accountRepository.findById(id).map(a -> {
+            a.setIsActive(account.getIsActive());
+            return accountRepository.save(a);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu có id: " + id));
+    }
 }

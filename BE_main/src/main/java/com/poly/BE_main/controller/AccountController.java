@@ -1,107 +1,49 @@
 package com.poly.BE_main.controller;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.poly.BE_main.model.Account;
+import com.poly.BE_main.service.AccountService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.poly.BE_main.dto.AccountDTO;
-import com.poly.BE_main.dto.ForgetPasswordDTO;
-import com.poly.BE_main.dto.LoginDTO;
-import com.poly.BE_main.dto.RegisterDTO;
-import com.poly.BE_main.dto.ResetPasswordDTO;
-import com.poly.BE_main.dto.VerifyCodeDTO;
-import com.poly.BE_main.dto.LoginResponseDTO;
-import com.poly.BE_main.model.Account;
-import com.poly.BE_main.model.Customer;
-import com.poly.BE_main.service.AccountService;
-import com.poly.BE_main.utils.JwtUtil;
+
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/account")
 public class AccountController {
     @Autowired
-    private final AccountService accountService;
-    private final JwtUtil jwtUtil;
+    AccountService accountService;
 
-    public AccountController(AccountService accountService, JwtUtil jwtUtil) {
-        this.accountService = accountService;
-        this.jwtUtil = jwtUtil;
+    @GetMapping("/show")
+    public List<Account> findAll(){
+        return accountService.findAll();
+    }
+    
+    @PostMapping("/add")
+    public Account add(@RequestBody Account account) {
+        System.out.println("Thêm thành công");
+        return accountService.create(account);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        Optional<Account> accountOptional = accountService.getAccountByUsername(loginDTO.getUsername());
-
-        if (accountOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản không tồn tại");
-        }
-        Account account = accountOptional.get();
-        if (!loginDTO.getPassword().equals(account.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai mật khẩu");
-        }
-
-        // Tạo JWT
-        String token = jwtUtil.generateToken(account.getUsername());
-
-        AccountDTO accountDTO = new AccountDTO(account);
-        if (account.getRoleId() == 2) {
-        Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
-        customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable Integer id){
+        accountService.deleteById(id);
     }
-
-
-        LoginResponseDTO response = new LoginResponseDTO(token, accountDTO);
-
-        return ResponseEntity.ok(response);
+    
+    @PutMapping("/update/{id}")
+    public Account update(@PathVariable Integer id, @RequestBody Account account) {
+        return accountService.update(id, account);
     }
-
-    @PostMapping("/register")
-    public ResponseEntity<?> login(@RequestBody RegisterDTO registerDTO) {
-        Account account = new Account();
-        account.setPhone(registerDTO.getPhone());
-        account.setEmail(registerDTO.getEmail());
-        account.setUsername(registerDTO.getUsername());
-        account.setPassword(registerDTO.getPassword());
-        account.setActive(true);
-        account.setRoleId(2);
-
-        account = accountService.createAccount(account);
-
-        Customer customer = new Customer();
-        customer.setFullName(registerDTO.getFullname());
-        customer.setNumberPhone(registerDTO.getPhone());
-        customer.setEmail(registerDTO.getEmail());
-        customer.setAccount(account);
-
-        accountService.createCustomer(customer);
-
-        return ResponseEntity.ok("Đăng ký thành công");
-    }
-
-    @PostMapping("/forgetpassword")
-    public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordDTO forgetPasswordDTO) {
-        accountService.forgetPassword(forgetPasswordDTO.getEmail());
-        return ResponseEntity.ok("OTP đã được gửi");
-    }
-
-    @PostMapping("/verifycode")
-    public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeDTO verifyCodeDTO) {
-        accountService.verifyCode(verifyCodeDTO.getEmail(), verifyCodeDTO.getOtpCode());
-        return ResponseEntity.ok("OTP hợp lệ");
-    }
-
-    @PostMapping("/resetpassword")
-    public ResponseEntity<?> resertPassword(@RequestBody ResetPasswordDTO resertPasswordDTO) {
-        accountService.resertPassword(resertPasswordDTO.getEmail(), resertPasswordDTO.getNewPassword());
-        return ResponseEntity.ok("Đổi mật khẩu thành công");
-    }
-
+    
 }

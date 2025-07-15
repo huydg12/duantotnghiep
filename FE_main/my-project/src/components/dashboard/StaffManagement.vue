@@ -82,7 +82,7 @@ const form = ref({
     birthOfDate: "",
     isActive: true,
     createdBy: "admin",
-    createdDate: getVietnamDateTimeLocalFormat,
+    createdDate: getVietnamDateTimeLocalFormat(),
 });
 
 const isEditing = ref(false);

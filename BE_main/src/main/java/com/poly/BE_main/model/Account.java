@@ -39,18 +39,18 @@ public class Account {
     private String email;
 
     @Column(name = "NUMBER_PHONE", length = 45)
-    private String phone;
+    private String numberPhone;
 
     @Column(name = "CREATED_DATE")
-    private LocalDateTime createDate;
+    private LocalDateTime createdDate;
 
     @PrePersist
     void onCrete() {
-        this.createDate = LocalDateTime.now();
+        this.createdDate = LocalDateTime.now();
     }
 
     @Column(name = "IS_ACTIVE")
-    private boolean isActive;
+    private Boolean isActive;
 
     @Column(name = "ROLE_ID")
     private int roleId;
