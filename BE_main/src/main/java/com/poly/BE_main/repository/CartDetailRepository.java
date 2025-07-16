@@ -1,5 +1,6 @@
 package com.poly.BE_main.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.poly.BE_main.model.CartDetail;
+
+import jakarta.transaction.Transactional;
 
 public interface CartDetailRepository extends JpaRepository<CartDetail, Integer> {
     @Query(value = """
@@ -31,7 +34,8 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 CO.NAME                AS color,
                 PD.PRICE               AS price,
                 CD.QUANTITY            AS quantity,
-                I.URL                  AS image
+                I.URL                  AS image,
+                CD.MODIFIED_DATE       AS modifiedDate
             FROM CART_DETAIL CD
             JOIN CART C ON CD.CART_ID = C.ID
             JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.ID
@@ -49,6 +53,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID AND I.IS_MAIN = 1
 
             WHERE CU.ID = :customerId
+            ORDER BY CD.MODIFIED_DATE DESC
                         """, nativeQuery = true)
     List<Object[]> findAllCartDetailByCustomer(@Param("customerId") Integer customerId);
 
@@ -64,15 +69,18 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
         """, nativeQuery = true)
     boolean existsByCartIdAndProductDetailId(@Param("cartId") Integer cartId, @Param("productDetailId") Integer productDetailId);
     // ✅ Hàm cập nhật quantity
-    @Modifying
+    @Transactional
+    @Modifying(clearAutomatically = true)
     @Query(value = """
         UPDATE CART_DETAIL
-        SET QUANTITY = QUANTITY + :quantity
+        SET QUANTITY = QUANTITY + :quantity,
+        MODIFIED_DATE = :now
         WHERE CART_ID = :cartId AND PRODUCT_DETAIL_ID = :productDetailId
         """, nativeQuery = true)
     void updateQuantityByCartIdAndProductDetailId(
         @Param("cartId") Integer cartId,
         @Param("productDetailId") Integer productDetailId,
-        @Param("quantity") Integer quantity
+        @Param("quantity") Integer quantity,
+        @Param("now") LocalDateTime now
     );
 }

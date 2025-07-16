@@ -1,6 +1,7 @@
 package com.poly.BE_main.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,4 +22,5 @@ public class CartDetailDTO {
     private BigDecimal price;
     private int quantity;
     private String images;
+    private LocalDateTime modifiedDate;
 }

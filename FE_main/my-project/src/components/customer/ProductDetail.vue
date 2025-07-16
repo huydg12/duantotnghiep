@@ -75,10 +75,15 @@ const addToCart = async () => {
       }
       await axios.put('http://localhost:8080/cartDetail/updateQuantity', updatePayload)
       console.log("✅ Đã cập nhật số lượng trong giỏ")
+      // ✅ Gọi lại hàm fetchProductDetail sau khi cập nhật
+      await fetchProductDetail()
     } else {
       // Chưa tồn tại → thêm mới
       await axios.post('http://localhost:8080/cartDetail/add', payload)
       console.log("✅ Đã thêm mới vào giỏ hàng")
+        
+  // ✅ Gọi lại hàm fetchProductDetail sau khi thêm mới
+  await fetchProductDetail()
     }
     showToast.value = true
     setTimeout(() => {
@@ -136,11 +141,28 @@ const updateSelection = (variant) => {
 
 const fetchProductDetail = async () => {
   const id = route.params.id
+
   try {
-    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
+    // Gọi API getById để kiểm tra xem id là productDetail hay không
+    const detailRes = await axios.get(`http://localhost:8080/productDetail/findProductId/${id}`)
+    console.log("API trả về productDetailId:", detailRes.data)
+    let productId
+
+      // Nếu detailRes.data là số → chính là productId
+      if (typeof detailRes.data === "number") {
+        productId = detailRes.data
+      } else if (detailRes.data && detailRes.data.productId) {
+        productId = detailRes.data.productId
+      } else {
+        productId = id
+      }
+
+      console.log("productId sau xử lý: ", productId)
+
+    // Gọi API để lấy tất cả phiên bản sản phẩm theo productId
+    const response = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
     console.log("Dữ liệu API trả về: ", response.data)
 
-    // Kiểm tra API trả về mảng hợp lệ không
     if (Array.isArray(response.data) && response.data.length > 0) {
       const processedVariants = response.data.map(variant => ({
         ...variant,
@@ -149,8 +171,10 @@ const fetchProductDetail = async () => {
 
       productVariants.value = processedVariants
       console.log("Dữ liệu đã xử lý:", processedVariants)
-      updateSelection(processedVariants[0]) // Chọn phiên bản đầu tiên làm mặc định
-      
+
+      // Nếu gọi từ cart và có productDetailId, chọn đúng productDetail đó
+      const selected = processedVariants.find(v => v.productDetailId == id) || processedVariants[0]
+      updateSelection(selected)
     } else {
       console.error("API không trả về dữ liệu sản phẩm hợp lệ.")
     }

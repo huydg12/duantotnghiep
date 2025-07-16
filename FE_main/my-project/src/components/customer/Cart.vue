@@ -27,9 +27,11 @@ if (userJson) {
 const fetchCartDetail = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/cartDetail/showCartDetail/${customerId}`);
-    cartItems.value = response.data;
-console.log("response.data:", response.data); // <--- check kỹ dòng này
-    console.log('IMG', cartItems.value.map(item => item.images));
+        // Sắp xếp theo modified_date giảm dần (mới nhất lên đầu)
+        cartItems.value = response.data.sort((a, b) => new Date(b.modifiedDate) - new Date(a.modifiedDate)); // Sắp xếp theo modifiedDate mới nhất
+console.log("response.data:", cartItems.value); // <--- check kỹ dòng này
+    console.log("Modified dates:", response.data.map(i => i.modifiedDate));
+    console.log("Đã sắp xếp:", cartItems.value.map(i => i.modifiedDate));
   } catch (error) {
     console.error('Lỗi hiển thị sản phẩm', error);
   }
@@ -131,6 +133,11 @@ const toggleSelectAll = () => {
     selectedItems.value = cartItems.value.map(item => item.cartDetailId);
   }
 };
+function goToProductDetail(productDetailId) {
+  router.push(`/productdetail/${productDetailId}`);
+  console.log("sp chi tiết: " + productDetailId);
+}
+
 </script>
 <template>
   <Banner title="Giỏ Hàng" breadcrumb="Giỏ hàng"
@@ -159,10 +166,18 @@ const toggleSelectAll = () => {
             <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input"/>
           </div> 
           <div class="col-2 text-center">
-            <img :src="item.images" :alt="item.productName" class="img-fluid rounded" style="max-width: 96px; height: auto" />
+            <img :src="item.images" 
+            :alt="item.productName" 
+            class="img-fluid rounded clickable" 
+            @click="goToProductDetail(item.productDetailId)"
+            style="max-width: 96px; height: auto" />
           </div>
           <div class="col-4">
-            <h6 class="mb-1 fw-medium">{{ item.productName }}</h6>
+              <h6
+              class="mb-1 fw-medium text clickable"
+              @click="goToProductDetail(item.productDetailId)"
+              style="cursor: pointer;"
+            >{{ item.productName }}</h6>
             <small class="text-muted">Color: {{ item.color }} | Size: {{ item.size }}</small>
           </div>
           <div class="col-2 text-danger fw-bold">
@@ -233,5 +248,14 @@ const toggleSelectAll = () => {
 }
 .cart-item img {
   object-fit: contain;
+}
+.cart-item {
+  transition: background-color 0.2s ease-in-out;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.cart-item:hover {
+  background-color: rgba(0, 0, 0, 0.03); /* hoặc đổi thành màu khác nếu muốn */
 }
 </style>

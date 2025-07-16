@@ -1,7 +1,10 @@
 package com.poly.BE_main.service;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,11 @@ public class CartDetailService {
             BigDecimal price = (BigDecimal) obj[8];
             Integer quantity = (Integer) obj[9];
             String images = (String) obj[10];
+            // ✅ Xử lý tránh null ở obj[11]
+            LocalDateTime modifiedDate = null;
+            if (obj[11] != null) {
+                modifiedDate = ((Timestamp) obj[11]).toLocalDateTime();
+            }
 
             return new CartDetailDTO(
                     cartDetailId,
@@ -50,11 +58,13 @@ public class CartDetailService {
                     color,
                     price,
                     quantity,
-                    images);
+                    images,
+                    modifiedDate);
         }).collect(Collectors.toList());
     }
 
     public void add(CartDetail cartDetail) {
+
         cartDetailRepository.save(cartDetail);
     }
 
@@ -63,6 +73,7 @@ public class CartDetailService {
             c.setId(cartDetail.getId());
             c.setProductDetailId(cartDetail.getProductDetailId());
             c.setQuantity(cartDetail.getQuantity());
+            c.setModifiedDate(cartDetail.getModifiedDate());
             return cartDetailRepository.save(c);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
     }
@@ -77,7 +88,12 @@ public class CartDetailService {
 
     @Transactional
     public void updateQuantity(Integer cartId, Integer productDetailId, Integer quantity) {
-        cartDetailRepository.updateQuantityByCartIdAndProductDetailId(cartId, productDetailId, quantity);
+        cartDetailRepository.updateQuantityByCartIdAndProductDetailId(
+            cartId,
+            productDetailId,
+            quantity,
+            LocalDateTime.now()
+        );
     }
 
     public void upateQuantityByCartDetailID(Integer cartDetailId, Integer quantity) {
@@ -85,6 +101,7 @@ public class CartDetailService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy cartDetail"));
 
         cartDetail.setQuantity(quantity);
+        cartDetail.setModifiedDate(LocalDateTime.now());
         cartDetailRepository.save(cartDetail); // Hibernate tự tạo UPDATE
     }
 

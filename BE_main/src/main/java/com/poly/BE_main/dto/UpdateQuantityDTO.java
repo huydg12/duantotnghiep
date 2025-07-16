@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateQuantityDTO {
-        private Integer cartId;
+    private Integer cartId;
     private Integer productDetailId;
     private Integer quantity;
 }

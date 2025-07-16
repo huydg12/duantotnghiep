@@ -49,4 +49,7 @@ public class ProductDetailService {
                     images);
         }).collect(Collectors.toList());
     }
+    public Integer findProductID(Integer id){
+        return productDetailRepository.findProductId(id);
+    }
 }

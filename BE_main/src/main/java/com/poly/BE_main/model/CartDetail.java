@@ -1,5 +1,8 @@
 package com.poly.BE_main.model;
 
+
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,5 +31,7 @@ public class CartDetail {
     private int productDetailId;
     @Column(name = "QUANTITY")
     private int quantity;
+    @Column(name = "MODIFIED_DATE")
+    private LocalDateTime  modifiedDate = LocalDateTime.now();
 
 }
