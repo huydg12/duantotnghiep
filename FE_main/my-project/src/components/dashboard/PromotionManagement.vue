@@ -2,224 +2,286 @@
 import axios from "axios";
 import { ref, computed, onMounted } from "vue";
 
-const customers = ref([
-    {
-        id: 1,
-        accountId: null,
-        fullName: "Nguyễn Văn A",
-        gender: "Nam",
-        email: "a@gmail.com",
-        numberPhone: "0123456789",
-        birthOfDate: "1998-01-01",
-        status: 1,
-        createdDate: new Date().toISOString(),
-    },
-]);
+// Danh sách khuyến mãi
+const promotions = ref([]);
+const selectedPromotion = ref(null); // Dùng để hiển thị chi tiết
 
+// Form dữ liệu khuyến mãi
 const form = ref({
-    id: null,
-    fullName: '',
-    gender: '',
-    email: '',
-    numberPhone: '',
-    birthOfDate: '',
-    status: 1,
-    createdDate: new Date().toISOString()
+  id: null,
+  promotionCode: "",
+  name: "",
+  type: 1,
+  value: 0,
+  startDate: "",
+  endDate: "",
+  status: 1,
+  note: "",
+  createdDate: new Date().toISOString(),
+  modifiedDate: new Date().toISOString()
 });
 
 const isEditing = ref(false);
 const currentPage = ref(1);
 const pageSize = 5;
 
-const totalPages = computed(() => Math.ceil(customers.value.length / pageSize));
+const totalPages = computed(() =>
+  Math.ceil(promotions.value.length / pageSize)
+);
 
-const paginatedCustomers = computed(() => {
-    const start = (currentPage.value - 1) * pageSize;
-    return customers.value.slice(start, start + pageSize);
+const paginatedPromotions = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  return promotions.value.slice(start, start + pageSize);
 });
 
+const fetchPromotion = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/promotion/show");
+    promotions.value = response.data;
+  } catch (error) {
+    console.log("Lỗi hiển thị:", error);
+  }
+};
+
+function toDateTimeLocal(dateStr) {
+  return dateStr ? `${dateStr}T00:00:00` : null;
+}
+
+async function save() {
+  try {
+    const now = new Date().toISOString();
+    form.value.value = parseFloat(form.value.value);
+    form.value.startDate = toDateTimeLocal(form.value.startDate);
+    form.value.endDate = toDateTimeLocal(form.value.endDate);
+
+    if (isEditing.value) {
+      form.value.modifiedDate = now;
+      await axios.put(
+        `http://localhost:8080/promotion/update/${form.value.id}`,
+        form.value
+      );
+    } else {
+      form.value.createdDate = now;
+      form.value.modifiedDate = now;
+      await axios.post("http://localhost:8080/promotion/add", form.value);
+    }
+
+    await fetchPromotion();
+    resetForm();
+  } catch (error) {
+    console.log("Lỗi save:", error);
+    if (error.response) {
+      console.log("Chi tiết từ server:", error.response.data);
+    }
+  }
+}
+
+function editPromotion(promotion) {
+  form.value = {
+    ...promotion,
+    startDate: promotion.startDate?.split("T")[0] || "",
+    endDate: promotion.endDate?.split("T")[0] || ""
+  };
+  isEditing.value = true;
+}
+
+function deletePromotion(id) {
+  if (confirm("Bạn chắc chắn muốn xoá khuyến mãi này?")) {
+    axios
+      .delete(`http://localhost:8080/promotion/delete/${id}`)
+      .then(() => fetchPromotion())
+      .catch((error) => console.log("Lỗi xoá:", error));
+  }
+}
+
+function showDetail(promotion) {
+  selectedPromotion.value = promotion;
+}
+
 function resetForm() {
-    form.value = {
-        id: null,
-        fullName: '',
-        gender: '',
-        email: '',
-        numberPhone: '',
-        birthOfDate: '',
-        status: 1,
-        createdDate: new Date().toISOString()
-    };
-    isEditing.value = false;
+  form.value = {
+    id: null,
+    promotionCode: "",
+    name: "",
+    type: 1,
+    value: 0,
+    startDate: "",
+    endDate: "",
+    status: 1,
+    note: "",
+    createdDate: new Date().toISOString(),
+    modifiedDate: new Date().toISOString()
+  };
+  isEditing.value = false;
+  selectedPromotion.value = null;
 }
 
 function goToPage(page) {
-    if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page;
-    }
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
 }
 
 function formatDateTime(datetimeStr) {
-    const date = new Date(datetimeStr);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+  if (!datetimeStr) return "";
+  const date = new Date(datetimeStr);
+  return `${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}-${date.getFullYear()}`;
 }
+
+onMounted(() => {
+  fetchPromotion();
+});
 </script>
+
 <template>
-    <div class="container py-4">
-        <h2 class="text-center mb-4 fw-bold">Quản Lý Khuyến Mãi</h2>
+  <div class="container py-4">
+    <h2 class="text-center fw-bold mb-4">Quản Lý Khuyến Mãi</h2>
 
-        <!-- Form -->
-        <form @submit.prevent="saveBrand" class="border p-4 rounded bg-light mb-4">
-            <div class="mb-3">
-                <label class="form-label">Họ tên</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label d-block">Giới tính</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-male" value="Nam" v-model="form.gender" />
-                    <label class="form-check-label" for="gender-male">Nam</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-female" value="Nữ" v-model="form.gender" />
-                    <label class="form-check-label" for="gender-female">Nữ</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Số điện thoại</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ngày sinh</label>
-                <input type="date" v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label d-block">Trạng thái</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-active" value="Hoạt động"
-                        v-model="form.gender" />
-                    <label class="form-check-label" for="status-active">Hoạt động</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-inactive" value="Không hoạt động"
-                        v-model="form.gender" />
-                    <label class="form-check-label" for="status-inactive">Không hoạt động</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ngày tạo</label>
-                <input type="date" v-model="form.name" required class="form-control" />
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    {{ isEditing ? "Cập nhật" : "Thêm" }}
-                </button>
-                <button type="button" class="btn btn-secondary" @click="resetForm">
-                    Làm mới
-                </button>
-            </div>
-        </form>
-
-        <!-- Table -->
-        <div class="table-container table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-secondary text-center">
-                    <tr>
-                        <th style="width: 60px">ID</th>
-                        <th style="width: 180px">Account ID</th>
-                        <th style="width: 180px">Họ tên</th>
-                        <th style="width: 180px">Giới tính</th>
-                        <th style="width: 180px">Email</th>
-                        <th style="width: 180px">SĐT</th>
-                        <th style="width: 180px">Ngày sinh</th>
-                        <th style="width: 180px">Trạng thái</th>
-                        <th style="width: 180px">Ngày tạo</th>
-                        <th style="width: 160px">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="customers in paginatedCustomers" :key="customers.id">
-                        <td class="text-center">{{ customers.id }}</td>
-                        <td class="text-center">{{ customers.accountId }}</td>
-                        <td class="text-center">{{ customers.fullName }}</td>
-                        <td class="text-center">{{ customers.gender }}</td>
-                        <td class="text-center">{{ customers.email }}</td>
-                        <td class="text-center">{{ customers.numberPhone }}</td>
-                        <td class="text-center">{{ customers.birthOfDate }}</td>
-                        <td class="text-center">
-                            <span v-if="customers.status === 1" class="badge bg-success">Hoạt động</span>
-                            <span v-else class="badge bg-danger">Không hoạt động</span>
-                        </td>
-                        <td class="text-center">{{ formatDateTime(customers.createdDate) }}</td>
-                        <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editBrand(customers)">
-                                Sửa
-                            </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteBrand(customers.id)">
-                                Xoá
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Form -->
+    <form @submit.prevent="save" class="border p-4 rounded bg-light mb-4">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Mã Khuyến Mãi</label>
+          <input v-model="form.promotionCode" required class="form-control" />
         </div>
+        <div class="col-md-6">
+          <label class="form-label">Tên Khuyến Mãi</label>
+          <input v-model="form.name" required class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Loại</label>
+          <select v-model="form.type" class="form-select">
+            <option :value="1">Phần trăm (%)</option>
+            <option :value="2">Số tiền cố định</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Giá Trị</label>
+          <input v-model="form.value" type="number" min="0" required class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Ngày Bắt Đầu</label>
+          <input type="date" v-model="form.startDate" required class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Ngày Kết Thúc</label>
+          <input type="date" v-model="form.endDate" required class="form-control" />
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Ghi chú</label>
+          <textarea v-model="form.note" class="form-control" rows="2" placeholder="Nhập ghi chú"></textarea>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label d-block">Trạng thái</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" :value="1" id="active" v-model="form.status" />
+            <label class="form-check-label" for="active">Hoạt động</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" :value="0" id="inactive" v-model="form.status" />
+            <label class="form-check-label" for="inactive">Không hoạt động</label>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">{{ isEditing ? "Cập nhật" : "Thêm" }}</button>
+          <button type="button" class="btn btn-secondary" @click="resetForm">Làm mới</button>
+        </div>
+      </div>
+    </form>
 
-        <!-- Phân Trang -->
-        <nav>
-            <ul class="pagination justify-content-center mt-4 custom-pagination">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                    <button class="page-link" @click="goToPage(currentPage - 1)">
-                        «
-                    </button>
-                </li>
-
-                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-                    <button class="page-link" @click="goToPage(page)">{{ page }}</button>
-                </li>
-
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                    <button class="page-link" @click="goToPage(currentPage + 1)">
-                        »
-                    </button>
-                </li>
-            </ul>
-        </nav>
+    <!-- Bảng chính -->
+    <div class="table-responsive table-container mb-4">
+      <table class="table table-bordered align-middle table-hover">
+        <thead class="table-secondary text-center">
+          <tr>
+            <th>ID</th>
+            <th>Mã</th>
+            <th>Tên</th>
+            <th>Loại</th>
+            <th>Giá trị</th>
+            <th>Bắt đầu</th>
+            <th>Kết thúc</th>
+            <th>Trạng thái</th>
+            <th>Ghi chú</th>
+            <th>Ngày tạo</th>
+            <th>Ngày sửa</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="promotion in paginatedPromotions" :key="promotion.id" @click="showDetail(promotion)">
+            <td class="text-center">{{ promotion.id }}</td>
+            <td class="text-center">{{ promotion.promotionCode }}</td>
+            <td class="text-center fw-bold text-primary" style="cursor: pointer">{{ promotion.name }}</td>
+            <td class="text-center">{{ promotion.type === 1 ? "Phần trăm" : "Số tiền cố định" }}</td>
+            <td class="text-center">{{ promotion.value }}</td>
+            <td class="text-center">{{ formatDateTime(promotion.startDate) }}</td>
+            <td class="text-center">{{ formatDateTime(promotion.endDate) }}</td>
+            <td class="text-center">
+              <span :class="promotion.status === 1 ? 'badge bg-success' : 'badge bg-danger'">
+                {{ promotion.status === 1 ? "Hoạt động" : "Không hoạt động" }}
+              </span>
+            </td>
+            <td>{{ promotion.note }}</td>
+            <td class="text-center">{{ formatDateTime(promotion.createdDate) }}</td>
+            <td class="text-center">{{ formatDateTime(promotion.modifiedDate) }}</td>
+            <td class="text-center">
+              <button class="btn btn-success btn-sm me-1" @click.stop="editPromotion(promotion)">Sửa</button>
+              <button class="btn btn-danger btn-sm" @click.stop="deletePromotion(promotion.id)">Xoá</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <!-- Phân trang -->
+    <nav>
+      <ul class="pagination justify-content-center custom-pagination">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="page-link" @click="goToPage(currentPage - 1)">«</button>
+        </li>
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+          <button class="page-link" @click="goToPage(page)">{{ page }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+          <button class="page-link" @click="goToPage(currentPage + 1)">»</button>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Chi tiết khuyến mãi -->
+    <div v-if="selectedPromotion" class="alert alert-info mt-4">
+      <h5>Chi tiết khuyến mãi:</h5>
+      <p><strong>Mã:</strong> {{ selectedPromotion.promotionCode }}</p>
+      <p><strong>Tên:</strong> {{ selectedPromotion.name }}</p>
+      <p><strong>Loại:</strong> {{ selectedPromotion.type === 1 ? 'Phần trăm' : 'Số tiền cố định' }}</p>
+      <p><strong>Giá trị:</strong> {{ selectedPromotion.value }}</p>
+      <p><strong>Thời gian:</strong> {{ formatDateTime(selectedPromotion.startDate) }} - {{ formatDateTime(selectedPromotion.endDate) }}</p>
+      <p><strong>Trạng thái:</strong> {{ selectedPromotion.status === 1 ? 'Hoạt động' : 'Không hoạt động' }}</p>
+      <p><strong>Ghi chú:</strong> {{ selectedPromotion.note || 'Không có' }}</p>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.text-wrap {
-    white-space: normal;
-    word-break: break-word;
-}
-
 .table-container {
-    min-height: 300px;
+  min-height: 300px;
 }
-
 .custom-pagination .page-link {
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    color: #007bff;
-    border-radius: 6px;
-    margin: 0 10px;
+  cursor: pointer;
+  color: #007bff;
+  border-radius: 6px;
+  margin: 0 5px;
 }
-
 .custom-pagination .page-link:hover {
-    background-color: #e2e6ea;
-    color: #0056b3;
+  background-color: #e2e6ea;
+  color: #0056b3;
 }
-
 .custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-    font-weight: bold;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
 }
 </style>
