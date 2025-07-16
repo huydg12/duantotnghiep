@@ -15,9 +15,6 @@ const componentMap = {
   ProductManagement: defineAsyncComponent(() =>
     import("../dashboard/ProductManagement.vue")
   ),
-  ProductAttributeManagement: defineAsyncComponent(() =>
-    import("../dashboard/ProductAttributeManagement.vue")
-  ),
   BrandManagement: defineAsyncComponent(() =>
     import("../dashboard/BrandManagement.vue")
   ),
