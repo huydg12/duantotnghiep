@@ -43,4 +43,10 @@ public class AddressController {
 
         return addressService.update(id, a);
     }
+
+    @GetMapping("/show/{customerId}")
+    public List<Address> getByCustomerId(@PathVariable Integer customerId) {
+        return addressService.findByCustomerId(customerId);
+    }
+
 }

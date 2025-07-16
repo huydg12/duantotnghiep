@@ -13,25 +13,29 @@ public class AddressService {
     @Autowired
     AddressRepository addressRepository;
 
-    public List<Address> findAll(){
+    public List<Address> findAll() {
         return addressRepository.findAll();
     }
 
-    public Address create(Address a){
+    public List<Address> findByCustomerId(Integer customerId) {
+        return addressRepository.findByCustomerId(customerId);
+    }
+
+    public Address create(Address a) {
         addressRepository.save(a);
         return a;
     }
-    
-    public void deleteById(Integer id){
+
+    public void deleteById(Integer id) {
         addressRepository.deleteById(id);
     }
 
-    public Address update(Address a){
+    public Address update(Address a) {
         return addressRepository.save(a);
     }
 
-    public Address update(int id, Address aUpdate){
-        return addressRepository.findById(id).map(a ->{
+    public Address update(int id, Address aUpdate) {
+        return addressRepository.findById(id).map(a -> {
             a.setFullAddress(aUpdate.getFullName());
             a.setAddress(aUpdate.getAddress());
             a.setCreatedBy(aUpdate.getCreatedBy());

@@ -1,225 +1,210 @@
-<script setup>
-import axios from "axios";
-import { ref, computed, onMounted } from "vue";
-
-const customers = ref([
-    {
-        id: 1,
-        accountId: null,
-        fullName: "Nguyễn Văn A",
-        gender: "Nam",
-        email: "a@gmail.com",
-        numberPhone: "0123456789",
-        birthOfDate: "1998-01-01",
-        status: 1,
-        createdDate: new Date().toISOString(),
-    },
-]);
-
-const form = ref({
-    id: null,
-    fullName: '',
-    gender: '',
-    email: '',
-    numberPhone: '',
-    birthOfDate: '',
-    status: 1,
-    createdDate: new Date().toISOString()
-});
-
-const isEditing = ref(false);
-const currentPage = ref(1);
-const pageSize = 5;
-
-const totalPages = computed(() => Math.ceil(customers.value.length / pageSize));
-
-const paginatedCustomers = computed(() => {
-    const start = (currentPage.value - 1) * pageSize;
-    return customers.value.slice(start, start + pageSize);
-});
-
-function resetForm() {
-    form.value = {
-        id: null,
-        fullName: '',
-        gender: '',
-        email: '',
-        numberPhone: '',
-        birthOfDate: '',
-        status: 1,
-        createdDate: new Date().toISOString()
-    };
-    isEditing.value = false;
-}
-
-function goToPage(page) {
-    if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page;
-    }
-}
-
-function formatDateTime(datetimeStr) {
-    const date = new Date(datetimeStr);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-}
-</script>
 <template>
-    <div class="container py-4">
-        <h2 class="text-center mb-4 fw-bold">Quản Lý Phiếu Nhập</h2>
+  <div class="container mt-4">
+    <h3 class="mb-3">Quản lý Phiếu Nhập</h3>
 
-        <!-- Form -->
-        <form @submit.prevent="saveBrand" class="border p-4 rounded bg-light mb-4">
-            <div class="mb-3">
-                <label class="form-label">Họ tên</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label d-block">Giới tính</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-male" value="Nam" v-model="form.gender" />
-                    <label class="form-check-label" for="gender-male">Nam</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-female" value="Nữ" v-model="form.gender" />
-                    <label class="form-check-label" for="gender-female">Nữ</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Số điện thoại</label>
-                <input v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ngày sinh</label>
-                <input type="date" v-model="form.name" required class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label d-block">Trạng thái</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-active" value="Hoạt động"
-                        v-model="form.gender" />
-                    <label class="form-check-label" for="status-active">Hoạt động</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="status-inactive" value="Không hoạt động"
-                        v-model="form.gender" />
-                    <label class="form-check-label" for="status-inactive">Không hoạt động</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Ngày tạo</label>
-                <input type="date" v-model="form.name" required class="form-control" />
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    {{ isEditing ? "Cập nhật" : "Thêm" }}
-                </button>
-                <button type="button" class="btn btn-secondary" @click="resetForm">
-                    Làm mới
-                </button>
-            </div>
-        </form>
+    <!-- Danh sách phiếu nhập -->
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Mã phiếu</th>
+          <th>Nhân viên</th>
+          <th>Ngày nhập</th>
+          <th>Tổng tiền</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="receipt in receipts" :key="receipt.ID">
+          <td>{{ receipt.IMPORT_RECEIPT_CODE }}</td>
+          <td>{{ receipt.EMPLOYEE_ID }}</td>
+          <td>{{ receipt.IMPORT_DATE }}</td>
+          <td>{{ formatCurrency(receipt.TOTAL_AMOUNT) }}</td>
+          <td>{{ getStatusText(receipt.STATUS) }}</td>
+          <td>
+            <button class="btn btn-primary btn-sm me-2" @click="openReceipt(receipt)">Chi tiết</button>
+            <button class="btn btn-danger btn-sm" @click="deleteReceipt(receipt.ID)">Xoá</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-        <!-- Table -->
-        <div class="table-container table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-secondary text-center">
-                    <tr>
-                        <th style="width: 60px">ID</th>
-                        <th style="width: 180px">Account ID</th>
-                        <th style="width: 180px">Họ tên</th>
-                        <th style="width: 180px">Giới tính</th>
-                        <th style="width: 180px">Email</th>
-                        <th style="width: 180px">SĐT</th>
-                        <th style="width: 180px">Ngày sinh</th>
-                        <th style="width: 180px">Trạng thái</th>
-                        <th style="width: 180px">Ngày tạo</th>
-                        <th style="width: 160px">Hành động</th>
-                    </tr>
+    <!-- Modal phiếu nhập -->
+    <div class="modal fade" id="receiptModal" tabindex="-1" ref="receiptModal">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Chi tiết Phiếu Nhập</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <form @submit.prevent="saveReceipt">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Mã phiếu</label>
+                  <input v-model="currentReceipt.IMPORT_RECEIPT_CODE" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Nhân viên ID</label>
+                  <input v-model="currentReceipt.EMPLOYEE_ID" class="form-control" type="number" />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Ngày nhập</label>
+                  <input v-model="currentReceipt.IMPORT_DATE" class="form-control" type="datetime-local" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Trạng thái</label>
+                  <select v-model="currentReceipt.STATUS" class="form-select">
+                    <option value="0">Đang nhập</option>
+                    <option value="1">Đã nhập</option>
+                    <option value="2">Hủy</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Ghi chú</label>
+                <textarea v-model="currentReceipt.NOTE" class="form-control"></textarea>
+              </div>
+
+              <h6>Chi tiết sản phẩm</h6>
+              <table class="table table-sm table-bordered">
+                <thead>
+                  <tr>
+                    <th>Mã SP</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Tổng</th>
+                    <th>Thao tác</th>
+                  </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="customers in paginatedCustomers" :key="customers.id">
-                        <td class="text-center">{{ customers.id }}</td>
-                        <td class="text-center">{{ customers.accountId }}</td>
-                        <td class="text-center">{{ customers.fullName }}</td>
-                        <td class="text-center">{{ customers.gender }}</td>
-                        <td class="text-center">{{ customers.email }}</td>
-                        <td class="text-center">{{ customers.numberPhone }}</td>
-                        <td class="text-center">{{ customers.birthOfDate }}</td>
-                        <td class="text-center">
-                            <span v-if="customers.status === 1" class="badge bg-success">Hoạt động</span>
-                            <span v-else class="badge bg-danger">Không hoạt động</span>
-                        </td>
-                        <td class="text-center">{{ formatDateTime(customers.createdDate) }}</td>
-                        <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editBrand(customers)">
-                                Sửa
-                            </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteBrand(customers.id)">
-                                Xoá
-                            </button>
-                        </td>
-                    </tr>
+                  <tr v-for="(detail, idx) in receiptDetails" :key="idx">
+                    <td>
+                      <input v-model="detail.PRODUCT_DETAIL_ID" class="form-control form-control-sm" />
+                    </td>
+                    <td>
+                      <input v-model.number="detail.QUANTITY" class="form-control form-control-sm" type="number" min="1" />
+                    </td>
+                    <td>
+                      <input v-model.number="detail.UNIT_PRICE" class="form-control form-control-sm" type="number" min="0" />
+                    </td>
+                    <td>{{ formatCurrency(detail.QUANTITY * detail.UNIT_PRICE) }}</td>
+                    <td>
+                      <button class="btn btn-danger btn-sm" @click.prevent="removeDetail(idx)">Xóa</button>
+                    </td>
+                  </tr>
                 </tbody>
-            </table>
+              </table>
+              <button class="btn btn-outline-primary btn-sm mb-3" @click.prevent="addDetail">+ Thêm dòng</button>
+
+              <div class="d-flex justify-content-between">
+                <strong>Tổng tiền:</strong>
+                <span>{{ formatCurrency(totalAmount) }}</span>
+              </div>
+            </form>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button class="btn btn-success" @click="saveReceipt">Lưu</button>
+          </div>
         </div>
-
-        <!-- Phân Trang -->
-        <nav>
-            <ul class="pagination justify-content-center mt-4 custom-pagination">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                    <button class="page-link" @click="goToPage(currentPage - 1)">
-                        «
-                    </button>
-                </li>
-
-                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-                    <button class="page-link" @click="goToPage(page)">{{ page }}</button>
-                </li>
-
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                    <button class="page-link" @click="goToPage(currentPage + 1)">
-                        »
-                    </button>
-                </li>
-            </ul>
-        </nav>
+      </div>
     </div>
+  </div>
 </template>
 
+<script>
+import { Modal } from 'bootstrap';
+
+export default {
+  data() {
+    return {
+      receipts: [],
+      receiptDetails: [],
+      currentReceipt: {},
+      modalInstance: null,
+    };
+  },
+  computed: {
+    totalAmount() {
+      return this.receiptDetails.reduce((sum, d) => sum + d.QUANTITY * d.UNIT_PRICE, 0);
+    },
+  },
+  methods: {
+    async fetchReceipts() {
+      // Giả lập dữ liệu
+      this.receipts = [
+        {
+          ID: 1,
+          IMPORT_RECEIPT_CODE: 'PN001',
+          EMPLOYEE_ID: 101,
+          IMPORT_DATE: '2025-07-01T09:00',
+          TOTAL_AMOUNT: 500000,
+          NOTE: 'Nhập lô hàng mới',
+          STATUS: 0,
+        },
+      ];
+    },
+    openReceipt(receipt) {
+      this.currentReceipt = { ...receipt };
+      this.receiptDetails = [
+        {
+          PRODUCT_DETAIL_ID: 1,
+          QUANTITY: 10,
+          UNIT_PRICE: 20000,
+        },
+      ];
+      this.$nextTick(() => {
+        this.modalInstance = new Modal(this.$refs.receiptModal);
+        this.modalInstance.show();
+      });
+    },
+    addDetail() {
+      this.receiptDetails.push({
+        PRODUCT_DETAIL_ID: '',
+        QUANTITY: 1,
+        UNIT_PRICE: 0,
+      });
+    },
+    removeDetail(index) {
+      this.receiptDetails.splice(index, 1);
+    },
+    saveReceipt() {
+      this.currentReceipt.TOTAL_AMOUNT = this.totalAmount;
+      alert('Đã lưu phiếu nhập');
+      this.modalInstance.hide();
+    },
+    deleteReceipt(id) {
+      if (confirm('Xác nhận xóa phiếu nhập?')) {
+        this.receipts = this.receipts.filter(r => r.ID !== id);
+      }
+    },
+    getStatusText(code) {
+      return ['Đang nhập', 'Đã nhập', 'Hủy'][code] || 'Không rõ';
+    },
+    formatCurrency(v) {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+      }).format(v);
+    },
+  },
+  mounted() {
+    this.fetchReceipts();
+  },
+};
+</script>
+
 <style scoped>
-.text-wrap {
-    white-space: normal;
-    word-break: break-word;
-}
-
-.table-container {
-    min-height: 300px;
-}
-
-.custom-pagination .page-link {
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    color: #007bff;
-    border-radius: 6px;
-    margin: 0 10px;
-}
-
-.custom-pagination .page-link:hover {
-    background-color: #e2e6ea;
-    color: #0056b3;
-}
-
-.custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-    font-weight: bold;
+input,
+select,
+textarea {
+  font-size: 0.9rem;
 }
 </style>
