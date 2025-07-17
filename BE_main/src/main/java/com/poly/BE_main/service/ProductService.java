@@ -29,10 +29,11 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public Product updadte(Product p){
+    public Product updadte(Product p) {
         return productRepository.save(p);
     }
-      public Product update(int id, Product pUpdate) {
+
+    public Product update(int id, Product pUpdate) {
         return productRepository.findById(id).map(p -> {
             p.setProductName(pUpdate.getProductName());
             p.setBrandId(pUpdate.getBrandId());
@@ -46,54 +47,53 @@ public class ProductService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
     }
 
-
     public List<ProductDTO> getProducts() {
-    List<Object[]> results = productRepository.findAllProductsWithImages();
+        List<Object[]> results = productRepository.findAllProductsWithImages();
 
-    List<ProductDTO> products = new ArrayList<>();
+        List<ProductDTO> products = new ArrayList<>();
 
-    for (Object[] row : results) {
-        Integer productId = ((Number) row[0]).intValue();
-        String productName = (String) row[1];
-        String brandName = (String) row[2];
-        BigDecimal price = (BigDecimal) row[3];
-        String image1 = (String) row[4]; // Ảnh chính
-        String image2 = (String) row[5]; // Ảnh hover
+        for (Object[] row : results) {
+            Integer productId = ((Number) row[0]).intValue();
+            String productName = (String) row[1];
+            String brandName = (String) row[2];
+            BigDecimal price = (BigDecimal) row[3];
+            String image1 = (String) row[4]; // Ảnh chính
+            String image2 = (String) row[5]; // Ảnh hover
 
-        products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+            products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+        }
+
+        return products;
     }
 
-    return products;
-}
     public List<ProductDTO> searchByKeyword(String keyword) {
-    List<Object[]> results = productRepository.searchByKeyword(keyword);
-    List<ProductDTO> products = new ArrayList<>();
+        List<Object[]> results = productRepository.searchByKeyword(keyword);
+        List<ProductDTO> products = new ArrayList<>();
 
-    for (Object[] row : results) {
-        Integer productId = ((Number) row[0]).intValue();
-        String productName = (String) row[1];
-        String brandName = (String) row[2];
-        BigDecimal price = (BigDecimal) row[3];
-        String image1 = (String) row[4];
-        String image2 = (String) row[5];
+        for (Object[] row : results) {
+            Integer productId = ((Number) row[0]).intValue();
+            String productName = (String) row[1];
+            String brandName = (String) row[2];
+            BigDecimal price = (BigDecimal) row[3];
+            String image1 = (String) row[4];
+            String image2 = (String) row[5];
 
-        products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+            products.add(new ProductDTO(productId, productName, brandName, price, image1, image2));
+        }
+
+        return products;
     }
-
-    return products;
-}
 
     public List<ProductDTO> getTop4ListProducts() {
         List<Object[]> results = productRepository.findTop4ListProucts();
         return results.stream().map(row -> new ProductDTO(
-                (Integer) row[0],                  // productId
-                (String) row[1],                   // productName
-                (String) row[2],                   // brandName
-                (BigDecimal) row[3],               // price
-                (String) row[4],                   // image1
-                (String) row[5]                    // image2
+                (Integer) row[0], // productId
+                (String) row[1], // productName
+                (String) row[2], // brandName
+                (BigDecimal) row[3], // price
+                (String) row[4], // image1
+                (String) row[5] // image2
         )).collect(Collectors.toList());
     }
-
 
 }

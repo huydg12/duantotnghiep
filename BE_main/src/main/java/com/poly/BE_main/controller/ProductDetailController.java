@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.ProductDetailDTO;
+import com.poly.BE_main.model.ProductDetail;
 import com.poly.BE_main.service.ProductDetailService;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -23,11 +24,17 @@ public class ProductDetailController {
     @Autowired
     ProductDetailService productDetailService;
 
+    @GetMapping("/show")
+    public List<ProductDetail> findAll() {
+        return productDetailService.findAll();
+    }
+
     @GetMapping("/show/{productId}")
     public ResponseEntity<List<ProductDetailDTO>> showProductDetail(@PathVariable Integer productId) {
         List<ProductDetailDTO> list = productDetailService.findAllProductDetailDTOByID(productId);
         return ResponseEntity.ok(list);
     }
+
     @GetMapping("/findProductId/{productDetailId}")
     public ResponseEntity<Map<String, Integer>> getProductIdFromDetail(@PathVariable Integer productDetailId) {
         Integer productId = productDetailService.findProductID(productDetailId);

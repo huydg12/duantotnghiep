@@ -21,5 +21,4 @@ public class ProductDetailDTO {
     private String size;
     private BigDecimal price;
     private List<String> images;
-
 }

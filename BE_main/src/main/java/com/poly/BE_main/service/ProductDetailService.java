@@ -10,12 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.dto.ProductDetailDTO;
+import com.poly.BE_main.model.ProductDetail;
 import com.poly.BE_main.repository.ProductDetailRepository;
 
 @Service
 public class ProductDetailService {
     @Autowired
     ProductDetailRepository productDetailRepository;
+
+     public List<ProductDetail> findAll() {
+        return productDetailRepository.findAll();
+    }
 
     public List<ProductDetailDTO> findAllProductDetailDTOByID(Integer productId) {
         List<Object[]> results = productDetailRepository.findAllProductDetailDTOByID(productId);

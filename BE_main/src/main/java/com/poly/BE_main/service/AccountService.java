@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Account;
-import com.poly.BE_main.model.Brand;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.repository.AccountRepository;
 import com.poly.BE_main.repository.CustomerRepository;

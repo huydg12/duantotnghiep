@@ -47,12 +47,12 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                         """, nativeQuery = true)
     List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
 
-        @Query(value = """
+    @Query(value = """
             SELECT
-                PRODUCT_ID   AS ProductId              
+                PRODUCT_ID   AS ProductId
             FROM PRODUCT_DETAIL
             WHERE ID = :id
                         """, nativeQuery = true)
-        Integer findProductId(@Param("id") Integer id);
+    Integer findProductId(@Param("id") Integer id);
 
 }
