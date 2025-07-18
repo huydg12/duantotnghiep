@@ -81,9 +81,9 @@ const addToCart = async () => {
       // Chưa tồn tại → thêm mới
       await axios.post('http://localhost:8080/cartDetail/add', payload)
       console.log("✅ Đã thêm mới vào giỏ hàng")
-        
-  // ✅ Gọi lại hàm fetchProductDetail sau khi thêm mới
-  await fetchProductDetail()
+      await fetchProductDetail();
+
+
     }
     showToast.value = true
     setTimeout(() => {

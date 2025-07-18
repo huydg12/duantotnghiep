@@ -38,6 +38,9 @@ public class Address {
     @Column(name = "IS_DEFAULT")
     private boolean isDefault;
 
+    @Column(name = "DETAIL_ADDRESS")
+    private String detailAddress;
+
     @Column(name = "WARD_NAME")
     private String wardName;
 

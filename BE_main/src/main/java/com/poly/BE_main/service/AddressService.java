@@ -39,13 +39,13 @@ public class AddressService {
 
     public Address update(int id, Address aUpdate) {
         return addressRepository.findById(id).map(a -> {
-            a.setFullAddress(aUpdate.getFullName());
-
+            a.setFullAddress(aUpdate.getFullAddress());
             a.setNumberPhone(aUpdate.getNumberPhone());
             a.setFullName(aUpdate.getFullName());
             a.setCustomerId(aUpdate.getCustomerId());
             a.setDefault(aUpdate.isDefault());
             a.setDistrictName(aUpdate.getDistrictName());
+            a.setDetailAddress(aUpdate.getDetailAddress());
             a.setWardName(aUpdate.getWardName());
             a.setCityName(aUpdate.getCityName());
             return addressRepository.save(a);

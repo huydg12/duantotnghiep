@@ -17,26 +17,35 @@ const districts = ref([]);
 const wards = ref([]);
 const defaultAddress = ref(null);
 
+
 const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
-const detailedAddress = ref("");
 
 
 const recipientName = ref('');
 const phoneNumber = ref('');
+const detailAddress = ref('');
 const isDefaultAddress = ref(false);
 const addressBeingEdited = reactive({
   id: null,
   fullName: '',
   numberPhone: '',
   fullAddress: '',
-  wardName: '',
-  districtName: '',
-  cityName: '',
+  detailAddress: '',
+  wardCode: '',
+  districtCode: '',
+  cityCode: '',
   default: false,
 });
-
+// Hàm normalize để so sánh tên không dấu
+const normalize = (str) => {
+  return str
+    ?.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
 if (userJson) {
   try {
     const user = JSON.parse(userJson);
@@ -49,36 +58,54 @@ if (userJson) {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
   
 }
-// Lấy danh sách tỉnh/thành phố
+// ✅ Lấy danh sách tỉnh/thành phố (và districts cấp 2 luôn)
 const fetchProvinces = async () => {
   try {
     const res = await axios.get("https://provinces.open-api.vn/api/?depth=2");
     provinces.value = res.data;
   } catch (err) {
-    console.error("Lỗi tải tỉnh/thành:", err);
+    console.error("❌ Lỗi tải tỉnh/thành:", err);
   }
 };
-const fetchDistricts = async (provinceCode) => {
+
+// ✅ Lấy danh sách quận/huyện từ mã tỉnh
+const fetchDistricts = async (cityCode) => {
   try {
-    const res = await axios.get(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
-    districts.value = res.data.districts;
-    wards.value = [];
-    selectedDistrictCode.value = null;
-    selectedWardCode.value = null;
+    const res = await axios.get(`https://provinces.open-api.vn/api/p/${cityCode}?depth=2`);
+    const city = res.data;
+    districts.value = city.districts || [];
   } catch (err) {
-    console.error("Lỗi khi tải quận/huyện:", err);
+    console.error("❌ Lỗi khi tải quận/huyện:", err);
+    districts.value = [];
   }
 };
 
 const fetchWards = async (districtCode) => {
   try {
-    const res = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
-    wards.value = res.data.wards;
-    selectedWardCode.value = null;
+    const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+    const data = response.data;
+
+    // ✅ Gán vào wards riêng (nếu cần hiển thị ngoài UI)
+    wards.value = data.wards || [];
+
+    // ✅ Đồng thời cập nhật lại vào đúng district trong provinces
+    for (const city of provinces.value) {
+      const district = city.districts?.find(d => d.code === districtCode);
+      if (district) {
+        district.wards = data.wards || [];
+        break;
+      }
+    }
+
+    return data.wards || [];
   } catch (err) {
-    console.error("Lỗi khi tải phường/xã:", err);
+    console.error("❌ Lỗi khi tải phường/xã:", err);
+    wards.value = [];
+    return [];
   }
 };
+
+
 
 
 const saveAddress = async () => {
@@ -92,7 +119,7 @@ const saveAddress = async () => {
       return;
     }
 
-    const fullAddress = `${detailedAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
+    const fullAddress = `${detailAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
 
     if (!customerId) {
       alert('Không tìm thấy ID khách hàng');
@@ -105,6 +132,7 @@ const saveAddress = async () => {
       fullName: recipientName.value,
       customerId: customerId,
       default: isDefaultAddress.value,
+      detailAddress: detailAddress.value,
       wardName: ward.name,
       districtName:district.name,
       cityName: province.name
@@ -136,7 +164,16 @@ const saveAddress = async () => {
   }
 };
 
+const handleCityChange = () => {
+  addressBeingEdited.districtCode = '';
+  addressBeingEdited.wardCode = '';
+  fetchDistricts(addressBeingEdited.cityCode);
+};
 
+const handleDistrictChange = () => {
+  addressBeingEdited.wardCode = '';
+  fetchWards(addressBeingEdited.districtCode);
+};
  const setAsDefault = async (address) => {
     try {
       const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
@@ -166,7 +203,7 @@ const resetAddressForm = () => {
   selectedProvinceCode.value = null;
   selectedDistrictCode.value = null;
   selectedWardCode.value = null;
-  detailedAddress.value = '';
+  detailAddress.value = '';
   districts.value = [];
   wards.value = [];
   isDefaultAddress.value = false;
@@ -179,44 +216,62 @@ const grandTotal = computed(() =>
   subTotal.value - discountAmount + shippingFee
 );
 const getCityNameByCode = (code) => {
-  const city = provinces.find(p => p.code === code)
-  return city ? city.name : ''
-}
+  const city = (provinces.value || []).find(p => p.code === code);
+  return city ? city.name : '';
+};
+
 const getDistrictNameByCode = (code) => {
-  const district = districts.find(p => p.code === code)
-  return district ? district.name : ''
-}
+  for (const city of provinces.value || []) {
+    const district = (city.districts || []).find(d => d.code === code);
+    if (district) return district.name;
+  }
+  return '';
+};
+
 const getWardNameByCode = (code) => {
-  const ward = wards.find(p => p.code === code)
-  return ward ? ward.name : ''
-}
+  for (const city of provinces.value || []) {
+    for (const district of city.districts || []) {
+      const ward = (district.wards || []).find(w => w.code === code);
+      if (ward) return ward.name;
+    }
+  }
+  return '';
+};
 const updateAddress = async () => {
   try {
+    const data = {
+      customerId: customerId,
+      fullName: addressBeingEdited.fullName,
+      numberPhone: addressBeingEdited.numberPhone,
+      fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
+      ${getDistrictNameByCode(addressBeingEdited.districtCode)}, ${getCityNameByCode(addressBeingEdited.cityCode)}`,
+      default: addressBeingEdited.default,
+      detailAddress: addressBeingEdited.detailAddress,
+      wardName: getWardNameByCode(addressBeingEdited.wardCode) || addressBeingEdited.wardName,
+      districtName: getDistrictNameByCode(addressBeingEdited.districtCode) || addressBeingEdited.districtName,
+      cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
+    };
+
+    console.log("📦 Dữ liệu gửi đi:", data);
+
     const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        customerId: customerId,
-        fullName: addressBeingEdited.fullName,
-        numberPhone: addressBeingEdited.numberPhone,
-        fullAddress: addressBeingEdited.fullAddress,
-        default: addressBeingEdited.default,
-        wardName: getWardNameByCode(addressBeingEdited.wardCode),
-        districtName: getDistrictNameByCode(addressBeingEdited.districtCode),
-        cityName: getCityNameByCode(addressBeingEdited.cityCode),
-
-      }),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("⚠️ Response status:", response.status);
+      console.error("📩 Response body:", errorText);
       throw new Error('Cập nhật địa chỉ thất bại');
     }
 
     alert('✅ Cập nhật địa chỉ thành công!');
-    closeUpdateAddressOverlay();
-    await fetchAddressList(); // Gọi lại danh sách địa chỉ sau khi cập nhật
+    await fetchAddressList();
+        closeUpdateAddressOverlay();
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
     alert('❌ Cập nhật địa chỉ thất bại');
@@ -228,8 +283,11 @@ const fetchAddressList = async () => {
     addressList.value = response.data;
         // Gán default address
     defaultAddress.value = addressList.value.find(addr => addr.default === true);
-    console.log("Danh sách địa chỉ:", addressList.value);
-    console.log("Địa chỉ mặc định:", defaultAddress.value);
+        // 👉 GỌI lại danh sách địa chỉ
+    await fetchAddressList();
+
+    // 👉 Đóng popup và reset form
+    closeAddAddressOverlay();
   } catch (error) {
     console.error('Lỗi khi lấy địa chỉ:', error);
   }
@@ -348,15 +406,59 @@ const closeAddAddressOverlay = () => {
   if (newAddressForm.value) newAddressForm.value.reset();
 };
 
-// Mở popup sửa địa chỉ
-const openUpdateAddressOverlay = (address) => {
+const openUpdateAddressOverlay = async (address) => {
+  console.log("🔍 Đang mở popup sửa địa chỉ:", address);
+
+  // Tìm tỉnh/thành phố
+  const city = provinces.value.find(p =>
+    normalize(p.name) === normalize(address.cityName)
+  );
+  const cityCode = city?.code || null;
+  console.log("📍 Mã tỉnh (cityCode):", cityCode, "| Tên tỉnh:", address.cityName);
+
+  let districtCode = null;
+  let wardCode = null;
+
+  if (cityCode) {
+    await fetchDistricts(cityCode); // Cập nhật danh sách quận/huyện
+
+    // Tìm quận/huyện
+    const district = (city?.districts || []).find(d =>
+      normalize(d.name) === normalize(address.districtName)
+    );
+    districtCode = district?.code || null;
+    console.log("🏙️ Mã quận (districtCode):", districtCode, "| Tên quận:", address.districtName);
+
+    if (districtCode) {
+      const wardList = await fetchWards(districtCode); // <-- CHỜ WARD THỰC SỰ TRẢ VỀ
+
+      if (Array.isArray(wardList)) {
+        const ward = wardList.find(w =>
+          normalize(w.name) === normalize(address.wardName)
+        );
+        console.table(wardList.map(w => ({ code: w.code, name: w.name })));
+        wardCode = ward?.code || null;
+        console.log("🏡 Mã phường (wardCode):", wardCode, "| Tên phường:", address.wardName);
+      } else {
+        console.error("❌ wards không phải là mảng:", wardList);
+      }
+    }
+  }
+
+  // Gán dữ liệu vào form đang chỉnh sửa
   addressBeingEdited.id = address.id;
   addressBeingEdited.fullName = address.fullName;
   addressBeingEdited.numberPhone = address.numberPhone;
   addressBeingEdited.fullAddress = address.fullAddress;
+  addressBeingEdited.cityCode = cityCode;
+  addressBeingEdited.detailAddress = address.detailAddress;
+  addressBeingEdited.districtCode = districtCode;
+  addressBeingEdited.wardCode = wardCode;
+  addressBeingEdited.default = address.default;
+
+  // Hiển thị popup
   showUpdateAddressOverlay.value = true;
 };
-
 // Đóng popup sửa địa chỉ
 const closeUpdateAddressOverlay = () => {
   showUpdateAddressOverlay.value = false;
@@ -641,7 +743,7 @@ onMounted(() => {
             class="form-control"
             rows="2"
             placeholder="Nhập địa chỉ cụ thể"
-            v-model="detailedAddress"
+            v-model="detailAddress"
             required
           ></textarea>
         </div>
@@ -662,40 +764,51 @@ onMounted(() => {
 >
   <div class="bg-white p-4 rounded shadow position-relative w-100" style="max-width: 500px;">
     <h5 class="fw-bold mb-3">Cập nhật địa chỉ</h5>
-            <!-- Nút X -->
-        <button
-          type="button"
-          class="btn-close position-absolute top-0 end-0 m-3"
-          aria-label="Đóng"
-          @click="closeUpdateAddressOverlay"
-        ></button>
-    <button class="btn-close position-absolute top-0 end-0 m-3" @click="closeUpdateAddressOverlay"></button>
+
+    <!-- Nút X -->
+    <button
+      type="button"
+      class="btn-close position-absolute top-0 end-0 m-3"
+      aria-label="Đóng"
+      @click="closeUpdateAddressOverlay"
+    ></button>
 
     <form @submit.prevent="updateAddress">
+      <!-- Họ tên -->
       <div class="mb-3">
         <label class="form-label">Họ và tên</label>
         <input type="text" class="form-control" v-model="addressBeingEdited.fullName" required />
       </div>
 
+      <!-- Số điện thoại -->
       <div class="mb-3">
         <label class="form-label">Số điện thoại</label>
         <input type="text" class="form-control" v-model="addressBeingEdited.numberPhone" required />
       </div>
-            <!-- Tỉnh / Thành phố -->
+
+      <!-- Tỉnh / Thành phố -->
       <div class="mb-3">
         <label class="form-label">Tỉnh / Thành phố</label>
-        <select class="form-select" required v-model="addressBeingEdited.cityCode" @change="fetchDistricts(selectedProvinceCode)">
-          <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
+        <select class="form-select"
+                required
+                v-model="addressBeingEdited.cityCode"
+                @change="handleCityChange">
+          <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
           <option v-for="province in provinces" :key="province.code" :value="province.code">
             {{ province.name }}
           </option>
         </select>
       </div>
-            <!-- Quận / Huyện -->
+
+      <!-- Quận / Huyện -->
       <div class="mb-3">
         <label class="form-label">Quận / Huyện</label>
-        <select class="form-select" required v-model="addressBeingEdited.districtCode" @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
-          <option value="" disabled selected>-- Chọn quận/huyện --</option>
+        <select class="form-select"
+                required
+                v-model="addressBeingEdited.districtCode"
+                @change="handleDistrictChange"
+                :disabled="!districts.length">
+          <option disabled value="">-- Chọn quận/huyện --</option>
           <option v-for="district in districts" :key="district.code" :value="district.code">
             {{ district.name }}
           </option>
@@ -705,28 +818,31 @@ onMounted(() => {
       <!-- Phường / Xã -->
       <div class="mb-3">
         <label class="form-label">Phường / Xã</label>
-        <select class="form-select" required v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
-          <option value="" disabled selected>-- Chọn phường/xã --</option>
+        <select class="form-select"
+                required
+                v-model="addressBeingEdited.wardCode"
+                :disabled="!wards.length">
+          <option disabled value="">-- Chọn phường/xã --</option>
           <option v-for="ward in wards" :key="ward.code" :value="ward.code">
             {{ ward.name }}
           </option>
         </select>
       </div>
+      <!-- Địa chỉ chi tiết -->
+      <div class="mb-3 mt-3">
+        <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
+        <textarea
+          class="form-control"
+          rows="2"
+          placeholder="Nhập địa chỉ cụ thể"
+          v-model="addressBeingEdited.detailAddress"
+          required
+        ></textarea>
+      </div>
 
-        <!-- Địa chỉ chi tiết -->
-        <div class="mb-3 mt-3">
-          <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
-          <textarea
-            class="form-control"
-            rows="2"
-            placeholder="Nhập địa chỉ cụ thể"
-            v-model="addressBeingEdited.fullAddress"
-            required
-          ></textarea>
-        </div>
-        <div class="text-end">
+      <div class="text-end">
         <button type="submit" class="btn btn-primary">Lưu</button>
-        </div>
+      </div>
     </form>
   </div>
 </div>
