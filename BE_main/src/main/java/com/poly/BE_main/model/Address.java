@@ -26,21 +26,6 @@ public class Address {
     @Column(name = "FULL_ADDRESS")
     private String fullAddress;
 
-    @Column(name = "ADDRESS")
-    private String address;
-
-    @Column(name = "CREATED_BY")
-    private String createdBy;
-
-    @Column(name = "CREATED_DATE")
-    private LocalDateTime createdDate;
-
-    @Column(name = "MODIFIED_BY")
-    private String modifiedBy;
-
-    @Column(name = "MODIFIED_DATE")
-    private LocalDateTime modifiedDate;
-
     @Column(name = "NUMBER_PHONE")
     private String numberPhone;
 
@@ -53,14 +38,11 @@ public class Address {
     @Column(name = "IS_DEFAULT")
     private boolean isDefault;
 
-    @Column(name = "ADDRESS_TYPE")
-    private String addressType;
-
-    @Column(name = "STREET_NAME")
-    private String streetName;
-
     @Column(name = "WARD_NAME")
     private String wardName;
+
+    @Column(name = "DISTRICT_NAME")
+    private String districtName;
 
     @Column(name = "CITY_NAME")
     private String cityName;

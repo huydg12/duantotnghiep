@@ -2,6 +2,7 @@ package com.poly.BE_main.controller;
 
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +45,17 @@ public class AddressController {
         return addressService.update(id, a);
     }
 
-    @GetMapping("/show/{customerId}")
+    @GetMapping("/showById/{customerId}")
     public List<Address> getByCustomerId(@PathVariable Integer customerId) {
         return addressService.findByCustomerId(customerId);
     }
-
+        @PutMapping("/set-default/{id}")
+    public ResponseEntity<?> setDefaultAddress(@PathVariable("id") Integer id) {
+        try {
+            addressService.setDefaultAddress(id);
+            return ResponseEntity.ok("Cập nhật địa chỉ mặc định thành công");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi: " + e.getMessage());
+        }
+    }
 }
