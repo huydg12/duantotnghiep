@@ -2,57 +2,150 @@
 import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
-const router = useRouter()
-// Mảng chứa tất cả sản phẩmm
+import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+
+// Store và router
+const store = useCartFavoriteStore();
+const router = useRouter();
+
+// Reactive
 const products = ref([]);
 const allProducts = ref([]);
-const goToDetail = (id) => {
-  router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
-}
-const fetchTop4Products = async () => {
+const showToast = ref(false);
+const showRemoveToast = ref(false);
+const favoriteProductIds = ref(new Set());
+const favoriteMap = ref(new Map());
+const recentlyRemovedId = ref(null); // 👈 để hiệu ứng icon
+let customerId = null;
+
+// Lấy thông tin khách hàng
+const userJson = localStorage.getItem("user");
+if (userJson) {
   try {
-    const response = await axios.get('http://localhost:8080/product/top4') // Thay thế bằng API thực tế
-    products.value = response.data
-    console.log("sản phẩm nổi bật",products.value)
+    const user = JSON.parse(userJson);
+    customerId = user.customerId;
+    console.log("✅ Customer ID:", customerId);
   } catch (error) {
-    console.error('Lỗi hiển thị sản phẩm', error)
+    console.error("❌ Lỗi khi parse userJson:", error);
   }
+} else {
+  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
 
+// Điều hướng trang chi tiết sản phẩm
+const goToDetail = (id) => {
+  router.push(`/productdetail/${id}`);
+};
+
+// Lấy danh sách yêu thích từ backend
+const fetchFavorites = async () => {
+  if (!customerId) return;
+  try {
+    const res = await axios.get(`http://localhost:8080/favorite/show/${customerId}`);
+    favoriteProductIds.value = new Set(res.data.map(item => item.productId));
+    favoriteMap.value = new Map(res.data.map(item => [item.productId, item.favoriteId]));
+  } catch (err) {
+    console.error("❌ Lỗi lấy danh sách yêu thích", err);
+  }
+};
+
+// Xử lý thêm/xóa yêu thích
+const toggleFavorite = async (productId) => {
+  if (!customerId) {
+    alert("Bạn cần đăng nhập để sử dụng tính năng này");
+    return;
+  }
+
+  const isFav = favoriteProductIds.value.has(productId);
+  try {
+    if (isFav) {
+      const favoriteId = favoriteMap.value.get(productId);
+      if (!favoriteId) {
+        console.warn("⚠️ Không tìm thấy favoriteId tương ứng.");
+        return;
+      }
+
+      await axios.delete(`http://localhost:8080/favorite/delete/${favoriteId}`);
+      favoriteProductIds.value.delete(productId);
+      favoriteMap.value.delete(productId);
+      recentlyRemovedId.value = favoriteId;
+
+      showRemoveToast.value = true;
+      setTimeout(() => {
+        showRemoveToast.value = false;
+        recentlyRemovedId.value = null;
+      }, 3000);
+    } else {
+      const res = await axios.post(`http://localhost:8080/favorite/add`, {
+        customerId,
+        productId
+      });
+      const newFavoriteId = res.data.favoriteId || res.data.id;
+      favoriteMap.value.set(productId, newFavoriteId);
+      favoriteProductIds.value.add(productId);
+
+      showToast.value = true;
+      setTimeout(() => {
+        showToast.value = false;
+      }, 3000);
+    }
+
+    // Cập nhật lại store
+    await store.fetchFavoriteItems(customerId);
+
+  } catch (err) {
+    console.error("❌ Lỗi toggle yêu thích", err);
+  }
+};
+
+// Lấy sản phẩm nổi bật
+const fetchTop4Products = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/product/top4');
+    products.value = response.data;
+    console.log("🔥 Sản phẩm nổi bật", products.value);
+  } catch (error) {
+    console.error('❌ Lỗi hiển thị sản phẩm nổi bật', error);
+  }
+};
+
+// Lấy toàn bộ sản phẩm
 const fetchAllProducts = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/product/showSPdto') // Thay thế bằng API thực tế
-    allProducts.value = response.data
-    console.log("sản phẩm", allProducts.value)
+    const response = await axios.get('http://localhost:8080/product/showSPdto');
+    allProducts.value = response.data;
+    console.log("📦 Tất cả sản phẩm", allProducts.value);
   } catch (error) {
-    console.error('Lỗi hiển thị sản phẩm', error)
+    console.error('❌ Lỗi hiển thị sản phẩm', error);
   }
-}
+};
+
+// Lifecycle
 onMounted(() => {
   fetchTop4Products();
   fetchAllProducts();
-}) 
-
-
-// State reactive để theo dõi brand được chọn
-const selectedBrand = ref("nike");
-
-// Lấy sản phẩm theo brand
-const productsByBrand = computed(() => {
-  return allProducts.value.filter(p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase());
+  fetchFavorites();
 });
 
-// Hàm để thay đổi brand khi click button
+// ==== FILTER BRAND ====
+const selectedBrand = ref("nike");
+
+const productsByBrand = computed(() => {
+  return allProducts.value.filter(
+    p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase()
+  );
+});
+
 function selectBrand(brand) {
-    selectedBrand.value = brand;
+  selectedBrand.value = brand;
 }
 
-// Định dạng tiền
+// ==== FORMAT TIỀN ====
 function formatCurrency(value) {
-    return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-    }).format(value);
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(value);
 }
 </script>
 <template>
@@ -86,6 +179,15 @@ function formatCurrency(value) {
                 <div class="row g-4">
                     <div class="col-12 col-sm-6 col-md-3" v-for="product in products" :key="product.productId">
                         <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+                                <!-- Icon yêu thích -->
+                                <i
+                                    class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition"
+                                    :class="{
+                                    'fas text-danger scale-up': favoriteMap.has(product.productId),
+                                    'far text-secondary': !favoriteMap.has(product.productId)
+                                    }"
+                                    @click.stop="toggleFavorite(product.productId)"
+                                ></i>
                             <div class="image-container position-relative">
                             <img
                                 :src="product.image1"
@@ -103,7 +205,7 @@ function formatCurrency(value) {
                                 <p class="product-price mt-1">
                                     {{ formatCurrency(product.price) }}
                                 </p>
-                                <button class="btn btn-buy mt-auto"@click="goToDetail(product.productId)">Xem chi tiết</button>
+                                <!-- <button class="btn btn-buy mt-auto"@click="goToDetail(product.productId)">Xem chi tiết</button> -->
                             </div>
                         </div>
                     </div>
@@ -138,6 +240,15 @@ function formatCurrency(value) {
                     <div class="row g-4">
                         <div class="col-6 col-md-3" v-for="product in productsByBrand" :key="product.productId">
                             <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+                                <!-- Icon yêu thích -->
+                                <i
+                                    class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition"
+                                    :class="{
+                                    'fas text-danger scale-up': favoriteMap.has(product.productId),
+                                    'far text-secondary': !favoriteMap.has(product.productId)
+                                    }"
+                                    @click.stop="toggleFavorite(product.productId)"
+                                ></i>
                                 <img
                                     :src="product.image1"
                                     class="product-image image-front"
@@ -159,6 +270,45 @@ function formatCurrency(value) {
             </div>
         </section>
     </main>
+        <!-- Toast thông báo thêm vào giỏ thành công -->
+  <div
+    v-if="showToast"
+    class="position-fixed top-0 end-0 p-3"
+    style="z-index: 1055;"
+  >
+    <div class="toast align-items-center show bg-success text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Đã thêm vào mục yêu thích!
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          @click="showToast = false"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast xóa khỏi yêu thích -->
+<div
+  v-if="showRemoveToast"
+  class="position-fixed top-0 end-0 p-3"
+  style="z-index: 1055;"
+>
+  <div class="toast align-items-center show bg-danger text-white border-0">
+    <div class="d-flex">
+      <div class="toast-body">
+        ❌ Đã xóa khỏi mục yêu thích!
+      </div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        @click="showRemoveToast = false"
+      ></button>
+    </div>
+  </div>
+</div>
 </template>
 
 <style scoped>
@@ -290,5 +440,50 @@ function formatCurrency(value) {
 
 .image-container:hover .image-front {
   opacity: 0;
+}
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #ccc;
+  font-size: 1.5rem;
+  z-index: 10;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.favorite-icon.active {
+  color: hotpink;
+}
+
+.favorite-icon:hover {
+  color: red;
+}
+.scale-up {
+  transform: scale(1.2);
+}
+.toast {
+  animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+  min-width: 250px;
+  max-width: 300px;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 </style>

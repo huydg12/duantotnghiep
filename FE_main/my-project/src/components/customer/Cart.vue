@@ -3,7 +3,9 @@ import { ref, computed, onMounted  } from "vue";
 import Banner from "../common/Banner.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
-
+import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+const store = useCartFavoriteStore()
+const showRemoveToast = ref(false)
 const router = useRouter(); 
 const cartItems = ref([]);
 const selectedItems = ref([]);
@@ -58,6 +60,11 @@ async function removeItem(cartDetailId) {
     cartItems.value = cartItems.value.filter(
       (item) => item.cartDetailId !== cartDetailId
     );
+      await store.fetchCartItems(customerId);
+      showRemoveToast.value = true
+      setTimeout(() => {
+      showRemoveToast.value = false
+    }, 3000)
   } catch (error) {
     console.error("Lỗi khi xóa:", error);
     alert("Xóa sản phẩm thất bại.");
@@ -99,6 +106,10 @@ function formatCurrency(value) {
 }
 
 function handleCheckout() {
+    if (selectedItems.value.length === 0) {
+    alert("⚠️ Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
+    return;
+  }
   // Lấy danh sách sản phẩm đã chọn
   const dataToPay = cartItems.value
     .filter(item => selectedItems.value.includes(item.cartDetailId))
@@ -226,6 +237,25 @@ function goToProductDetail(productDetailId) {
       <router-link to="/product" class="btn btn-primary">Bắt đầu mua sắm</router-link>
     </div>
   </div>
+    <!-- Toast xóa khỏi yêu thích -->
+<div
+  v-if="showRemoveToast"
+  class="position-fixed top-0 end-0 p-3"
+  style="z-index: 1055;"
+>
+  <div class="toast align-items-center show bg-danger text-white border-0">
+    <div class="d-flex">
+      <div class="toast-body">
+        ❌ Đã xóa sản phẩm khỏi giỏ!
+      </div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        @click="showRemoveToast = false"
+      ></button>
+    </div>
+  </div>
+</div>
 </template>
 
 <style scoped>
@@ -257,5 +287,29 @@ function goToProductDetail(productDetailId) {
 
 .cart-item:hover {
   background-color: rgba(0, 0, 0, 0.03); /* hoặc đổi thành màu khác nếu muốn */
+}
+.toast {
+  animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+  min-width: 250px;
+  max-width: 300px;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 </style>
