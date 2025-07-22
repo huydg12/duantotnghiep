@@ -7,8 +7,12 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -41,5 +45,19 @@ public class ProductDetailController {
         Map<String, Integer> response = new HashMap<>();
         response.put("productId", productId);
         return ResponseEntity.ok(response);
+    }
+        @PostMapping("/add")
+    public ProductDetail create(@RequestBody ProductDetail p) {
+        return productDetailService.create(p);
+    }
+
+    @PutMapping("/update/{id}")
+    public ProductDetail update(@PathVariable int id, @RequestBody ProductDetail p) {
+        return productDetailService.update(id,p);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable int id){
+        productDetailService.deleteById(id);
     }
 }

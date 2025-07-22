@@ -37,7 +37,7 @@ public class ProductDetail {
 
     @ManyToOne
     @JoinColumn(name = "COLLAR_ID")
-    private Color collar;
+    private Collar collar;
     @ManyToOne
     @JoinColumn(name = "COLOR_ID")
     private Color color;
