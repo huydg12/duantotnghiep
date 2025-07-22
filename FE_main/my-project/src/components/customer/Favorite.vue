@@ -6,10 +6,11 @@ import axios from 'axios'
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
 const store = useCartFavoriteStore()
 const favoriteList = ref([])
-let customerId = null;
+
 const showRemoveToast = ref(false);
 const userJson = localStorage.getItem("user");
 const router = useRouter()
+let customerId = null;
 if (userJson) {
   try {
     const user = JSON.parse(userJson);

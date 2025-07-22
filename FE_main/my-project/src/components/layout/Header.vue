@@ -124,7 +124,7 @@ const goToDetail = (id) => {
 
                 <div class="collapse navbar-collapse justify-content-center">
                     <ul class="navbar-nav gap-3">
-                        <li class="nav-item"><router-link class="nav-link active" to="/home">Trang Chủ</router-link>
+                        <li class="nav-item"><router-link class="nav-link" to="/home">Trang Chủ</router-link>
                         </li>
                         <li class="nav-item"><router-link class="nav-link" to="/introduce">Giới Thiệu</router-link></li>
                         <li class="nav-item dropdown">

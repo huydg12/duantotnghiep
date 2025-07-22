@@ -1,6 +1,7 @@
 package com.poly.BE_main.service;
 
 
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 
 import com.poly.BE_main.dto.CustomerInfoDTO;
+
+import com.poly.BE_main.dto.InformationCustomerDTO;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.repository.CustomerRepository;
 
@@ -21,6 +24,16 @@ public class CustomerService {
 
     public List<Customer> findAll(){
         return customerRepository.findAll();
+    }
+
+    public InformationCustomerDTO findInformationCustomerByCustomerId(Integer customerId) {
+            Object[] data = (Object[]) customerRepository.findInformationCustomerByCustomerId(customerId);
+        return new InformationCustomerDTO(
+            (String) data[0],   // fullName
+            (String) data[1],   // email
+            (String) data[2],   // numberPhone
+            new java.util.Date(((java.util.Date) data[3]).getTime()) 
+        );
     }
 
     public Customer create(Customer c){
