@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.ProductDTO;
@@ -50,8 +51,9 @@ public void delete(@PathVariable Integer id){
 public Product update(@PathVariable int id, @RequestBody Product p){
     return productService.update(id, p);
 }
+
 @GetMapping("/search")
-public ResponseEntity<List<ProductDTO>>searchProduct(String keyword){
+public ResponseEntity<List<ProductDTO>> searchProduct(@RequestParam("keyword") String keyword) {
     List<ProductDTO> results = productService.searchByKeyword(keyword);
     return ResponseEntity.ok(results);
 }

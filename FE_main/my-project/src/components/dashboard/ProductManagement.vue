@@ -173,19 +173,37 @@ function resetDetailForm() {
     selectedCollars.value = []
 }
 
+const user = ref(JSON.parse(localStorage.getItem("user") || "{}"))
+
+function getVietnamTimeWithoutSeconds() {
+    const date = new Date()
+    date.setHours(date.getHours() + 7) // Múi giờ Việt Nam
+
+    const yyyy = date.getFullYear()
+    const MM = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    const HH = String(date.getHours()).padStart(2, '0')
+    const mm = String(date.getMinutes()).padStart(2, '0')
+
+    return `${yyyy}-${MM}-${dd}T${HH}:${mm}`
+}
+
 async function saveProduct() {
     if (!form.productName) return alert('Nhập tên sản phẩm')
-    const payload = { ...form }
+
+    // Lưu createdBy là tên người dùng
+    const payload = { ...form, createdBy: user.value.fullName }
 
     try {
         if (form.id) {
             await axios.put(`http://localhost:8080/product/update/${form.id}`, payload)
             alert('Cập nhật thành công')
         } else {
-            form.createdDate = new Date().toISOString()
+            form.createdDate = getVietnamTimeWithoutSeconds()
             await axios.post('http://localhost:8080/product/add', payload)
             alert('Thêm sản phẩm thành công')
         }
+
         resetForm()
         fetchproduct()
     } catch (error) {
@@ -193,6 +211,7 @@ async function saveProduct() {
         alert('Có lỗi khi lưu sản phẩm')
     }
 }
+
 
 function editProduct(p) {
     Object.assign(form, JSON.parse(JSON.stringify(p)))
@@ -368,22 +387,26 @@ onMounted(() => {
         <table class="table table-bordered">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Tên</th>
                     <th>Thương hiệu</th>
                     <th>Danh mục</th>
                     <th>Đế</th>
                     <th>Trạng thái</th>
+                    <!-- <th>Ngày Tạo</th> -->
                     <th>Mô Tả</th>
                     <th>Hành động</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="p in paginatedProducts" :key="p.id">
+                    <td>{{ p.id }}</td>
                     <td>{{ p.productName }}</td>
                     <td>{{ getNameById(brands, p.brandId) }}</td>
                     <td>{{ getNameById(categories, p.categoryId) }}</td>
                     <td>{{ getNameById(soles, p.soleId) }}</td>
                     <td>{{ p.status === 1 ? 'Hoạt động' : 'Ẩn' }}</td>
+                    <!-- <td>{{ p.createdDate }}</td> -->
                     <td>{{ p.description }}</td>
                     <td>
                         <button class="btn btn-warning btn-sm me-2" @click="editProduct(p)">Sửa</button>
@@ -420,36 +443,29 @@ onMounted(() => {
                     <div class="modal-body">
                         <!-- Form chi tiết -->
                         <div class="row g-2">
-                            <div class="col-md-3">
-                                <label class="form-label">Size</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <div v-for="s in sizes" :key="s.id" class="form-check form-check-inline">
-                                        <input class="form-check-input" type="checkbox" :id="'size-' + s.id"
-                                            :value="s.id" v-model="selectedSizes" />
-                                        <label class="form-check-label" :for="'size-' + s.id">{{ s.eu }}</label>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- COLOR -->
+<div class="col-md-4 mb-3">
+  <label class="form-label fw-semibold">Màu sắc</label>
+  <select class="form-select" multiple v-model="selectedColors">
+    <option v-for="c in colors" :key="c.id" :value="c.id">{{ c.name }}</option>
+  </select>
+</div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">Màu</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <div class="form-check form-check-inline" v-for="c in colors" :key="c.id">
-                                        <input class="form-check-input" type="checkbox" :id="'color-' + c.id"
-                                            :value="c.id" v-model="selectedColors" />
-                                        <label class="form-check-label" :for="'color-' + c.id">{{ c.name }}</label>
-                                    </div>
-                                </div>
-                            </div>
+<!-- SIZE -->
+<div class="col-md-4 mb-3">
+  <label class="form-label fw-semibold">Kích cỡ</label>
+  <select class="form-select" multiple v-model="selectedSizes">
+    <option v-for="s in sizes" :key="s.id" :value="s.id">{{ s.eu }}</option>
+  </select>
+</div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">Cổ</label>
-                                <div class="form-check" v-for="c in collars" :key="c.id">
-                                    <input class="form-check-input" type="checkbox" :id="'collar-' + c.id" :value="c.id"
-                                        v-model="selectedCollars" />
-                                    <label class="form-check-label" :for="'collar-' + c.id">{{ c.name }}</label>
-                                </div>
-                            </div>
+<!-- CỔ -->
+<div class="col-md-4 mb-3">
+  <label class="form-label fw-semibold">Kiểu cổ</label>
+  <select class="form-select" multiple v-model="selectedCollars">
+    <option v-for="c in collars" :key="c.id" :value="c.id">{{ c.name }}</option>
+  </select>
+</div>
 
                             <div class="col-md-3">
                                 <label>Giá</label>

@@ -103,8 +103,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
         FROM IMAGE
     ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
-    WHERE P.STATUS = 1 AND P.PRODUCT_NAME LIKE :keyword
+    WHERE P.STATUS = 1 AND P.PRODUCT_NAME LIKE CONCAT('%', :keyword, '%')
     GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
-    """, nativeQuery = true)
+""", nativeQuery = true)
 List<Object[]> searchByKeyword(@Param("keyword") String keyword);
 }
