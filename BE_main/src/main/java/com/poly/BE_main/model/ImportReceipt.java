@@ -3,6 +3,8 @@ package com.poly.BE_main.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -43,7 +45,8 @@ public class ImportReceipt {
     @Column(name = "STATUS")
     private int status;
 
-    @Column(name = "CREATED_DATE")
+    @Column(name = "CREATED_DATE", updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdDate;
 
 }

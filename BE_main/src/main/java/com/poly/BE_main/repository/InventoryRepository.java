@@ -1,6 +1,8 @@
 package com.poly.BE_main.repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -12,4 +14,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     @Query("SELECT new com.poly.BE_main.dto.InventoryDTO(i.id, p.product.productName, p.size.eu, i.quantity, i.modifiedDate) " +
        "FROM Inventory i JOIN ProductDetail p ON i.productDetailId = p.id")
     List<InventoryDTO> findAllWithProductDetails();
+
+    boolean existsByProductDetailId(int productDetailId);
+
+    Optional<Inventory> findByProductDetailId(int productDetailId);
 }

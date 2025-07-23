@@ -61,4 +61,11 @@ public class BillService {
             return billRepository.save(i);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hoá đơn có id:" + id));
     }
+        public Bill updateStatus(Integer id, Integer status) {
+        return billRepository.findById(id).map(bill -> {
+            bill.setStatus(status);
+            return billRepository.save(bill);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+        }
+
 }

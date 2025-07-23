@@ -20,6 +20,7 @@ import com.poly.BE_main.dto.VerifyCodeDTO;
 import com.poly.BE_main.dto.LoginResponseDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
+import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.service.AccountService;
 import com.poly.BE_main.utils.JwtUtil;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,8 +59,12 @@ public class AuthController {
         if (account.getRoleId() == 2) {
         Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
         customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
-    }
-
+        }
+            
+        if (account.getRoleId() == 1) {
+        Optional<Employee> employeeOptional = accountService.getEmployeeByAccountId(account.getId());
+        employeeOptional.ifPresent(employee -> accountDTO.setEmployeeId(employee.getId()));
+        }
 
         LoginResponseDTO response = new LoginResponseDTO(token, accountDTO);
 

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.ProductDetailDTO;
+import com.poly.BE_main.dto.ProductReceiptDTO;
 import com.poly.BE_main.model.ProductDetail;
 import com.poly.BE_main.service.ProductDetailService;
 
@@ -31,6 +32,10 @@ public class ProductDetailController {
     @GetMapping("/show")
     public List<ProductDetail> findAll() {
         return productDetailService.findAll();
+    }
+    @GetMapping("/showProductReceipt")
+    public List<ProductReceiptDTO> getProductReceipt() {
+        return productDetailService.getAllProductReceiptDTO();
     }
 
     @GetMapping("/show/{productId}")

@@ -62,7 +62,18 @@ const fetchBillDetails = async (billId) => {
     console.log("Lỗi lấy chi tiết hoá đơn", error);
   }
 };
-
+const updateBillStatus = (bill) => {
+  axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
+    status: bill.STATUS
+  })
+  .then(() => {
+    alert("Cập nhật trạng thái thành công");
+  })
+  .catch((error) => {
+    console.error("Lỗi khi cập nhật trạng thái:", error);
+    alert("Cập nhật trạng thái thất bại");
+  });
+};
 const openModal = async (bill) => {
   selectedBill.value = { ...bill };
   await fetchBillDetails(bill.ID);
@@ -185,7 +196,16 @@ const updateBillDetail = async (detail) => {
     console.error("Lỗi cập nhật chi tiết hoá đơn:", error);
   }
 };
-
+function statusClass(s) {
+  return [
+    "", // 0 - Không dùng
+    "bg-light text-dark border border-warning",  // 1 - Chờ xác nhận (nhẹ nhàng, chờ xử lý)
+    "bg-primary-subtle text-primary fw-bold",    // 2 - Đã xác nhận (tông xanh đậm rõ ràng)
+    "bg-info-subtle text-info fw-bold",          // 3 - Đang giao (xanh nước biển nhạt)
+    "bg-success-subtle text-success fw-bold",    // 4 - Hoàn tất (xanh lá nhẹ, dễ chịu)
+    "bg-danger-subtle text-danger fw-bold",      // 5 - Đã hủy (đỏ nhạt nhưng cảnh báo)
+  ][s];
+}
 
 onMounted(() => {
   fetchBills();
@@ -213,7 +233,15 @@ onMounted(() => {
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
-          <td>{{ bill.STATUS }}</td>
+          <td>
+            <select v-model="bill.STATUS" @change="updateBillStatus(bill)" class="form-select form-select-sm" :class="statusClass(bill.STATUS)">
+              <option value="1">Chờ xác nhận</option>
+              <option value="2">Đã xác nhận</option>
+              <option value="3">Đang giao</option>
+              <option value="4">Hoàn tất</option>
+              <option value="5">Đã hủy</option>
+            </select>
+          </td>
           <td>{{ bill.STATUS_PAYMENT }}</td>
           <td>{{ formatCurrency(bill.GRAND_TOTAL || 0) }}</td>
           <td>

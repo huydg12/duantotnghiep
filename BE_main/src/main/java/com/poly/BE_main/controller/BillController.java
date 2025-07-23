@@ -1,6 +1,7 @@
 package com.poly.BE_main.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,11 @@ public class BillController {
     public Bill update(@PathVariable int id, @RequestBody Bill i){
         return billService.update(id, i);
     }
-
+    @PutMapping("/updateStatus/{id}")
+    public ResponseEntity<?> updateStatus(@PathVariable int id, @RequestBody Map<String, Integer> body) {
+    int status = body.get("status");
+    Bill updated = billService.updateStatus(id, status);
+    return ResponseEntity.ok(updated);
+    }
     
 }

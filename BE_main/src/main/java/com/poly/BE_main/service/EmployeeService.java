@@ -32,7 +32,7 @@ public class EmployeeService {
 
     public Employee update(int id, Employee eUpdate) {
         return employeeRepository.findById(id).map(e -> {
-            e.setAccountId(eUpdate.getAccountId());
+            e.setAccount(eUpdate.getAccount());
             e.setFullName(eUpdate.getFullName());
             e.setGender(eUpdate.getGender());
             e.setEmail(eUpdate.getEmail());

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.model.ImportReceipt;
 import com.poly.BE_main.repository.ImportReceiptRepository;
 
@@ -36,5 +37,12 @@ public class ImportReceiptService {
             i.setCreatedDate(iUpdate.getCreatedDate());
             return importReceiptRepository.save(i);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập có id:" + id));
+    }
+
+    public ImportReceipt updateStatus(Integer id, Integer status) {
+    return importReceiptRepository.findById(id).map(importReceipt -> {
+        importReceipt.setStatus(status);
+        return importReceiptRepository.save(importReceipt);
+    }).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập có id: " + id));
     }
 }

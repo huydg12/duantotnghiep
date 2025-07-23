@@ -3,11 +3,15 @@ package com.poly.BE_main.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -24,9 +28,6 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Integer id;
-
-    @Column(name = "ACCOUNT_ID")
-    private Integer accountId;
 
     @Column(name = "FULL_NAME", length = 255)
     private String fullName;
@@ -52,4 +53,8 @@ public class Employee {
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 
+    @OneToOne
+    @JoinColumn(name = "ACCOUNT_ID")
+    @JsonManagedReference
+    private Account account;
 }

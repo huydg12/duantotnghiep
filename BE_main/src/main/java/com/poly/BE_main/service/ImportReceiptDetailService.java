@@ -18,6 +18,10 @@ public class ImportReceiptDetailService {
         return importReceiptDetailRepository.findAll();
     }
 
+    public List<ImportReceiptDetail> findByImportReceiptId(Integer importReceiptId){
+        return importReceiptDetailRepository.findByImportReceiptId(importReceiptId);
+    }
+
     public ImportReceiptDetail create(ImportReceiptDetail i) {
         return importReceiptDetailRepository.save(i);
     }

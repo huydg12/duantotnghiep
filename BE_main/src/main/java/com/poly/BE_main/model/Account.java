@@ -59,4 +59,8 @@ public class Account {
     @JsonBackReference
     private Customer customer;
 
+    @OneToOne(mappedBy = "account")
+    @JsonBackReference
+    private Employee employee;
+
 }

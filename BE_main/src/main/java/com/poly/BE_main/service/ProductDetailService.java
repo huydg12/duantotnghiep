@@ -1,6 +1,7 @@
 package com.poly.BE_main.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.dto.ProductDetailDTO;
+import com.poly.BE_main.dto.ProductReceiptDTO;
 import com.poly.BE_main.model.ProductDetail;
 import com.poly.BE_main.repository.ProductDetailRepository;
 
@@ -78,5 +80,21 @@ public class ProductDetailService {
             p.setStatus(pUpdate.getStatus());
             return productDetailRepository.save(p);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
+    }
+
+        public List<ProductReceiptDTO> getAllProductReceiptDTO() {
+        List<Object[]> rawData = productDetailRepository.findAllProductReceiptDTO();
+        List<ProductReceiptDTO> dtos = new ArrayList<>();
+
+        for (Object[] row : rawData) {
+            ProductReceiptDTO dto = new ProductReceiptDTO();
+            dto.setProductDetailId((Integer) row[0]);
+            dto.setProductName((String) row[1]);
+            dto.setSize((String) row[2]);
+            dto.setColor((String) row[3]);
+            dtos.add(dto);
+        }
+
+        return dtos;
     }
 }

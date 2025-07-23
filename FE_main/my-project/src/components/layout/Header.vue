@@ -57,6 +57,12 @@ const doSearchFromModal = () => {
   }
 };
 
+const searchByPopularTerm = (term) => {
+  searchText.value = term; // Gán lại giá trị để đồng bộ input
+  router.push({ path: "/product", query: { keyword: term } });
+  showSearch.value = false;
+};
+
 // Hàm đồng bộ từ localStorage → userStore + customerId
 const syncUserFromStorage = () => {
   const userJson = localStorage.getItem("user");
@@ -355,12 +361,7 @@ const goToDetail = (id) => {
 .hover-highlight:hover {
   background-color: #f8f9fa; /* hoặc #f0f0f0 nếu muốn đậm hơn */
 }
-.cart-popup .btn.btn-danger {
-  font-size: 12px !important;
-  padding: 7px 8px !important;
-  line-height: 1 !important;
-  border-radius: 4px !important;
-}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -368,4 +369,18 @@ const goToDetail = (id) => {
   background-color: #343a40 !important; /* Tối hơn, gần với bg-dark */
   transition: background-color 0.2s ease;
 }
+.custom-close-button {
+  background-color: transparent !important; /* bỏ nền */
+  color: #ff8800 !important;                /* chữ cam */
+  border: none !important;                  /* bỏ viền */
+  outline: none !important;                 /* bỏ viền focus */
+  box-shadow: none !important;              /* bỏ đổ bóng */
+  transition: color 0.3s ease !important;
+}
+
+.custom-close-button:hover {
+  color: #e67300 !important;                /* chữ cam đậm khi hover */
+}
+
+
 </style>

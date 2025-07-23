@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
+import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.repository.AccountRepository;
 import com.poly.BE_main.repository.CustomerRepository;
+import com.poly.BE_main.repository.EmployeeRepository;
 
 @Service
 public class AccountService {
@@ -21,6 +23,8 @@ public class AccountService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private EmployeeRepository employeeRepository;
     @Autowired
     private EmailService emailService;
 
@@ -38,6 +42,10 @@ public class AccountService {
 
     public Optional<Customer> getCustomerByAccountId(int accountId) {
         return customerRepository.findByAccountId(accountId);
+    }
+
+    public Optional<Employee> getEmployeeByAccountId(int accountId) {
+        return employeeRepository.getEmployeeByAccountId(accountId);
     }
 
     public Account createAccount(Account account) {
