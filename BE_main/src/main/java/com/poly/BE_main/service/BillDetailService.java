@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.poly.BE_main.model.BillDetail;
 import com.poly.BE_main.repository.BillDetailRepository;
 
@@ -15,6 +14,10 @@ public class BillDetailService {
 
     public List<BillDetail> findAll() {
         return billDetailRepository.findAll();
+    }
+
+    public List<BillDetail> findByBillId(Integer billId) {
+        return billDetailRepository.findByBillId(billId);
     }
 
     public BillDetail create(BillDetail i) {

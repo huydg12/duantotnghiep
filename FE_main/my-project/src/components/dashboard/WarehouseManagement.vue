@@ -4,7 +4,12 @@
 
     <!-- Tìm kiếm -->
     <div class="mb-3">
-      <input type="text" v-model="searchQuery" class="form-control" placeholder="Tìm kiếm theo tên sản phẩm..." />
+      <input
+        type="text"
+        v-model="searchQuery"
+        class="form-control"
+        placeholder="Tìm kiếm theo tên sản phẩm..."
+      />
     </div>
 
     <!-- Bảng tồn kho -->
@@ -19,12 +24,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, index) in filteredInventory" :key="item.ID">
+        <tr v-for="(item, index) in filteredInventory" :key="item.id">
           <td>{{ index + 1 }}</td>
-          <td>{{ item.PRODUCT_NAME }}</td>
-          <td>{{ item.SIZE }}</td>
-          <td>{{ item.QUANTITY }}</td>
-          <td>{{ formatDate(item.MODIFIED_DATE) }}</td>
+          <td>{{ item.productName }}</td>
+          <td>{{ item.size }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ formatDate(item.modifiedDate) }}</td>
         </tr>
         <tr v-if="filteredInventory.length === 0">
           <td colspan="5" class="text-center text-muted">Không có kết quả phù hợp</td>
@@ -39,36 +44,26 @@ export default {
   data() {
     return {
       inventoryList: [],
-      searchQuery: "", // Dữ liệu nhập từ ô tìm kiếm
+      searchQuery: "",
     };
   },
   computed: {
     filteredInventory() {
       if (!this.searchQuery) return this.inventoryList;
       return this.inventoryList.filter((item) =>
-        item.PRODUCT_NAME.toLowerCase().includes(this.searchQuery.toLowerCase())
+        item.productName.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
     },
   },
   methods: {
     async fetchInventory() {
-      // Giả lập dữ liệu - bạn thay bằng API thực tế
-      this.inventoryList = [
-        {
-          ID: 1,
-          PRODUCT_NAME: "Áo thun nam cổ tròn",
-          SIZE: "M",
-          QUANTITY: 120,
-          MODIFIED_DATE: "2025-07-10T14:00:00",
-        },
-        {
-          ID: 2,
-          PRODUCT_NAME: "Quần jean nữ co giãn",
-          SIZE: "S",
-          QUANTITY: 55,
-          MODIFIED_DATE: "2025-07-12T09:30:00",
-        },
-      ];
+      try {
+        const response = await fetch("http://localhost:8080/inventory/show");
+        const data = await response.json();
+        this.inventoryList = data;
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu tồn kho:", error);
+      }
     },
     formatDate(dateString) {
       const date = new Date(dateString);
@@ -82,6 +77,7 @@ export default {
 </script>
 
 <style scoped>
+
 .table th {
   background-color: #343a40;
   color: #fff;

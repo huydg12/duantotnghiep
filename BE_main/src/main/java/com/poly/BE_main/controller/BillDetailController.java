@@ -3,6 +3,8 @@ package com.poly.BE_main.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,12 +13,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.poly.BE_main.model.BillDetail;
 import com.poly.BE_main.service.BillDetailService;
 
 @RestController
 @RequestMapping("/billDetail")
+@CrossOrigin("*")
 public class BillDetailController {
 
     @Autowired
@@ -25,6 +27,12 @@ public class BillDetailController {
     @GetMapping("/show")
     public List<BillDetail> findAll(){
         return billDetailService.findAll();
+    }
+
+    @GetMapping("/show/{id}")
+    public ResponseEntity<List<BillDetail>> getBillDetails(@PathVariable("id") Integer id) {
+        List<BillDetail> details = billDetailService.findByBillId(id);
+        return ResponseEntity.ok(details);
     }
 
     @PostMapping("/create")

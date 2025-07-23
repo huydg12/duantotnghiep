@@ -5,7 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.poly.BE_main.model.Inventory;
+
+import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.service.InventoryService;
 
 @RestController
@@ -16,7 +17,7 @@ public class InventoryController {
     InventoryService inventoryService;
 
     @GetMapping("/show")
-    public List<Inventory> findAll() {
-        return inventoryService.findAll();
+    public List<InventoryDTO> showInventory() {
+        return inventoryService.getAllWithDetails();
     }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.repository.InventoryRepository;
 
@@ -18,6 +19,10 @@ public class InventoryService {
         return inventoryRepository.findAll();
     }
 
+    public List<InventoryDTO> getAllWithDetails() {
+        return inventoryRepository.findAllWithProductDetails();
+    }
+    
     public Inventory update(int id, Inventory iUpdate) {
         return inventoryRepository.findById(id).map(i -> {
             i.setQuantity(iUpdate.getQuantity());
