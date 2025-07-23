@@ -74,7 +74,14 @@ body {
   font-size: 1.25rem;
   text-decoration: none;
 }
+.header .navbar-nav .router-link-exact-active {
+  color: var(--color-primary) !important;
+}
 
+/* Active link cha (áp dụng cho route chứa như /product khi đang ở /product/brand) */
+.header .navbar-nav .router-link-active {
+  color: var(--color-primary);
+}
 /* Specific icon hover colors */
 .header-tools a[title="Yêu thích"]:hover i {
   color: #ef4444;

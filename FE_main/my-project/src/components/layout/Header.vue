@@ -1,18 +1,42 @@
 <script setup>
 import Logo from "/images/logo.png";
 import { RouterLink, RouterView, useRouter } from "vue-router";
-import { ref, computed } from "vue";
+import { ref, computed, watch  } from "vue";
 import { useUserStore } from "@/stores/userStore";
 import { onMounted } from "vue";
 import axios from "axios";
-
+import { useCartFavoriteStore } from "../../stores/cartFavoriteStore";
+const store = useCartFavoriteStore()
 const userStore = useUserStore();
 const router = useRouter();
 const userInfo = ref(JSON.parse(localStorage.getItem("user")));
-const cartItems = ref([]);
-let customerId = null;
+let customerId =ref(null);
+const brandList = ref([])
+const suggestedProducts = ref([]);
+const fetchSuggestedProducts = async () => {
+  const keyword = searchText.value.trim();
+  if (!keyword) {
+    suggestedProducts.value = [];
+    return;
+  }
+
+  try {
+    const res = await axios.get(`http://localhost:8080/product/search?keyword=${keyword}`);
+    suggestedProducts.value = res.data; // giả sử API trả về danh sách sản phẩm
+  } catch (error) {
+    console.error("❌ Lỗi khi fetch gợi ý:", error);
+    suggestedProducts.value = [];
+  }
+};
+const fetchBrands = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/brand/show')
+    brandList.value = res.data // giả sử là mảng object có thuộc tính brandName
+  } catch (error) {
+    console.error('❌ Lỗi khi fetch brand:', error)
+  }
+}
 // Modal tìm kiếm
-let bsSearchModal = null;
 const searchText = ref("");
 const showSearch = ref(false); // Biến điều khiển hiển thị modal tìm kiếm
 // Mở modal tìm kiếm
@@ -21,30 +45,32 @@ const openSearchModal = () => {
 };
 // Nếu userInfo hợp lệ thì lấy customerId
 if (userInfo.value && userInfo.value.customerId) {
-  customerId = userInfo.value.customerId;
+  customerId.value = userInfo.value.customerId; // ✅ Gán vào .value của ref
 }
 // Từ khóa phổ biến
-const popularTerms = ref(["Nike", "Adidas", "Converse", "Vans", "Puma", "Chạy bộ", "Thể thao"]);
+const popularTerms = ref(["Nike", "Adidas", "Converse", "Vans", "Puma"]);
 // Tìm kiếm từ modal
 const doSearchFromModal = () => {
-    if (searchText.value.trim()) {
-        router.push({ path: "/product", query: { keyword: searchText.value } });
-        if (bsSearchModal) bsSearchModal.hide();
-    }
+  if (searchText.value.trim()) {
+    router.push({ path: "/product", query: { keyword: searchText.value } });
+    showSearch.value = false; // ✅ Đóng popup khi nhấn Enter
+  }
 };
 
-// Hàm đồng bộ từ localStorage → userStore
+// Hàm đồng bộ từ localStorage → userStore + customerId
 const syncUserFromStorage = () => {
-    const userJson = localStorage.getItem("user");
-    if (userJson) {
-        try {
-            const user = JSON.parse(userJson);
-            userStore.setUser(user);
-            console.log("✅ Đồng bộ user từ localStorage:", user);
-        } catch (e) {
-            console.error("❌ Lỗi parse user từ localStorage:", e);
-        }
+  const userJson = localStorage.getItem("user");
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      userStore.setUser(user);
+      userInfo.value = user;
+      customerId.value = user.customerId;
+      console.log("✅ Đồng bộ user từ localStorage:", user);
+    } catch (e) {
+      console.error("❌ Lỗi parse user từ localStorage:", e);
     }
+  }
 };
 
 // Hàm đăng xuất
@@ -56,18 +82,6 @@ const handleLogout = () => {
     router.push("/auth/login");
 };
 
-
-
-
-const fetchCartDetail = async () => {
-  try {
-    const res = await axios.get(`http://localhost:8080/cartDetail/showCartDetail/${customerId}`);
-    cartItems.value = res.data;
-    console.log("Giỏ hàng:", cartItems.value);
-  } catch (err) {
-    console.error("Lỗi khi lấy cart", err);
-  }
-};
 const formatCurrency = (value) => {
   if (!value && value !== 0) return "";
   return value.toLocaleString("vi-VN", {
@@ -75,18 +89,28 @@ const formatCurrency = (value) => {
     currency: "VND",
   });
 };
-
-
-// Khi app khởi tạo
-onMounted(() => {
-    syncUserFromStorage();
-      if (customerId){
-       fetchCartDetail();
-      }
+watch(searchText, (newVal) => {
+  fetchSuggestedProducts();
 });
+// ✅ Gọi khi component mount
+onMounted(async () => {
+  fetchBrands()
+  syncUserFromStorage()
+
+  if (customerId.value) {
+    await store.refreshAll(customerId.value);
+  } else {
+    console.warn("⚠️ Không có customerId để fetch dữ liệu");
+  }
+});
+
+
 function goToProductDetail(productDetailId) {
   router.push(`/productdetail/${productDetailId}`);
   console.log("sp chi tiết: " + productDetailId);
+}
+const goToDetail = (id) => {
+  router.push(`/productdetail/${id}`)
 }
 </script>
 
@@ -100,23 +124,24 @@ function goToProductDetail(productDetailId) {
 
                 <div class="collapse navbar-collapse justify-content-center">
                     <ul class="navbar-nav gap-3">
-                        <li class="nav-item"><router-link class="nav-link active" to="/home">Trang Chủ</router-link>
+                        <li class="nav-item"><router-link class="nav-link" to="/home">Trang Chủ</router-link>
                         </li>
                         <li class="nav-item"><router-link class="nav-link" to="/introduce">Giới Thiệu</router-link></li>
                         <li class="nav-item dropdown">
-                            <div class="d-flex align-items-center">
-                                <router-link class="nav-link pe-1" to="/product">Sản Phẩm</router-link>
-                                <a class="nav-link dropdown-toggle ps-1" href="#" role="button"
-                                    data-bs-toggle="dropdown"></a>
-                            </div>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">Adidas</a></li>
-                                <li><a class="dropdown-item" href="#">Nike</a></li>
-                                <li><a class="dropdown-item" href="#">Converse</a></li>
-                                <li><a class="dropdown-item" href="#">Vans</a></li>
-                                <li><a class="dropdown-item" href="#">Puma</a></li>
-                                <li><a class="dropdown-item" href="#">Fila</a></li>
-                            </ul>
+                          <div class="d-flex align-items-center">
+                            <router-link class="nav-link pe-1" to="/product">Sản Phẩm</router-link>
+                            <a class="nav-link dropdown-toggle ps-1" href="#" role="button" data-bs-toggle="dropdown"></a>
+                          </div>
+                          <ul class="dropdown-menu">
+                            <li v-for="brand in brandList" :key="brand.id">
+                            <a
+                              class="dropdown-item cursor-pointer"
+                              @click="$router.push({ path: '/product', state: { brandFromHeader: brand.name } })"
+                            >
+                              {{ brand.name }}
+                            </a>
+                            </li>
+                          </ul>
                         </li>
                         <li class="nav-item"><router-link class="nav-link" to="/contact">Liên Hệ</router-link></li>
                     </ul>
@@ -127,8 +152,13 @@ function goToProductDetail(productDetailId) {
                     <div class="search-container position-relative">
                         <i class="bi bi-search search-icon text-white" @click="openSearchModal()" style="cursor: pointer;"></i>
                     </div>
+                      <!-- Icon yêu thích -->
+                      <div class="cart-icon">
+                    <router-link  to="/favorite" ><a href="#" title="Yêu thích">
+                      <i class="bi bi-heart-fill text-white"></i></a></router-link>
+                        <span class="cart-count">{{ store.favoriteItems.length  }}</span>
+                    </div>
 
-                    <a href="#" title="Yêu thích"><i class="bi bi-heart-fill text-white"></i></a>
                     <!-- Khung giỏ hàng -->
                     <div class="position-relative cart-dropdown">
                     <!-- Icon giỏ hàng -->
@@ -136,13 +166,13 @@ function goToProductDetail(productDetailId) {
                       <router-link  to="/cart" title="Đăng nhập">
                         <i class="bi bi-bag-fill text-white" title="Giỏ hàng"></i>
                       </router-link>
-                        <span class="cart-count">{{ cartItems.length }}</span>
+                        <span class="cart-count">{{ store.cartItems.length }}</span>
                     </div>
 
                     <!-- Popup hiện khi hover -->
                     <div class="cart-popup shadow bg-white rounded">
-                        <div v-if="cartItems.length > 0">
-                        <div v-for="item in cartItems.slice(-5)" :key="item.cartDetailId" class="d-flex align-items-center mb-2 px-2 hover-highlight" @click="goToProductDetail(item.productDetailId)">
+                        <div v-if="store.cartItems.length > 0">
+                        <div v-for="item in store.cartItems.slice(0, 5)" :key="item.cartDetailId" class="d-flex align-items-center mb-2 px-2 hover-highlight" @click="goToProductDetail(item.productDetailId)">
                             <img :src="item.images" alt="..." class="me-2" style="width: 50px; height: 50px; object-fit: contain;" />
                             <div class="flex-grow-1">
                             <div class="fw-medium text-truncate" style="max-width: 220px;">{{ item.productName }}</div>
@@ -151,7 +181,7 @@ function goToProductDetail(productDetailId) {
                         </div>
                         <hr class="my-2" />
                         <div class="d-flex justify-content-between align-items-center px-2 pb-2">
-                            <span class="text-muted small">{{ cartItems.length }} Thêm Hàng Vào Giỏ</span>
+                            <span class="text-muted small">{{ store.cartItems.length }} Thêm Hàng Vào Giỏ</span>
                             <router-link to="/cart" class="btn btn-sm btn-danger custom-cart-btn">Xem Giỏ Hàng</router-link>
                         </div>
                         </div>
@@ -205,11 +235,32 @@ function goToProductDetail(productDetailId) {
           v-for="term in popularTerms"
           :key="term"
           class="badge bg-secondary text-white px-3 py-2 rounded-pill"
-          @click="searchText = term"
+          @click="searchByPopularTerm(term)"
           style="cursor: pointer"
         >
           {{ term }}
         </span>
+      </div>
+      <br>
+      <div v-if="suggestedProducts.length > 0" >
+        <h6 class="text-white mb-2">Gợi ý sản phẩm</h6>
+        <ul class="list-unstyled mb-0">
+          <li
+            v-for="product in suggestedProducts"
+            :key="product.productId"
+            class="d-flex align-items-center py-1 px-2 hover-highlight"
+            style="cursor: pointer;"
+            @click="goToDetail(product.productId); showSearch = false"
+          >
+            <img
+              :src="product.image1"
+              alt="img"
+              class="me-2"
+              style="width: 40px; height: 40px; object-fit: contain;"
+            />
+            <span class="text-white">{{ product.productName }}</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -309,5 +360,12 @@ function goToProductDetail(productDetailId) {
   padding: 7px 8px !important;
   line-height: 1 !important;
   border-radius: 4px !important;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.hover-highlight:hover {
+  background-color: #343a40 !important; /* Tối hơn, gần với bg-dark */
+  transition: background-color 0.2s ease;
 }
 </style>

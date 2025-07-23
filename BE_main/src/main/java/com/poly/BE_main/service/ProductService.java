@@ -67,7 +67,7 @@ public class ProductService {
     }
 
     public List<ProductDTO> searchByKeyword(String keyword) {
-        List<Object[]> results = productRepository.searchByKeyword(keyword);
+        List<Object[]> results = productRepository.searchByKeyword("%" + keyword + "%");
         List<ProductDTO> products = new ArrayList<>();
 
         for (Object[] row : results) {

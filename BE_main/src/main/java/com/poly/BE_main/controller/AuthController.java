@@ -84,9 +84,9 @@ public class AuthController {
         customer.setEmail(registerDTO.getEmail());
         customer.setAccount(account);
 
-        accountService.createCustomer(customer);
+        customer = accountService.createCustomer(customer); // Gán lại để lấy ID
 
-        return ResponseEntity.ok("Đăng ký thành công");
+        return ResponseEntity.ok(customer);
     }
 
     @PostMapping("/forgetpassword")

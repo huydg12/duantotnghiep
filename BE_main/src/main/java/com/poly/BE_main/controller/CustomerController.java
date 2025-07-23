@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.CustomerInfoDTO;
+import com.poly.BE_main.dto.InformationCustomerDTO;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.service.CustomerService;
 
@@ -27,6 +28,10 @@ public class CustomerController {
     @GetMapping("/show")
     public List<Customer> findAll() {
         return customerService.findAll();
+    }
+    @GetMapping("/showInfoCustomer/{customerId}")
+    public InformationCustomerDTO findInformationCustomerByCustomerId(@PathVariable Integer customerId) {
+        return customerService.findInformationCustomerByCustomerId(customerId);
     }
 
     @PostMapping("/add")

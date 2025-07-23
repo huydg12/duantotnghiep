@@ -3,7 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute,useRouter } from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
-
+import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+const store = useCartFavoriteStore()
 const route = useRoute()
 const router = useRouter()
 const showToast = ref(false)
@@ -82,6 +83,7 @@ const addToCart = async () => {
       await axios.post('http://localhost:8080/cartDetail/add', payload)
       console.log("✅ Đã thêm mới vào giỏ hàng")
       await fetchProductDetail();
+      await store.fetchCartItems(customerId);
 
 
     }

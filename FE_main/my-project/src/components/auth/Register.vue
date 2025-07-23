@@ -16,7 +16,14 @@ const form = reactive ({
 const handleRegister = async () => {
     try {
         const response = await axios.post("http://localhost:8080/auth/register", form)
-        alert("Đăng ký thành công")
+        const customer = response.data;
+        const customerId = customer.id;
+        console.log("customerId: " + customerId)
+        // Tạo giỏ hàng cho customer mới
+        await axios.post("http://localhost:8080/cart/add", {
+        customerId: customerId
+        });
+        alert("Đăng ký thành công") 
         router.push("/auth/login")
     } catch (error) {
         alert("Đăng ký không thành công")

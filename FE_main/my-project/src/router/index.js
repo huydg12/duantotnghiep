@@ -11,6 +11,7 @@ import Introduce from "../components/customer/Introduce.vue";
 import Product from "../components/customer/Product.vue";
 import Contact from "../components/customer/Contact.vue";
 import Cart from "../components/customer/Cart.vue";
+import Favorite from "../components/customer/Favorite.vue";
 
 // Auth Pages
 import Auth from "../components/auth/Auth.vue";
@@ -44,6 +45,7 @@ const router = createRouter({
         { path: "cart", name: "cart", component: Cart },
         { path: "payment", name: "payment", component: Payment },
         { path: "introduce", name: "introduce", component: Introduce },
+        { path: "favorite", name: "favorite", component: Favorite },
         {
           path: "informationcustomer",
           name: "informationcustomer",

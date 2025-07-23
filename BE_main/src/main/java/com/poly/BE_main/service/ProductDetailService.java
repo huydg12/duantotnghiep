@@ -54,7 +54,29 @@ public class ProductDetailService {
                     images);
         }).collect(Collectors.toList());
     }
+
+    
     public Integer findProductID(Integer id){
         return productDetailRepository.findProductId(id);
+    }
+
+    public ProductDetail create(ProductDetail p) {
+        return productDetailRepository.save(p);
+    }
+
+    public void deleteById(Integer id) {
+        productDetailRepository.deleteById(id);
+    }
+
+    public ProductDetail update(int id, ProductDetail pUpdate) {
+        return productDetailRepository.findById(id).map(p -> {
+            p.setCollar(pUpdate.getCollar());
+            p.setColor(pUpdate.getColor());
+            p.setDescription(pUpdate.getDescription());
+            p.setPrice(pUpdate.getPrice());
+            p.setSize(pUpdate.getSize());
+            p.setStatus(pUpdate.getStatus());
+            return productDetailRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
     }
 }
