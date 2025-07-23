@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.model.ImportReceipt;
 import com.poly.BE_main.repository.ImportReceiptRepository;
 

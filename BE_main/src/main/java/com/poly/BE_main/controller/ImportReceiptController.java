@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.model.ImportReceipt;
 import com.poly.BE_main.service.ImportReceiptService;
 @CrossOrigin(origins = "http://localhost:5173")
