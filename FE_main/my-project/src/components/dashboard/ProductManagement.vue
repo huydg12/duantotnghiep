@@ -10,9 +10,35 @@ const soles = ref([])
 const sizes = ref([])
 const colors = ref([])
 const collars = ref([])
-
 const products = ref([])
 const productDetailList = ref([])
+const selectedImages = ref([])
+const previewUrls = ref([])
+
+function handleMultipleImageChange(event) {
+    const files = Array.from(event.target.files)
+    if (!files.length) return
+
+    selectedImages.value = files
+    previewUrls.value = files.map(file => URL.createObjectURL(file))
+}
+
+async function uploadImages(detailId) {
+    const formData = new FormData();
+    selectedImages.value.forEach(file => formData.append('files', file));
+    formData.append('productDetailId', detailId);
+
+    try {
+        await axios.post('http://localhost:8080/image/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        alert('Đã upload ảnh thành công!');
+    } catch (err) {
+        console.error('Lỗi upload ảnh:', err);
+        alert('Không thể upload ảnh');
+    }
+}
+
 
 const fetchBrands = async () => {
     try {
@@ -90,7 +116,7 @@ const loadProductDetails = async (productId) => {
 
 // Phân trang - sản phẩm
 const productPage = ref(1)
-const productsPerPage = 5
+const productsPerPage = 7
 const paginatedProducts = computed(() => {
     const start = (productPage.value - 1) * productsPerPage
     return products.value.slice(start, start + productsPerPage)
@@ -102,7 +128,7 @@ const changeProductPage = (page) => {
 
 // Phân trang - chi tiết
 const detailPage = ref(1)
-const detailsPerPage = 5
+const detailsPerPage = 4
 const paginatedDetails = computed(() => {
     const start = (detailPage.value - 1) * detailsPerPage
     return productDetailList.value.slice(start, start + detailsPerPage)
@@ -171,6 +197,8 @@ function resetDetailForm() {
     selectedSizes.value = []
     selectedColors.value = []
     selectedCollars.value = []
+    previewUrls.value = []
+    selectedImages.value = []
 }
 
 const user = ref(JSON.parse(localStorage.getItem("user") || "{}"))
@@ -265,26 +293,28 @@ async function saveProductDetails() {
                         color: { id: color },
                         collar: { id: collar },
                         price: detailForm.price,
-                        descriptionProduct: detailForm.description,
-                        status: 1
+                        description: detailForm.description,
+                        status: 1,
                     })
                 }
             }
         }
 
-        if (detailForm.id) {
-            const updatedDetail = {
-                ...newDetails[0],
-                id: detailForm.id
-            }
-            await axios.put(`http://localhost:8080/productDetail/update/${detailForm.id}`, updatedDetail)
-        } else {
-            for (const detail of newDetails) {
-                await axios.post('http://localhost:8080/productDetail/add', detail)
+        // === 1. Lưu chi tiết trước ===
+        const addedDetailIds = []
+        for (const detail of newDetails) {
+            const response = await axios.post('http://localhost:8080/productDetail/add', detail)
+            addedDetailIds.push(response.data.id) // giả sử backend trả về id sau khi thêm
+        }
+
+        // === 2. Gửi ảnh tương ứng với mỗi detailId vừa tạo ===
+        for (const detailId of addedDetailIds) {
+            if (selectedImages.value.length > 0) {
+                await uploadImages(detailId)
             }
         }
 
-        alert('Lưu chi tiết thành công!')
+        alert('Lưu chi tiết và ảnh thành công!')
         resetDetailForm()
         await loadProductDetails(currentProduct.value.id)
     } catch (err) {
@@ -294,6 +324,7 @@ async function saveProductDetails() {
         loading.value = false
     }
 }
+
 
 function editDetail(detail) {
     selectedSizes.value = [detail.size?.id ?? getIdByName(sizes.value, detail.size)]
@@ -440,76 +471,120 @@ onMounted(() => {
                         <h5 class="modal-title">Chi tiết sản phẩm: {{ currentProduct?.productName }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+
                     <div class="modal-body">
                         <!-- Form chi tiết -->
-                        <div class="row g-2">
-                            <!-- COLOR -->
-<div class="col-md-4 mb-3">
-  <label class="form-label fw-semibold">Màu sắc</label>
-  <select class="form-select" multiple v-model="selectedColors">
-    <option v-for="c in colors" :key="c.id" :value="c.id">{{ c.name }}</option>
-  </select>
-</div>
+                        <div class="row g-3">
+                            <!-- Các chọn lọc -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Màu sắc</label>
+                                <select class="form-select" multiple v-model="selectedColors">
+                                    <option v-for="c in colors" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                </select>
+                            </div>
 
-<!-- SIZE -->
-<div class="col-md-4 mb-3">
-  <label class="form-label fw-semibold">Kích cỡ</label>
-  <select class="form-select" multiple v-model="selectedSizes">
-    <option v-for="s in sizes" :key="s.id" :value="s.id">{{ s.eu }}</option>
-  </select>
-</div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Kích cỡ</label>
+                                <select class="form-select" multiple v-model="selectedSizes">
+                                    <option v-for="s in sizes" :key="s.id" :value="s.id">{{ s.eu }}</option>
+                                </select>
+                            </div>
 
-<!-- CỔ -->
-<div class="col-md-4 mb-3">
-  <label class="form-label fw-semibold">Kiểu cổ</label>
-  <select class="form-select" multiple v-model="selectedCollars">
-    <option v-for="c in collars" :key="c.id" :value="c.id">{{ c.name }}</option>
-  </select>
-</div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Kiểu cổ</label>
+                                <select class="form-select" multiple v-model="selectedCollars">
+                                    <option v-for="c in collars" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                </select>
+                            </div>
+                        </div>
 
-                            <div class="col-md-3">
+                        <div class="row g-3 gx-4 mt-3">
+                            <!-- Cột trái: Thông tin -->
+                            <div class="col-md-6">
                                 <label>Giá</label>
                                 <input type="number" class="form-control" v-model="detailForm.price" />
+
                                 <label class="mt-2">Mô tả</label>
                                 <input type="text" class="form-control" v-model="detailForm.description" />
-                                <button class="btn btn-primary mt-2 w-100" @click="saveProductDetails">
+
+                                <button class="btn btn-primary mt-3 w-100" @click="saveProductDetails">
                                     {{ detailForm.id ? '✔ Cập nhật' : '➕ Thêm' }}
                                 </button>
-                                <button class="btn btn-primary mt-2 w-100" @click="resetDetailForm">
+
+                                <button class="btn btn-secondary mt-2 w-100" @click="resetDetailForm">
                                     🧹 Làm mới
                                 </button>
+                            </div>
+
+                            <!-- Cột phải: Chọn ảnh -->
+                            <div class="col-md-6">
+                                <label>Ảnh sản phẩm (có thể chọn nhiều)</label>
+                                <input type="file" multiple accept="image/*" class="form-control"
+                                    @change="handleMultipleImageChange" />
+
+                                <div class="mt-3 d-flex flex-wrap gap-2 justify-content-start"
+                                    v-if="previewUrls.length">
+                                    <img v-for="(url, index) in previewUrls" :key="index" :src="url" alt="Preview"
+                                        class="img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;" />
+                                </div>
                             </div>
                         </div>
 
                         <!-- Bảng chi tiết -->
-                        <table class="table table-bordered table-sm mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Size</th>
-                                    <th>Màu</th>
-                                    <th>Cổ</th>
-                                    <th>Giá</th>
-                                    <th>Mô tả</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="productDetail in productDetailList" :key="productDetail.productDetailId">
-                                    <td>{{ productDetail.size }}</td>
-                                    <td>{{ productDetail.color }}</td>
-                                    <td>{{ productDetail.collar }}</td>
-                                    <td>{{ productDetail.price }}</td>
-                                    <td>{{ productDetail.descriptionProduct }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning me-1"
-                                            @click="editDetail(productDetail)">Sửa</button>
-                                        <button class="btn btn-sm btn-danger"
-                                            @click="deleteDetail(productDetail.productDetailId)">Xoá</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-responsive mt-4">
+                            <table class="table table-bordered table-sm">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Size</th>
+                                        <th>Màu</th>
+                                        <th>Cổ</th>
+                                        <th>Giá</th>
+                                        <th>Mô tả</th>
+                                        <th>Ảnh</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="align-middle">
+                                    <tr v-for="productDetail in paginatedDetails" :key="productDetail.productDetailId">
+                                        <td class="text-center">{{ productDetail.size }}</td>
+                                        <td>{{ productDetail.color }}</td>
+                                        <td>{{ productDetail.collar }}</td>
+                                        <td class="text-center">{{ productDetail.price }}</td>
+                                        <td>{{ productDetail.descriptionProduct }}</td>
+                                        <td class="text-center">
+                                            <div class="d-flex flex-wrap justify-content-center gap-1">
+                                                <img v-for="(img, idx) in productDetail.images" :key="idx" :src="img"
+                                                    alt="Ảnh" class="img-thumbnail"
+                                                    style="width: 60px; height: 60px; object-fit: cover;" />
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-warning me-1"
+                                                @click="editDetail(productDetail)">Sửa</button>
+                                            <button class="btn btn-sm btn-danger"
+                                                @click="deleteDetail(productDetail.productDetailId)">Xoá</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination chi tiết -->
+                        <nav class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item" :class="{ disabled: detailPage === 1 }">
+                                    <button class="page-link" @click="changeDetailPage(detailPage - 1)">«</button>
+                                </li>
+                                <li v-for="page in totalDetailPages" :key="page"
+                                    :class="{ active: page === detailPage }" class="page-item">
+                                    <button class="page-link" @click="changeDetailPage(page)">{{ page }}</button>
+                                </li>
+                                <li class="page-item" :class="{ disabled: detailPage === totalDetailPages }">
+                                    <button class="page-link" @click="changeDetailPage(detailPage + 1)">»</button>
+                                </li>
+                            </ul>
+                        </nav>
                     </div>
+
                     <div class="modal-footer">
                         <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                     </div>

@@ -32,4 +32,9 @@ public Image update(int id, Image iupdate) {
         return imageRepository.save(i);
     }).orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
 }
+
+public long countByProductDetailId(int productDetailId) {
+    return imageRepository.countByProductDetailId(productDetailId);
+}
+
 }

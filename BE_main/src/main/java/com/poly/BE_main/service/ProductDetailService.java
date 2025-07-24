@@ -20,7 +20,7 @@ public class ProductDetailService {
     @Autowired
     ProductDetailRepository productDetailRepository;
 
-     public List<ProductDetail> findAll() {
+    public List<ProductDetail> findAll() {
         return productDetailRepository.findAll();
     }
 
@@ -57,8 +57,7 @@ public class ProductDetailService {
         }).collect(Collectors.toList());
     }
 
-    
-    public Integer findProductID(Integer id){
+    public Integer findProductID(Integer id) {
         return productDetailRepository.findProductId(id);
     }
 
@@ -67,7 +66,11 @@ public class ProductDetailService {
     }
 
     public void deleteById(Integer id) {
-        productDetailRepository.deleteById(id);
+        if (productDetailRepository.existsById(id)) {
+            productDetailRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Không tìm thấy ProductDetail với id = " + id);
+        }
     }
 
     public ProductDetail update(int id, ProductDetail pUpdate) {
@@ -82,7 +85,7 @@ public class ProductDetailService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
     }
 
-        public List<ProductReceiptDTO> getAllProductReceiptDTO() {
+    public List<ProductReceiptDTO> getAllProductReceiptDTO() {
         List<Object[]> rawData = productDetailRepository.findAllProductReceiptDTO();
         List<ProductReceiptDTO> dtos = new ArrayList<>();
 

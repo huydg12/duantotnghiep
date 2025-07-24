@@ -26,7 +26,7 @@ public class Image {
     @Column(name = "PRODUCT_DETAIL_ID")
     private int productDetailId;
 
-    @Column(name = "URl")
+    @Column(name = "URL")
     private String url;
 
     @Column(name = "IS_MAIN")

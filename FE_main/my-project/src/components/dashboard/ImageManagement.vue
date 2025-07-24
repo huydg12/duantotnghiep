@@ -1,34 +1,34 @@
 <script setup>
 import axios from 'axios'
 import { ref, computed, onMounted } from 'vue'
+import vSelect from "vue-select"
+import "vue-select/dist/vue-select.css"
 
-// Danh sách ảnh
 const images = ref([])
+const selectedFiles = ref([])
+const previewUrls = ref([])
+const products = ref([])
 
-// Form dữ liệu ảnh
 const form = ref({
   id: null,
-  url: '',
-  isMain: false, // sửa từ "main" thành "isMain"
+  isMain: false,
   productDetailId: null
 })
 
 const isEditing = ref(false)
 const currentPage = ref(1)
 const pageSize = 5
+const mainImageIndex = ref(null)
 
-// Tính tổng số trang
 const totalPages = computed(() =>
   Math.ceil(images.value.length / pageSize)
 )
 
-// Danh sách ảnh hiển thị theo trang
 const paginatedImages = computed(() => {
   const start = (currentPage.value - 1) * pageSize
   return images.value.slice(start, start + pageSize)
 })
 
-// Lấy danh sách ảnh từ backend
 const fetchImages = async () => {
   try {
     const res = await axios.get('http://localhost:8080/image/show')
@@ -38,41 +38,91 @@ const fetchImages = async () => {
   }
 }
 
-// Khi component mount
+const fetchProductDetails = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/productDetail/showProductReceipt')
+    products.value = response.data.map(item => ({
+      id: item.productDetailId,
+      name: `Giày ${item.productName}`
+    }))
+  } catch (error) {
+    console.log("Lỗi", error)
+  }
+}
+
 onMounted(() => {
   fetchImages()
+  fetchProductDetails()
 })
 
-// Reset form
 function resetForm() {
   form.value = {
     id: null,
-    url: '',
     isMain: false,
     productDetailId: null
   }
+  selectedFiles.value = []
+  previewUrls.value = []
   isEditing.value = false
+  mainImageIndex.value = null
 }
 
-// Chuyển trang
 function goToPage(page) {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
   }
 }
 
-// Lưu ảnh (thêm hoặc cập nhật)
+function handleFileChange(event) {
+  selectedFiles.value = Array.from(event.target.files)
+  previewUrls.value = selectedFiles.value.map(file => URL.createObjectURL(file))
+  mainImageIndex.value = null
+}
+
+function selectMainImage(index) {
+  mainImageIndex.value = index
+}
+
+function getImageCountByProductDetailId(productDetailId) {
+  return images.value.filter(img => img.productDetailId === productDetailId).length
+}
+
 async function saveImage() {
   try {
-    if (!form.value.productDetailId || !form.value.url) {
-      alert('Vui lòng nhập đầy đủ thông tin.')
+    if (!form.value.productDetailId || (!selectedFiles.value.length && !isEditing.value)) {
+      alert('Vui lòng chọn ảnh và nhập đầy đủ thông tin.')
       return
     }
 
+    const currentImageCount = getImageCountByProductDetailId(form.value.productDetailId)
+    if (!isEditing.value && currentImageCount + selectedFiles.value.length > 6) {
+      alert('Mỗi sản phẩm chỉ được tối đa 6 ảnh. Vui lòng xoá bớt để thêm ảnh mới.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('productDetailId', form.value.productDetailId)
+
     if (isEditing.value) {
-      await axios.put(`http://localhost:8080/image/update/${form.value.id}`, form.value)
+      formData.append('id', form.value.id)
+      formData.append('isMain', form.value.isMain)
+      if (selectedFiles.value.length) {
+        formData.append('file', selectedFiles.value[0])
+      }
+      await axios.put(`http://localhost:8080/image/update/${form.value.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
     } else {
-      await axios.post('http://localhost:8080/image/add', form.value)
+      selectedFiles.value.forEach(file => {
+        formData.append('files', file)
+      })
+      formData.append('mainImageIndex', mainImageIndex.value ?? -1)
+
+      await axios.post('http://localhost:8080/image/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
     }
 
     await fetchImages()
@@ -82,13 +132,18 @@ async function saveImage() {
   }
 }
 
-// Sửa ảnh
+
 function editImage(image) {
-  form.value = { ...image }
+  form.value = {
+    id: image.id,
+    isMain: image.isMain,
+    productDetailId: image.productDetailId
+  }
+  selectedFiles.value = []
+  previewUrls.value = []
   isEditing.value = true
 }
 
-// Xoá ảnh
 async function deleteImage(id) {
   if (confirm('Bạn có chắc chắn muốn xoá ảnh này không?')) {
     try {
@@ -105,19 +160,35 @@ async function deleteImage(id) {
   <div class="container py-4">
     <h2 class="text-center fw-bold mb-4">Quản Lý Ảnh Sản Phẩm</h2>
 
-    <!-- Form nhập -->
     <form @submit.prevent="saveImage" class="border p-4 rounded bg-light mb-4">
       <div class="mb-3">
-        <label class="form-label">URL ảnh</label>
-        <input v-model="form.url" class="form-control" placeholder="./images/shoe1.webp" required />
+        <label class="form-label">Chọn ảnh</label>
+        <input type="file" class="form-control" accept="image/*" multiple @change="handleFileChange" />
+      </div>
+
+      <div v-if="previewUrls.length" class="mb-3 d-flex flex-wrap gap-3">
+        <div v-for="(url, index) in previewUrls" :key="index" class="text-center position-relative"
+          style="cursor: pointer;" @click="selectMainImage(index)">
+          <img :src="url" :alt="'Preview ' + index" :style="{
+            height: '80px',
+            border: mainImageIndex === index ? '3px solid red' : '1px solid #ccc',
+            borderRadius: '4px',
+            boxShadow: mainImageIndex === index ? '0 0 8px red' : 'none'
+          }" />
+          <div v-if="mainImageIndex === index"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            Chính
+          </div>
+        </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">ID chi tiết sản phẩm</label>
-        <input v-model="form.productDetailId" type="number" class="form-control" required />
+        <label class="form-label">Sản phẩm</label>
+        <v-select v-model="form.productDetailId" :options="products" label="name" :reduce="p => p.id"
+          placeholder="Chọn sản phẩm..." />
       </div>
 
-      <div class="mb-3 form-check">
+      <div v-if="isEditing" class="mb-3 form-check">
         <input v-model="form.isMain" type="checkbox" class="form-check-input" id="mainCheck" />
         <label class="form-check-label" for="mainCheck">Là ảnh chính</label>
       </div>
@@ -130,29 +201,24 @@ async function deleteImage(id) {
       </div>
     </form>
 
-    <!-- Bảng danh sách ảnh -->
+    <!-- Danh sách ảnh -->
     <div class="table-container table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-secondary text-center">
           <tr>
-            <th style="width: 60px">ID</th>
+            <th>ID sản phẩm</th>
             <th>Ảnh</th>
             <th>URL</th>
-            <th>Ảnh chính</th>
             <th style="width: 160px">Hành động</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="image in paginatedImages" :key="image.id">
-            <td class="text-center">{{ image.id }}</td>
+            <td class="text-center">{{ image.productDetailId }}</td>
             <td class="text-center">
               <img :src="image.url" style="max-height: 60px" :alt="'Ảnh ' + image.id" />
             </td>
             <td>{{ image.url }}</td>
-            <td class="text-center">
-              <span v-if="image.isMain" class="badge bg-success">Chính</span>
-              <span v-else class="text-muted">--</span>
-            </td>
             <td class="text-center">
               <button class="btn btn-success btn-sm me-2" @click="editImage(image)">Sửa</button>
               <button class="btn btn-danger btn-sm" @click="deleteImage(image.id)">Xoá</button>
@@ -169,12 +235,7 @@ async function deleteImage(id) {
           <button class="page-link" @click="goToPage(currentPage - 1)">«</button>
         </li>
 
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: page === currentPage }"
-        >
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
           <button class="page-link" @click="goToPage(page)">{{ page }}</button>
         </li>
 
