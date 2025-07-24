@@ -351,6 +351,12 @@ const goToDetail = (id) => {
 .cart-dropdown:hover .cart-popup {
   display: block;
 }
+.cart-popup .btn.btn-danger {
+  font-size: 12px !important;
+  padding: 7px 8px !important;
+  line-height: 1 !important;
+  border-radius: 4px !important;
+}
 .cart-popup {
   top: 100%; /* Hoặc 105% nếu cần cách nhẹ */
 }

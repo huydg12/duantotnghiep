@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted,computed,reactive   } from 'vue';
+import { ref, onMounted,computed,reactive,watch   } from 'vue';
 import axios from 'axios';
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
@@ -9,8 +9,6 @@ const CustomerData = ref(null);
 const note = ref(""); // Ghi chú đơn hàng
 const userJson = localStorage.getItem("user");
 let customerId = null;
-const discountAmount = 100000;
-const shippingFee = 30000;
 const addressList = ref([]);
 const provinces = ref([]);
 const districts = ref([]);
@@ -37,6 +35,59 @@ const addressBeingEdited = reactive({
   districtCode: '',
   cityCode: '',
   default: false,
+});
+const discountAmountList = ref([]);
+const promotionCode = ref(""); // input của người dùng
+const selectedPromotion = ref(null); // khuyến mãi tìm được
+const errorMessage = ref(""); // nếu mã sai
+
+const discountAmount = computed(() => {
+  if (!selectedPromotion.value) return 0;
+
+  const percent = selectedPromotion.value.value; // ví dụ: 10%
+  const totalBeforeDiscount = subTotal.value + shippingFee;
+  const discount = (totalBeforeDiscount * percent) / 100;
+
+  return Math.floor(discount); // làm tròn tiền giảm nếu cần
+});
+const fetchPromotion = async () => {
+  try {
+    const response = await axios.get('http://localhost:8080/promotion/show');
+    discountAmountList.value = response.data;
+    console.log("dữ liệu khuyến mãi:", response.data);
+  } catch (err) {
+    console.error("Lỗi khuyến mãi", err);
+  }
+};
+// Áp dụng mã khuyến mãi
+const applyPromotionCode = () => {
+  const code = promotionCode.value.trim().toLowerCase();
+  const today = new Date().toISOString().split("T")[0];
+
+  const promo = discountAmountList.value.find(p =>
+    p.promotionCode.toLowerCase() === code &&
+    p.status === 1 &&
+    p.startDate <= today &&
+    p.endDate >= today
+  );
+
+  if (promo) {
+    selectedPromotion.value = promo;
+    errorMessage.value = "";
+  } else {
+    selectedPromotion.value = null;
+    errorMessage.value = "Mã không hợp lệ hoặc đã hết hạn";
+  }
+};
+const shippingFee = computed(() => {
+  if (!defaultAddress.value || !defaultAddress.value.fullAddress) {
+    return 0; // Nếu chưa chọn địa chỉ thì mặc định 0
+  }
+
+  const addressText = defaultAddress.value.fullAddress.toLowerCase();
+  const isInHaiPhong = addressText.includes("hải phòng") || addressText.includes("haiphong");
+
+  return isInHaiPhong ? 30000 : 50000;
 });
 // Hàm normalize để so sánh tên không dấu
 const normalize = (str) => {
@@ -150,9 +201,6 @@ const saveAddress = async () => {
 
     const result = await response.json();
     console.log('Thêm địa chỉ thành công:', result);
-
-    // Đóng popup và làm sạch form
-    closeAddAddressOverlay();
     resetAddressForm();
 
     // Nếu cần, load lại danh sách địa chỉ
@@ -213,7 +261,7 @@ const subTotal = computed(() =>
 );
 
 const grandTotal = computed(() =>
-  subTotal.value - discountAmount + shippingFee
+  subTotal.value + shippingFee.value - discountAmount.value
 );
 const getCityNameByCode = (code) => {
   const city = (provinces.value || []).find(p => p.code === code);
@@ -308,7 +356,6 @@ const findCustomerByAccountId = async () => {
 };
 
 
-
 const selectedPaymentMethod = ref("CASH"); // Mặc định là CASH
 
 // Mapping phương thức thanh toán sang ID trong DB
@@ -317,11 +364,26 @@ const paymentMethodMapping = {
   MOMO: 2,
   QR: 3
 };
+
+
+const getValidPromotion = () => {
+  const today = new Date().toISOString().split("T")[0];
+
+  return discountAmount.value.find(promo => {
+    return promo.startDate <= today &&
+           promo.endDate >= today &&
+           promo.status === 1 &&
+           promo.applyAll === true;
+  });
+};
+
+const billCode = ref(`HD${Date.now()}`)  // ví dụ: "HD1721810123980"
 // Hàm tạo billPayload động
 const generateBillPayload = () => {
+
   const _subTotal = subTotal.value
-  const _discountAmount = 100000 // sau này nếu có khuyến mãi thì thay vào
-  const _shippingFee = 30000
+  const _discountAmount = discountAmount.value || 0 // lấy từ computed
+  const _shippingFee = shippingFee.value
   const _grandTotal = grandTotal.value
 
   const today = new Date().toISOString().split("T")[0]
@@ -340,7 +402,7 @@ const generateBillPayload = () => {
     customerId: customerId,
     employeeId: null,
     ptttId: paymentMethodMapping[selectedPaymentMethod.value] || 1, // Mặc định là CASH
-    code: "HD" + Math.floor(Math.random() * 100000), // auto code
+    code: billCode.value, // auto code
     billType: "ONLINE",
     status: 1,
     createdBy: customerId,
@@ -363,23 +425,51 @@ const generateBillPayload = () => {
     billDetails: billDetails
   }
 }
+const qrJustCreated = ref(false);
 
 
 const createBill = async () => {
+  if (selectedPaymentMethod.value === 'QR') {
+    amount.value = grandTotal.value;
+    addInfo.value = billCode.value;
+    await createQR();           // tạo QR
+    qrJustCreated.value = true; // đánh dấu là vừa tạo QR
+    return;                     // chưa gửi đơn hàng
+  }
+
+  // Gửi đơn hàng như bình thường
+  await sendBill();
+};
+
+const sendBill = async () => {
   try {
     const payload = generateBillPayload();
-    console.log("Payload gửi lên:", payload); // ✅ debug
     const response = await axios.post("http://localhost:8080/bill/add", payload);
-    console.log("Đơn hàng đã tạo:", response.data);
 
+    // Xoá cart
+    for (const item of checkoutItems.value) {
+      if (item.cartDetailId !== undefined && item.cartDetailId !== null) {
+        await axios.delete(`http://localhost:8080/cartDetail/delete/${item.cartDetailId}`);
+      }
+    }
+
+    sessionStorage.removeItem("checkoutItems");
     alert("Đặt hàng thành công!");
-    sessionStorage.removeItem("checkoutItems"); // nếu có lưu local
+    window.location.href = "/home";
   } catch (err) {
     console.error("Lỗi tạo đơn hàng:", err);
     alert("Đặt hàng thất bại!");
   }
 };
+const handleCloseQR = async () => {
+  qrImage.value = null;
 
+  // Nếu vừa tạo QR xong, thì giờ mới tạo đơn hàng
+  if (qrJustCreated.value) {
+    qrJustCreated.value = false;
+    await sendBill();
+  }
+};
 
 const newAddressForm = ref(null);
 
@@ -490,6 +580,42 @@ const deleteAddress = async (id) => {
   }
 };
 
+const qrImage = ref(null);
+const amount = ref(0);
+const addInfo = ref('')
+
+const createQR = async () => {
+  try {
+    qrImage.value = null; // reset trước
+    const res = await fetch('http://localhost:8081/api/generate-qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bankCode: 'MB',
+        accountNo: '0337030134',
+        accountName: 'BUI VAN HIEU',
+        amount: amount.value,
+        addInfo: addInfo.value,
+        acqId: '970422'
+      })
+    });
+
+    const data = await res.json();
+
+    // ✅ Nếu có ảnh QR
+    if (data.qrImage) {
+      qrImage.value = data.qrImage;
+      console.log("🟢 QR Image set:", qrImage.value);
+    } else {
+      console.warn("⚠️ Không nhận được ảnh QR từ server");
+    }
+
+  } catch (err) {
+    alert('Lỗi tạo mã QR. Vui lòng thử lại.');
+    console.error(err);
+  }
+};
+
 onMounted(() => {
   const stored = sessionStorage.getItem("checkoutItems");
   if (stored) {
@@ -499,6 +625,7 @@ onMounted(() => {
     findCustomerByAccountId();
     fetchAddressList();
   }
+  fetchPromotion();
     fetchProvinces();
 });
 
@@ -575,13 +702,28 @@ onMounted(() => {
         <label class="form-check-label" for="paymentQR">Quét mã QR ngân hàng</label>
       </div>
     </div>
+    <div v-if="qrImage" class="qr-popup">
+      <h3>Quét mã để thanh toán</h3>
+      <img :src="qrImage" alt="QR Code" />
+      <p><strong>Số tiền:</strong> {{ amount.toLocaleString() }} đ</p>
+      <p><strong>Nội dung:</strong> {{ addInfo }}</p>
+      <button @click="handleCloseQR()">Đã chuyển khoản</button>
+    </div>
 
-    <!-- Mã khuyến mãi -->
     <h5 class="mt-4 fw-medium">Mã khuyến mãi</h5>
     <div class="input-group mt-2">
-      <input type="text" class="form-control" placeholder="Nhập mã giảm giá">
-      <button class="btn btn-outline-primary">Áp dụng</button>
+      <input
+        type="text"
+        v-model="promotionCode"
+        class="form-control"
+        placeholder="Nhập mã giảm giá"
+      />
+      <button class="btn btn-outline-primary" @click="applyPromotionCode">
+        Áp dụng
+      </button>
     </div>
+    <!-- Thông báo lỗi nếu mã không hợp lệ -->
+    <p v-if="errorMessage" class="text-danger mt-1">{{ errorMessage }}</p>
     <!-- Ghi chú đơn hàng -->
     <h5 class="fw-semibold mt-4">Ghi chú đơn hàng</h5>
     <div class="border rounded bg-white p-3 mt-2">
@@ -608,10 +750,10 @@ onMounted(() => {
         <span>Phí vận chuyển:</span>
         <span>{{ formatCurrency(shippingFee) }}</span>
       </div>
-      <div class="d-flex justify-content-between">
-        <span>Khuyến mãi:</span>
-        <span>{{ formatCurrency(-discountAmount) }}</span>
-      </div>
+    <div class="d-flex justify-content-between mt-2">
+      <span>Khuyến mãi:</span>
+      <span>{{ formatCurrency(selectedPromotion ? -discountAmount : 0) }}</span>
+    </div>
       <hr>
       <div class="d-flex justify-content-between fw-bold fs-5">
         <span>Tổng thanh toán:</span>
@@ -623,8 +765,7 @@ onMounted(() => {
     <div class="text-end mt-4">
       <button class="btn btn-success px-4" @click="createBill">Thanh toán</button>
     </div>
-  </div>
-  
+    </div>
     <!-- Popup chọn địa chỉ -->
     <div
       v-if="showAddressOverlay"
@@ -933,5 +1074,50 @@ onMounted(() => {
 .disabled-link {
   pointer-events: none;
   opacity: 0.8;
+}
+.qr-popup {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  padding: 16px 20px;
+  width: 280px;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.qr-popup h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.qr-popup img {
+  max-width: 200px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.qr-popup p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.qr-popup button {
+  margin-top: 10px;
+  padding: 6px 16px;
+  font-size: 14px;
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.qr-popup button:hover {
+  background-color: #c82333;
 }
 </style>
