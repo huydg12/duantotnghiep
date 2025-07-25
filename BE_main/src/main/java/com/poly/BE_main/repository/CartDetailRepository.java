@@ -35,7 +35,8 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 PD.PRICE               AS price,
                 CD.QUANTITY            AS quantity,
                 I.URL                  AS image,
-                CD.MODIFIED_DATE       AS modifiedDate
+                CD.MODIFIED_DATE       AS modifiedDate,
+                ITR.QUANTITY            AS quantityInventory
             FROM CART_DETAIL CD
             JOIN CART C ON CD.CART_ID = C.ID
             JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.ID
@@ -43,6 +44,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
             JOIN PRODUCT P ON PD.PRODUCT_ID = P.ID
             JOIN SIZE S ON PD.SIZE_ID = S.ID
             JOIN COLOR CO ON PD.COLOR_ID = CO.ID
+            LEFT JOIN INVENTORY ITR ON ITR.PRODUCT_DETAIL_ID = PD.ID
 
             -- Lấy product detail đại diện theo màu
             LEFT JOIN RepresentativeProductDetail RPD

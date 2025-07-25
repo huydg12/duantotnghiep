@@ -49,4 +49,13 @@ public class InventoryController {
         inventoryService.updateQuantity(productDetailId, quantity);
         return ResponseEntity.ok().build();
     }
+
+        @PutMapping("/updateQuantityByPayMent/{productDetailId}")
+    public ResponseEntity<?> updateQuantityBypayment(@PathVariable("productDetailId") Integer productDetailId,
+                                            @RequestBody Map<String, Integer> body) {
+        int quantity = body.get("quantity");
+        inventoryService.updateQuantityByPayment(productDetailId, quantity);
+        return ResponseEntity.ok().build();
+    }
+    
 }

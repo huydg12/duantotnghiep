@@ -26,6 +26,21 @@ if (userJson) {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
 
+const validateQuantity = (item) => {
+  if (item.quantity < 1) {
+    item.quantity = 1;
+  } else if (item.quantity > item.quantityInventory) {
+    item.quantity = item.quantityInventory;
+  }
+};
+function blockMinus(e) {
+  if (e.key === '-' || e.key === 'e') {
+    e.preventDefault()
+  }
+}
+function hasInvalidQuantity() {
+  return cartItems.value.some(item => item.quantity > item.quantityInventory)
+}
 const fetchCartDetail = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/cartDetail/showCartDetail/${customerId}`);
@@ -72,10 +87,6 @@ async function removeItem(cartDetailId) {
 }
 
 async function updateQuantity(cartDetailId, quantity) {
-  if (quantity < 1) {
-    alert("Số lượng tối thiểu là 1");
-    return;
-  }
 
   try {
     await axios.put(`http://localhost:8080/cartDetail/updateQuantityByCartDetailID/${cartDetailId}`, {
@@ -201,8 +212,10 @@ function goToProductDetail(productDetailId) {
               type="number"
               v-model="item.quantity"
               min="1"
+              :max="item.quantityInventory"
               class="form-control text-center quantity"
-              @change="updateQuantity(item.cartDetailId, item.quantity)"
+              @change="validateQuantity(item); updateQuantity(item.cartDetailId, item.quantity)"
+              @keydown="blockMinus"
             />
           </div>
         <!-- Nút Xóa -->
@@ -221,11 +234,12 @@ function goToProductDetail(productDetailId) {
             {{ formatCurrency(totalPrice) }}
           </span>
         </h5>
+        
         <div class="mt-4 d-flex flex-column flex-md-row justify-content-end gap-2">
           <router-link to="/product" class="btn btn-outline-secondary">
             Tiếp tục mua sắm
           </router-link>
-        <button class="btn btn-success text-center" @click="handleCheckout()">
+        <button class="btn btn-success text-center" :disabled="hasInvalidQuantity()"  @click="handleCheckout()">
           🧾 Thanh toán
         </button>
         </div>

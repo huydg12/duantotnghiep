@@ -40,12 +40,11 @@ public class CartDetailService {
             BigDecimal price = (BigDecimal) obj[8];
             Integer quantity = (Integer) obj[9];
             String images = (String) obj[10];
-            // ✅ Xử lý tránh null ở obj[11]
             LocalDateTime modifiedDate = null;
             if (obj[11] != null) {
                 modifiedDate = ((Timestamp) obj[11]).toLocalDateTime();
             }
-
+            Integer quantityInventory = (Integer) obj[12];
             return new CartDetailDTO(
                     cartDetailId,
                     cartId,
@@ -58,7 +57,8 @@ public class CartDetailService {
                     price,
                     quantity,
                     images,
-                    modifiedDate);
+                    modifiedDate,
+                    quantityInventory);
         }).collect(Collectors.toList());
     }
 

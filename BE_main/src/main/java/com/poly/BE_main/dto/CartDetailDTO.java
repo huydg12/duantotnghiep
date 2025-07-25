@@ -23,4 +23,5 @@ public class CartDetailDTO {
     private int quantity;
     private String images;
     private LocalDateTime modifiedDate;
+    private Integer quantityInventory;
 }

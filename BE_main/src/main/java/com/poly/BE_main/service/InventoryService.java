@@ -50,6 +50,24 @@ public class InventoryService {
 
         return false; // Không tồn tại productDetailId
     }
+    public boolean updateQuantityByPayment(Integer productDetailId, int purchasedQuantity) {
+        Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 
+        if (optionalInventory.isPresent()) {
+            Inventory inventory = optionalInventory.get();
+            int currentQuantity = inventory.getQuantity();
+
+            if (currentQuantity < purchasedQuantity) {
+                // ❌ Không đủ hàng, không trừ
+                return false;
+            }
+
+            inventory.setQuantity(currentQuantity - purchasedQuantity);
+            inventoryRepository.save(inventory);
+            return true;
+        }
+
+        return false;
+    }
 
 }

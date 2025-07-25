@@ -37,7 +37,8 @@ public class ProductDetailService {
             String description = (String) obj[6];
             String size = (String) obj[7];
             BigDecimal price = (BigDecimal) obj[8];
-            String imageString = (String) obj[9];
+            Integer quantity = (Integer) obj[9];
+            String imageString = (String) obj[10];
 
             List<String> images = (imageString != null && !imageString.isEmpty())
                     ? Arrays.asList(imageString.split(","))
@@ -53,6 +54,7 @@ public class ProductDetailService {
                     description,
                     size,
                     price,
+                    quantity,
                     images);
         }).collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted,computed,reactive,watch   } from 'vue';
+import { ref, onMounted, computed, reactive, watch } from 'vue';
 import axios from 'axios';
+import Swal from 'sweetalert2'
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
@@ -14,8 +15,6 @@ const provinces = ref([]);
 const districts = ref([]);
 const wards = ref([]);
 const defaultAddress = ref(null);
-
-
 const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
@@ -107,7 +106,7 @@ if (userJson) {
   }
 } else {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
-  
+
 }
 // ✅ Lấy danh sách tỉnh/thành phố (và districts cấp 2 luôn)
 const fetchProvinces = async () => {
@@ -185,7 +184,7 @@ const saveAddress = async () => {
       default: isDefaultAddress.value,
       detailAddress: detailAddress.value,
       wardName: ward.name,
-      districtName:district.name,
+      districtName: district.name,
       cityName: province.name
     };
 
@@ -222,28 +221,28 @@ const handleDistrictChange = () => {
   addressBeingEdited.wardCode = '';
   fetchWards(addressBeingEdited.districtCode);
 };
- const setAsDefault = async (address) => {
-    try {
-      const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
-        method: 'PUT',
-      });
-      console.log("📦 Địa chỉ được chọn để đặt mặc định:", address.id);
+const setAsDefault = async (address) => {
+  try {
+    const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
+      method: 'PUT',
+    });
+    console.log("📦 Địa chỉ được chọn để đặt mặc định:", address.id);
 
-      if (!response.ok) {
-        throw new Error('Lỗi khi đặt địa chỉ mặc định');
-      }
+    if (!response.ok) {
+      throw new Error('Lỗi khi đặt địa chỉ mặc định');
+    }
 
     // ✅ Gọi lại fetchAddressList để cập nhật UI
-    await fetchAddressList();    
+    await fetchAddressList();
 
 
-      // ✅ Optional: Hiển thị thông báo
-      alert('Đã chọn địa chỉ làm mặc định!');
-    } catch (error) {
-      console.error('Lỗi khi đặt mặc định:', error);
-      alert('Không thể đặt địa chỉ làm mặc định!');
-    }
+    // ✅ Optional: Hiển thị thông báo
+    alert('Đã chọn địa chỉ làm mặc định!');
+  } catch (error) {
+    console.error('Lỗi khi đặt mặc định:', error);
+    alert('Không thể đặt địa chỉ làm mặc định!');
   }
+}
 
 const resetAddressForm = () => {
   recipientName.value = '';
@@ -319,7 +318,7 @@ const updateAddress = async () => {
 
     alert('✅ Cập nhật địa chỉ thành công!');
     await fetchAddressList();
-        closeUpdateAddressOverlay();
+    closeUpdateAddressOverlay();
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
     alert('❌ Cập nhật địa chỉ thất bại');
@@ -329,7 +328,7 @@ const fetchAddressList = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/address/showById/${customerId}`);
     addressList.value = response.data;
-        // Gán default address
+    // Gán default address
     defaultAddress.value = addressList.value.find(addr => addr.default === true);
 
     // 👉 Đóng popup và reset form
@@ -357,7 +356,35 @@ const findCustomerByAccountId = async () => {
 
 
 const selectedPaymentMethod = ref("CASH"); // Mặc định là CASH
+function base64EncodeUnicode(obj) {
+  const jsonString = JSON.stringify(obj);
+  const utf8Bytes = new TextEncoder().encode(jsonString);
+  let binary = '';
+  utf8Bytes.forEach((b) => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
 
+const createMoMoPayment = async () => {
+  try {
+    const extraData = base64EncodeUnicode(generateBillPayload());
+
+    const response = await axios.post("http://localhost:5000/payment", {
+      amount: grandTotal.value,
+      extraData: extraData,
+    });
+
+    const payUrl = response.data.payUrl; // ✅ Lấy URL thanh toán từ phản hồi
+
+    if (payUrl) {
+      window.location.href = payUrl; // ✅ Chuyển hướng sang MoMo
+    } else {
+      alert("Không nhận được link thanh toán từ MoMo.");
+    }
+  } catch (error) {
+    console.error("Lỗi tạo thanh toán MoMo:", error);
+    alert("Không thể kết nối tới cổng thanh toán MoMo.");
+  }
+};
 // Mapping phương thức thanh toán sang ID trong DB
 const paymentMethodMapping = {
   CASH: 1,
@@ -371,16 +398,15 @@ const getValidPromotion = () => {
 
   return discountAmount.value.find(promo => {
     return promo.startDate <= today &&
-           promo.endDate >= today &&
-           promo.status === 1 &&
-           promo.applyAll === true;
+      promo.endDate >= today &&
+      promo.status === 1 &&
+      promo.applyAll === true;
   });
 };
 
 const billCode = ref(`HD${Date.now()}`)  // ví dụ: "HD1721810123980"
 // Hàm tạo billPayload động
 const generateBillPayload = () => {
-
   const _subTotal = subTotal.value
   const _discountAmount = discountAmount.value || 0 // lấy từ computed
   const _shippingFee = shippingFee.value
@@ -397,7 +423,10 @@ const generateBillPayload = () => {
     size: item.size,
     productName: item.productName
   }))
-
+    // ✅ Thêm phần này để server callback có thể xóa cart
+  const cartItems = checkoutItems.value.map(item => ({
+    cartDetailId: item.cartDetailId
+  }));
   return {
     customerId: customerId,
     employeeId: null,
@@ -422,29 +451,62 @@ const generateBillPayload = () => {
     discountAmount: _discountAmount,
     shippingFee: _shippingFee,
     grandTotal: _grandTotal,
-    billDetails: billDetails
+    billDetails: billDetails,
+    cartItems: cartItems
   }
 }
 const qrJustCreated = ref(false);
 
 
 const createBill = async () => {
+    // ✅ Hiển thị popup loading bằng Swal
+  Swal.fire({
+    title: 'Đang xử lý thanh toán...',
+    html: 'Vui lòng chờ trong giây lát...',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  localStorage.setItem("paymentSuccessFlag", "1");
   if (selectedPaymentMethod.value === 'QR') {
     amount.value = grandTotal.value;
     addInfo.value = billCode.value;
     await createQR();           // tạo QR
-    qrJustCreated.value = true; // đánh dấu là vừa tạo QR
+    qrJustCreated.value = true;
+    Swal.close();
     return;                     // chưa gửi đơn hàng
   }
-
+  if (selectedPaymentMethod.value === 'MOMO') {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    await createMoMoPayment(); // 🚀 Gọi MoMo
+    Swal.close(); 
+    return; // Không gọi sendBill vì sẽ xử lý ở callback
+  }
   // Gửi đơn hàng như bình thường
   await sendBill();
+  Swal.close();
 };
 
 const sendBill = async () => {
   try {
     const payload = generateBillPayload();
     const response = await axios.post("http://localhost:8080/bill/add", payload);
+    const savedBill = response.data;
+
+      // ✅ Trừ kho dựa vào billDetails
+      if (Array.isArray(savedBill.billDetails)) {
+        for (const detail of savedBill.billDetails) {
+          if (detail.productDetailId && detail.quantity) {
+            await axios.put(`http://localhost:8080/inventory/updateQuantityByPayMent/${detail.productDetailId}`, {
+              quantity: detail.quantity
+            });
+          }
+        }
+      }
+
 
     // Xoá cart
     for (const item of checkoutItems.value) {
@@ -452,13 +514,10 @@ const sendBill = async () => {
         await axios.delete(`http://localhost:8080/cartDetail/delete/${item.cartDetailId}`);
       }
     }
-
     sessionStorage.removeItem("checkoutItems");
-    alert("Đặt hàng thành công!");
     window.location.href = "/home";
   } catch (err) {
     console.error("Lỗi tạo đơn hàng:", err);
-    alert("Đặt hàng thất bại!");
   }
 };
 const handleCloseQR = async () => {
@@ -621,12 +680,12 @@ onMounted(() => {
   if (stored) {
     checkoutItems.value = JSON.parse(stored);
   }
-    if (customerId) {
+  if (customerId) {
     findCustomerByAccountId();
     fetchAddressList();
   }
   fetchPromotion();
-    fetchProvinces();
+  fetchProvinces();
 });
 
 </script>
@@ -639,7 +698,7 @@ onMounted(() => {
       <button @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
     </div>
     <div v-if="defaultAddress" class="border rounded bg-light p-3">
-      <strong>{{ defaultAddress.fullName }}</strong> -  {{ defaultAddress.numberPhone }}
+      <strong>{{ defaultAddress.fullName }}</strong> - {{ defaultAddress.numberPhone }}
       <span v-if="defaultAddress.default" class="badge bg-primary disabled-link">Mặc định</span><br>
       {{ defaultAddress.fullAddress }}
     </div>
@@ -650,55 +709,49 @@ onMounted(() => {
       </button>
     </div>
 
-<!-- Sản phẩm -->
-<div class="row fw-semibold border-bottom py-2 mt-4">
-  <div class="col-6">Sản phẩm</div>
-  <div class="col-2 text-end">Đơn giá</div>
-  <div class="col-2 text-center">Số lượng</div>
-  <div class="col-2 text-end">Thành tiền</div>
-</div>
+    <!-- Sản phẩm -->
+    <div class="row fw-semibold border-bottom py-2 mt-4">
+      <div class="col-6">Sản phẩm</div>
+      <div class="col-2 text-end">Đơn giá</div>
+      <div class="col-2 text-center">Số lượng</div>
+      <div class="col-2 text-end">Thành tiền</div>
+    </div>
 
-<div v-if="checkoutItems.length > 0">
-  <div
-    v-for="item in checkoutItems"
-    :key="item.cartDetailId"
-    class="row align-items-center border-bottom py-3"
-  >
-    <div class="col-6 d-flex">
-      <img
-        :src="item.images"
-        :alt="item.productName"
-        class="img-thumbnail me-3"
-        style="width: 80px;"
-      />
-      <div>
-        <div class="fw-medium">{{ item.productName }}</div>
-        <div class="text-muted small">
-          Màu: {{ item.color }} | Size: {{ item.size }}
+    <div v-if="checkoutItems.length > 0">
+      <div v-for="item in checkoutItems" :key="item.cartDetailId" class="row align-items-center border-bottom py-3">
+        <div class="col-6 d-flex">
+          <img :src="item.images" :alt="item.productName" class="img-thumbnail me-3" style="width: 80px;" />
+          <div>
+            <div class="fw-medium">{{ item.productName }}</div>
+            <div class="text-muted small">
+              Màu: {{ item.color }} | Size: {{ item.size }}
+            </div>
+          </div>
+        </div>
+        <div class="col-2 text-end">{{ formatCurrency(item.price) }}</div>
+        <div class="col-2 text-center">{{ item.quantity }}</div>
+        <div class="col-2 text-end fw-semibold">
+          {{ formatCurrency(item.price * item.quantity) }}
         </div>
       </div>
     </div>
-    <div class="col-2 text-end">{{ formatCurrency(item.price) }}</div>
-    <div class="col-2 text-center">{{ item.quantity }}</div>
-    <div class="col-2 text-end fw-semibold">
-      {{ formatCurrency(item.price * item.quantity) }}
-    </div>
-  </div>
-</div>
 
     <!-- Phương thức thanh toán -->
     <h5 class="fw-semibold mt-4">Phương thức thanh toán</h5>
     <div class="border rounded bg-white p-3 mt-2">
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="CASH" id="Cash" v-model="selectedPaymentMethod" checked>
+        <input class="form-check-input" type="radio" name="paymentMethod" value="CASH" id="Cash"
+          v-model="selectedPaymentMethod" checked>
         <label class="form-check-label" for="paymentCash">Thanh toán khi nhận hàng</label>
       </div>
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="momo" v-model="selectedPaymentMethod">
+        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="momo"
+          v-model="selectedPaymentMethod">
         <label class="form-check-label" for="paymentMomo">Ví MoMo</label>
       </div>
       <div class="form-check">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="qr" v-model="selectedPaymentMethod">
+        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="qr"
+          v-model="selectedPaymentMethod">
         <label class="form-check-label" for="paymentQR">Quét mã QR ngân hàng</label>
       </div>
     </div>
@@ -712,12 +765,7 @@ onMounted(() => {
 
     <h5 class="mt-4 fw-medium">Mã khuyến mãi</h5>
     <div class="input-group mt-2">
-      <input
-        type="text"
-        v-model="promotionCode"
-        class="form-control"
-        placeholder="Nhập mã giảm giá"
-      />
+      <input type="text" v-model="promotionCode" class="form-control" placeholder="Nhập mã giảm giá" />
       <button class="btn btn-outline-primary" @click="applyPromotionCode">
         Áp dụng
       </button>
@@ -729,14 +777,8 @@ onMounted(() => {
     <div class="border rounded bg-white p-3 mt-2">
       <div class="form-group">
         <label for="note" class="form-label">Ghi chú</label>
-        <textarea
-          class="form-control"
-          id="note"
-          name="note"
-          rows="3"
-          placeholder="Nhập ghi chú cho đơn hàng..."
-          v-model="note"
-        ></textarea>
+        <textarea class="form-control" id="note" name="note" rows="3" placeholder="Nhập ghi chú cho đơn hàng..."
+          v-model="note"></textarea>
       </div>
     </div>
     <!-- Tổng kết -->
@@ -750,10 +792,10 @@ onMounted(() => {
         <span>Phí vận chuyển:</span>
         <span>{{ formatCurrency(shippingFee) }}</span>
       </div>
-    <div class="d-flex justify-content-between mt-2">
-      <span>Khuyến mãi:</span>
-      <span>{{ formatCurrency(selectedPromotion ? -discountAmount : 0) }}</span>
-    </div>
+      <div class="d-flex justify-content-between mt-2">
+        <span>Khuyến mãi:</span>
+        <span>{{ formatCurrency(selectedPromotion ? -discountAmount : 0) }}</span>
+      </div>
       <hr>
       <div class="d-flex justify-content-between fw-bold fs-5">
         <span>Tổng thanh toán:</span>
@@ -765,149 +807,176 @@ onMounted(() => {
     <div class="text-end mt-4">
       <button class="btn btn-success px-4" @click="createBill">Thanh toán</button>
     </div>
-    </div>
-    <!-- Popup chọn địa chỉ -->
-    <div
-      v-if="showAddressOverlay"
-      @click.self="closeAddressOverlay"
-      class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
-    >
-      <div
-        class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
-        style="max-width: 600px; height: 70vh;"  
-        @click.stop
-      >
-        <!-- Header: cố định -->
-        <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
-          <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
-          <button
-            type="button"
-            class="btn-close position-absolute top-0 end-0 m-3"
-            aria-label="Đóng"
-            @click="closeAddressOverlay"
-          ></button>
-        </div>
+  </div>
+  <!-- Popup chọn địa chỉ -->
+  <div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+    <div class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
+      style="max-width: 600px; height: 70vh;" @click.stop>
+      <!-- Header: cố định -->
+      <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
+        <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Đóng"
+          @click="closeAddressOverlay"></button>
+      </div>
 
-        <!-- Body: cuộn -->
-        <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
-          <form @submit.prevent="confirmAddressSelection">
-            <!-- Danh sách địa chỉ -->
-            <div
-              v-for="address in addressList"
-              :key="address.id"
-              class="border rounded p-3 mb-3 position-relative"
-            >
-              <div class="mb-2">
-                <strong>{{ address.fullName }}</strong><br />
-                <span class="text-muted small">{{ address.numberPhone }}</span><br />
-                <span class="small">{{ address.fullAddress }}</span>
+      <!-- Body: cuộn -->
+      <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
+        <form @submit.prevent="confirmAddressSelection">
+          <!-- Danh sách địa chỉ -->
+          <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
+            <div class="mb-2">
+              <strong>{{ address.fullName }}</strong><br />
+              <span class="text-muted small">{{ address.numberPhone }}</span><br />
+              <span class="small">{{ address.fullAddress }}</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div>
+                <span v-if="address.default" class="badge bg-primary">Mặc định</span>
+                <button v-else class="btn btn-outline-primary btn-sm" @click.prevent="setAsDefault(address)">
+                  Chọn làm mặc định
+                </button>
               </div>
 
-              <div class="d-flex justify-content-between align-items-center mt-2">
-                <div>
-                  <span v-if="address.default" class="badge bg-primary">Mặc định</span>
-                  <button
-                    v-else
-                    class="btn btn-outline-primary btn-sm"
-                    @click.prevent="setAsDefault(address)"
-                  >
-                    Chọn làm mặc định
-                  </button>
-                </div>
-
-                    <!-- Bên phải: 2 nút Xoá & Cập nhật sát nhau -->
-                    <div class="d-flex gap-2">
-                      <span
-                        class="text-danger text-decoration-underline small"
-                        role="button"
-                        @click="deleteAddress(address.id)"
-                      >
-                        Xoá
-                      </span>
-                      <span
-                        class="text-primary text-decoration-underline small"
-                        role="button"
-                        @click="openUpdateAddressOverlay(address)"
-                      >
-                        Cập nhật
-                      </span>
-                    </div>
+              <!-- Bên phải: 2 nút Xoá & Cập nhật sát nhau -->
+              <div class="d-flex gap-2">
+                <span class="text-danger text-decoration-underline small" role="button"
+                  @click="deleteAddress(address.id)">
+                  Xoá
+                </span>
+                <span class="text-primary text-decoration-underline small" role="button"
+                  @click="openUpdateAddressOverlay(address)">
+                  Cập nhật
+                </span>
               </div>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
+      </div>
 
-        <!-- Footer: cố định -->
-        <div class="p-4 border-top bg-white position-sticky bottom-0 z-2">
-          <button type="button" class="btn btn-success w-100" @click="openAddAddressOverlay">
-            + Thêm Địa Chỉ Mới
-          </button>
-        </div>
+      <!-- Footer: cố định -->
+      <div class="p-4 border-top bg-white position-sticky bottom-0 z-2">
+        <button type="button" class="btn btn-success w-100" @click="openAddAddressOverlay">
+          + Thêm Địa Chỉ Mới
+        </button>
       </div>
     </div>
-<!-- Popup thêm địa chỉ -->
-<div
-  v-if="showAddAddressOverlay"
-  @click="handleOverlayClick"
-  class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center"
->
-  <div
-    class="bg-white rounded shadow position-relative w-100"
-    style="max-width: 400px; font-size: 0.800rem;" 
-  >
-    <div class="p-3"> <!-- Giảm padding -->
-      <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
+  </div>
+  <!-- Popup thêm địa chỉ -->
+  <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+    <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
+      <div class="p-3"> <!-- Giảm padding -->
+        <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
+
+        <!-- Nút X -->
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+          @click="closeAddAddressOverlay"></button>
+
+        <form @submit.prevent="saveAddress">
+          <!-- Họ và tên -->
+          <div class="mb-2">
+            <label class="form-label">Họ và tên người nhận</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Nhập họ tên" v-model="recipientName"
+              required />
+          </div>
+
+          <!-- Số điện thoại -->
+          <div class="mb-2">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" class="form-control form-control-sm" placeholder="Nhập số điện thoại"
+              v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
+              required />
+          </div>
+
+          <!-- Tỉnh / Thành phố -->
+          <div class="mb-2">
+            <label class="form-label">Tỉnh / Thành phố</label>
+            <select class="form-select form-select-sm" required v-model="selectedProvinceCode"
+              @change="fetchDistricts(selectedProvinceCode)">
+              <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
+              <option v-for="province in provinces" :key="province.code" :value="province.code">
+                {{ province.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Quận / Huyện -->
+          <div class="mb-2">
+            <label class="form-label">Quận / Huyện</label>
+            <select class="form-select form-select-sm" required v-model="selectedDistrictCode"
+              @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
+              <option value="" disabled selected>-- Chọn quận/huyện --</option>
+              <option v-for="district in districts" :key="district.code" :value="district.code">
+                {{ district.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Phường / Xã -->
+          <div class="mb-2">
+            <label class="form-label">Phường / Xã</label>
+            <select class="form-select form-select-sm" required v-model="selectedWardCode" :disabled="!wards.length">
+              <option value="" disabled selected>-- Chọn phường/xã --</option>
+              <option v-for="ward in wards" :key="ward.code" :value="ward.code">
+                {{ ward.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Địa chỉ chi tiết -->
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ chi tiết</label>
+            <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập địa chỉ cụ thể"
+              v-model="detailAddress" required></textarea>
+          </div>
+
+          <!-- Nút lưu -->
+          <div class="text-end">
+            <button type="submit" class="btn btn-sm btn-primary">Lưu địa chỉ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Popup cập nhật địa chỉ -->
+  <div v-if="showUpdateAddressOverlay"
+    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+    style="z-index: 9999">
+    <div class="bg-white p-3 rounded shadow position-relative w-100"
+      style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
+      <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
 
       <!-- Nút X -->
-      <button
-        type="button"
-        class="btn-close position-absolute top-0 end-0 m-2"
-        aria-label="Đóng"
-        @click="closeAddAddressOverlay"
-      ></button>
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+        @click="closeUpdateAddressOverlay"></button>
 
-      <form @submit.prevent="saveAddress">
-        <!-- Họ và tên -->
+      <form @submit.prevent="updateAddress">
+        <!-- Họ tên -->
         <div class="mb-2">
-          <label class="form-label">Họ và tên người nhận</label>
-          <input
-            type="text"
-            class="form-control form-control-sm"
-            placeholder="Nhập họ tên"
-            v-model="recipientName"
-            required
-          />
+          <label class="form-label">Họ và tên</label>
+          <input type="text" class="form-control form-control-sm"
+            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName" required />
         </div>
 
         <!-- Số điện thoại -->
         <div class="mb-2">
           <label class="form-label">Số điện thoại</label>
-          <input
-            type="tel"
-            class="form-control form-control-sm"
-            placeholder="Nhập số điện thoại"
-            v-model="phoneNumber"
-            pattern="^(0[0-9]{9})$"
-            title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
-            required
-          />
+          <input type="text" class="form-control form-control-sm"
+            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+            required />
         </div>
 
         <!-- Tỉnh / Thành phố -->
         <div class="mb-2">
           <label class="form-label">Tỉnh / Thành phố</label>
-          <select
-            class="form-select form-select-sm"
-            required
-            v-model="selectedProvinceCode"
-            @change="fetchDistricts(selectedProvinceCode)"
-          >
-            <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
-            <option
-              v-for="province in provinces"
-              :key="province.code"
-              :value="province.code"
-            >
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.cityCode" @change="handleCityChange">
+            <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
+            <option v-for="province in provinces" :key="province.code" :value="province.code">
               {{ province.name }}
             </option>
           </select>
@@ -916,19 +985,10 @@ onMounted(() => {
         <!-- Quận / Huyện -->
         <div class="mb-2">
           <label class="form-label">Quận / Huyện</label>
-          <select
-            class="form-select form-select-sm"
-            required
-            v-model="selectedDistrictCode"
-            @change="fetchWards(selectedDistrictCode)"
-            :disabled="!districts.length"
-          >
-            <option value="" disabled selected>-- Chọn quận/huyện --</option>
-            <option
-              v-for="district in districts"
-              :key="district.code"
-              :value="district.code"
-            >
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.districtCode" @change="handleDistrictChange" :disabled="!districts.length">
+            <option disabled value="">-- Chọn quận/huyện --</option>
+            <option v-for="district in districts" :key="district.code" :value="district.code">
               {{ district.name }}
             </option>
           </select>
@@ -937,13 +997,9 @@ onMounted(() => {
         <!-- Phường / Xã -->
         <div class="mb-2">
           <label class="form-label">Phường / Xã</label>
-          <select
-            class="form-select form-select-sm"
-            required
-            v-model="selectedWardCode"
-            :disabled="!wards.length"
-          >
-            <option value="" disabled selected>-- Chọn phường/xã --</option>
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
+            <option disabled value="">-- Chọn phường/xã --</option>
             <option v-for="ward in wards" :key="ward.code" :value="ward.code">
               {{ ward.name }}
             </option>
@@ -951,121 +1007,20 @@ onMounted(() => {
         </div>
 
         <!-- Địa chỉ chi tiết -->
-        <div class="mb-3">
-          <label class="form-label">Địa chỉ chi tiết</label>
-          <textarea
-            class="form-control form-control-sm"
-            rows="2"
-            placeholder="Nhập địa chỉ cụ thể"
-            v-model="detailAddress"
-            required
-          ></textarea>
+        <div class="mb-3 mt-2">
+          <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
+          <textarea class="form-control form-control-sm" rows="2" style="font-size: 0.7rem; padding: 4px 8px;"
+            placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
         </div>
 
-        <!-- Nút lưu -->
         <div class="text-end">
-          <button type="submit" class="btn btn-sm btn-primary">Lưu địa chỉ</button>
+          <button type="submit" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 4px 12px;">
+            Lưu
+          </button>
         </div>
       </form>
     </div>
   </div>
-</div>
-
-
-<!-- Popup cập nhật địa chỉ -->
-<div
-  v-if="showUpdateAddressOverlay"
-  class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-  style="z-index: 9999"
->
-  <div class="bg-white p-3 rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
-    <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
-
-    <!-- Nút X -->
-    <button
-      type="button"
-      class="btn-close position-absolute top-0 end-0 m-2"
-      aria-label="Đóng"
-      @click="closeUpdateAddressOverlay"
-    ></button>
-
-    <form @submit.prevent="updateAddress">
-      <!-- Họ tên -->
-      <div class="mb-2">
-        <label class="form-label">Họ và tên</label>
-        <input type="text" class="form-control form-control-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName" required />
-      </div>
-
-      <!-- Số điện thoại -->
-      <div class="mb-2">
-        <label class="form-label">Số điện thoại</label>
-        <input type="text" class="form-control form-control-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone" required />
-      </div>
-
-      <!-- Tỉnh / Thành phố -->
-      <div class="mb-2">
-        <label class="form-label">Tỉnh / Thành phố</label>
-        <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-                required
-                v-model="addressBeingEdited.cityCode"
-                @change="handleCityChange">
-          <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
-          <option v-for="province in provinces" :key="province.code" :value="province.code">
-            {{ province.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Quận / Huyện -->
-      <div class="mb-2">
-        <label class="form-label">Quận / Huyện</label>
-        <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-                required
-                v-model="addressBeingEdited.districtCode"
-                @change="handleDistrictChange"
-                :disabled="!districts.length">
-          <option disabled value="">-- Chọn quận/huyện --</option>
-          <option v-for="district in districts" :key="district.code" :value="district.code">
-            {{ district.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Phường / Xã -->
-      <div class="mb-2">
-        <label class="form-label">Phường / Xã</label>
-        <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-                required
-                v-model="addressBeingEdited.wardCode"
-                :disabled="!wards.length">
-          <option disabled value="">-- Chọn phường/xã --</option>
-          <option v-for="ward in wards" :key="ward.code" :value="ward.code">
-            {{ ward.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Địa chỉ chi tiết -->
-      <div class="mb-3 mt-2">
-        <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
-        <textarea
-          class="form-control form-control-sm"
-          rows="2"
-          style="font-size: 0.7rem; padding: 4px 8px;"
-          placeholder="Nhập địa chỉ cụ thể"
-          v-model="addressBeingEdited.detailAddress"
-          required
-        ></textarea>
-      </div>
-
-      <div class="text-end">
-        <button type="submit" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 4px 12px;">
-          Lưu
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
 
 
 </template>
@@ -1075,6 +1030,7 @@ onMounted(() => {
   pointer-events: none;
   opacity: 0.8;
 }
+
 .qr-popup {
   position: fixed;
   top: 20%;
