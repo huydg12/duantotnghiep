@@ -35,12 +35,6 @@ public class Account {
     @Column(name = "PASSWORD", length = 255)
     private String password;
 
-    @Column(name = "EMAIL", length = 255)
-    private String email;
-
-    @Column(name = "NUMBER_PHONE", length = 45)
-    private String numberPhone;
-
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 

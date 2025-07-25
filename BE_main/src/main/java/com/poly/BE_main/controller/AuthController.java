@@ -74,8 +74,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> login(@RequestBody RegisterDTO registerDTO) {
         Account account = new Account();
-        account.setNumberPhone(registerDTO.getPhone());
-        account.setEmail(registerDTO.getEmail());
         account.setUsername(registerDTO.getUsername());
         account.setPassword(registerDTO.getPassword());
         account.setIsActive(true);
@@ -107,8 +105,8 @@ public class AuthController {
     }
 
     @PostMapping("/resetpassword")
-    public ResponseEntity<?> resertPassword(@RequestBody ResetPasswordDTO resertPasswordDTO) {
-        accountService.resertPassword(resertPasswordDTO.getEmail(), resertPasswordDTO.getNewPassword());
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO resertPasswordDTO) {
+        accountService.resetPassword(resertPasswordDTO.getEmail(), resertPasswordDTO.getNewPassword());
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 

@@ -16,12 +16,20 @@ public class AccountDTO {
     private String email;
     private Integer customerId;
     private Integer employeeId;
+
     public AccountDTO(Account account) {
         this.id = account.getId();
         this.username = account.getUsername();
         this.roleId = account.getRoleId();
-        this.email = account.getEmail();
-        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ Customer
+        if (account.getCustomer() != null) {
+            this.email = account.getCustomer().getEmail();
+        } else if (account.getEmployee() != null) {
+            this.email = account.getEmployee().getEmail();
+        } else {
+            this.email = null;
+        }
+        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ
+                                                                                                // Customer
         this.employeeId = account.getEmployee() != null ? account.getEmployee().getId() : null;
     }
 

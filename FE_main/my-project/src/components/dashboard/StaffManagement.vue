@@ -200,7 +200,7 @@ function goToPage(page) {
                 <tbody>
                     <tr v-for="employee in paginatedEmployees" :key="employee.id">
                         <td class="text-center">{{ employee.id }}</td>
-                        <td class="text-center">{{ employee.accountId }}</td>
+                        <td class="text-center">{{ employee.account?.id }}</td>
                         <td class="text-center">{{ employee.fullName }}</td>
                         <td class="text-center">{{ employee.gender }}</td>
                         <td class="text-center">{{ employee.email }}</td>

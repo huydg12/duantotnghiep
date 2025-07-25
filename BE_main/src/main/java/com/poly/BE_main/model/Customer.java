@@ -50,7 +50,7 @@ public class Customer {
     private LocalDateTime createdDate;
 
     @OneToOne
-    @JoinColumn(name = "ACCOUNT_ID")
+    @JoinColumn(name = "ACCOUNT_ID", nullable = true)
     @JsonManagedReference
     private Account account;
 }

@@ -132,16 +132,6 @@ function getVietnamDateTimeLocalFormat() {
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input v-model="form.email" type="email" required class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Số điện thoại</label>
-                <input v-model="form.numberPhone" required class="form-control" />
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label d-block">Trạng thái</label>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" id="active" :value="true" v-model="form.isActive" />
@@ -153,13 +143,40 @@ function getVietnamDateTimeLocalFormat() {
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label">Vai trò</label>
-                <select v-model="form.roleId" class="form-select">
-                    <option value="1">Admin</option>
-                    <option value="2">Khách Hàng</option>
-                    <option value="3">Nhân Viên</option>
-                </select>
+                <label class="form-label d-block">Vai trò</label>
+
+                <!-- Khi thêm mới: chỉ hiện Admin và Nhân viên -->
+                <template v-if="!isEditing">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="admin" value="1" v-model="form.roleId">
+                        <label class="form-check-label" for="admin">Admin</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="employee" value="3" v-model="form.roleId">
+                        <label class="form-check-label" for="employee">Nhân viên</label>
+                    </div>
+                </template>
+
+                <!-- Khi chỉnh sửa: hiện đủ 3 vai trò nhưng disabled -->
+                <template v-else>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="admin" value="1" v-model="form.roleId"
+                            disabled>
+                        <label class="form-check-label" for="admin">Admin</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="employee" value="3" v-model="form.roleId"
+                            disabled>
+                        <label class="form-check-label" for="employee">Nhân viên</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="customer" value="2" v-model="form.roleId"
+                            disabled>
+                        <label class="form-check-label" for="customer">Khách hàng</label>
+                    </div>
+                </template>
             </div>
+
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     {{ isEditing ? "Cập nhật" : "Thêm" }}
@@ -178,8 +195,6 @@ function getVietnamDateTimeLocalFormat() {
                         <th style="width: 60px">ID</th>
                         <th style="width: 180px">Tài khoản</th>
                         <th style="width: 180px">Mật khẩu</th>
-                        <th style="width: 180px">Email</th>
-                        <th style="width: 180px">Số điện thoại</th>
                         <th style="width: 180px">Ngày tạo</th>
                         <th style="width: 180px">Trạng thái</th>
                         <th style="width: 180px">Vai trò</th>
@@ -191,8 +206,6 @@ function getVietnamDateTimeLocalFormat() {
                         <td class="text-center">{{ account.id }}</td>
                         <td class="text-center">{{ account.username }}</td>
                         <td class="text-center">{{ account.password }}</td>
-                        <td class="text-center">{{ account.email }}</td>
-                        <td class="text-center">{{ account.numberPhone }}</td>
                         <td class="text-center">{{ formatDateTime(account.createdDate) }}</td>
                         <td class="text-center">
                             <span v-if="account.roleId === 1">Admin</span>

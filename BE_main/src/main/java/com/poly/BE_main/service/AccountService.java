@@ -57,7 +57,7 @@ public class AccountService {
     }
 
     public void forgetPassword(String email) {
-        if (!accountRepository.existsByEmail(email)) {
+        if (!customerRepository.existsByEmail(email)) {
             throw new RuntimeException("Email không tồn tại");
         }
 
@@ -90,10 +90,13 @@ public class AccountService {
         }
     }
 
-    public void resertPassword(String email, String newPassword) {
-        Account account = accountRepository.findByEmail(email)
+    public void resetPassword(String email, String newPassword) {
+        // Tìm customer theo email
+        Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
 
+        // Lấy account từ customer
+        Account account = customer.getAccount();
         account.setPassword(newPassword);
 
         accountRepository.save(account);
