@@ -28,8 +28,6 @@ if (userJson) {
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error);
   }
-} else {
-  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
 
 // Điều hướng trang chi tiết sản phẩm

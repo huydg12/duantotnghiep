@@ -105,8 +105,6 @@ onMounted(async () => {
 
   if (customerId.value) {
     await store.refreshAll(customerId.value);
-  } else {
-    console.warn("⚠️ Không có customerId để fetch dữ liệu");
   }
 });
 

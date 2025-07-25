@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute,useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
@@ -26,11 +26,14 @@ if (userJson) {
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error);
   }
-} else {
-  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
 
 const findCartIdByCustomerId = async () => {
+  if (!customerId) {
+    console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user")
+    return;
+  }
+
   try {
     const response = await axios.get(`http://localhost:8080/cart/getCartId/${customerId}`)
     console.log("📦 cartId trả về:", response.data)
@@ -41,30 +44,21 @@ const findCartIdByCustomerId = async () => {
 }
 
 
-function validateQuantity() {
-  const max = selectedProduct.value.quantity || 0
-
-  if (quantity.value < 1) {
-    quantity.value = 1
-  } else if (quantity.value > max) {
-    quantity.value = max
-  }
-}
-
-function blockMinus(e) {
-  if (e.key === '-' || e.key === 'e'|| e.key === '+') {
-    e.preventDefault()
-  }
-}
 
 const addToCart = async () => {
+  if (!customerId) {
+    alert("Vui lòng đăng nhập để thêm vào giỏ hàng.");
+    router.push("/auth/login");
+    return;
+  }
+
   try {
     const payload = {
       cartId: cartId.value, // Sử dụng cartId đã lấy từ API
       productDetailId: selectedProduct.value.productDetailId,
       quantity: quantity.value
     }
-        console.log("📦 Payload gửi lên /cartDetail/add:", payload)
+    console.log("📦 Payload gửi lên /cartDetail/add:", payload)
 
     // Kiểm tra từng phần tử riêng biệt
     console.log("🆔 cartId:", cartId.value)
@@ -81,7 +75,7 @@ const addToCart = async () => {
     const checkResponse = await axios.get(checkUrl)
 
 
-  if (checkResponse.data === true) {
+    if (checkResponse.data === true) {
       // Đã tồn tại → cập nhật số lượng mới
       console.log("🔍 checkResponse.data:", checkResponse.data)
       const updatePayload = {
@@ -112,17 +106,14 @@ const addToCart = async () => {
   }
 }
 
-
-
 const sizeList = ref(['35', '36', '36.5', '37', '37.5', '38', '38.5', '39', '40', '40.5', '41',
- '42', '42.5', '43', '44', '44.5', '45', '46','47', '48'])
+  '42', '42.5', '43', '44', '44.5', '45', '46', '47', '48'])
 
 // Danh sách các màu là duy nhất
 const uniqueColors = computed(() => {
   const colors = productVariants.value.map(p => p.color)
   return [...new Set(colors)]
 })
-
 
 const selectColor = (color) => {
   // Tìm sản phẩm đầu tiên có màu này để làm lựa chọn mặc định
@@ -147,7 +138,7 @@ const updateSelection = (variant) => {
 
   // Xử lý lại chuỗi ảnh cho phiên bản vừa chọn
   selectedImage.value = (variant.images && variant.images[0]) || ''
-    console.log('Variant.images:', variant.images)
+  console.log('Variant.images:', variant.images)
 
   // Tìm tất cả size có sẵn cho màu hiện tại
   const sizesForColor = productVariants.value
@@ -165,16 +156,16 @@ const fetchProductDetail = async () => {
     console.log("API trả về productDetailId:", detailRes.data)
     let productId
 
-      // Nếu detailRes.data là số → chính là productId
-      if (typeof detailRes.data === "number") {
-        productId = detailRes.data
-      } else if (detailRes.data && detailRes.data.productId) {
-        productId = detailRes.data.productId
-      } else {
-        productId = id
-      }
+    // Nếu detailRes.data là số → chính là productId
+    if (typeof detailRes.data === "number") {
+      productId = detailRes.data
+    } else if (detailRes.data && detailRes.data.productId) {
+      productId = detailRes.data.productId
+    } else {
+      productId = id
+    }
 
-      console.log("productId sau xử lý: ", productId)
+    console.log("productId sau xử lý: ", productId)
 
     // Gọi API để lấy tất cả phiên bản sản phẩm theo productId
     const response = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
@@ -201,6 +192,11 @@ const fetchProductDetail = async () => {
 }
 
 const buyNow = () => {
+  if (!customerId) {
+    alert("Vui lòng đăng nhập để mua hàng.");
+    router.push("/auth/login");
+    return;
+  }
   const checkoutItem = {
     productDetailId: selectedProduct.value.productDetailId,
     productName: selectedProduct.value.productName,
@@ -222,7 +218,10 @@ const selectImage = (img) => {
 
 onMounted(() => {
   fetchProductDetail()
-  findCartIdByCustomerId() // <-- THÊM DÒNG NÀY
+
+  if (customerId) {
+    findCartIdByCustomerId()
+  }
 })
 </script>
 
@@ -231,7 +230,7 @@ onMounted(() => {
 
   <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
-  <div class="col-md-6 position-relative">
+<div class="col-md-6 position-relative">
       <!-- Ảnh chính -->
       <img
         :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage"
@@ -240,20 +239,14 @@ onMounted(() => {
         style="max-height: 400px; object-fit: contain;"
       />
 
-      <!-- Danh sách ảnh phụ -->
-      <div class="d-flex gap-2 mt-3 overflow-auto">
-        <img
-          v-for="(img, index) in selectedProduct.images"
-          :key="index"
-          :src="img.startsWith('./') ? img.replace('./', '/') : img"
-          alt="Ảnh phụ"
-          @click="selectImage(img)"
-          class="img-thumbnail border border-2"
-          :class="{ 'border-primary': selectedImage === img }"
-          style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
-        />
+        <!-- Danh sách ảnh phụ -->
+        <div class="d-flex gap-2 mt-3 overflow-auto">
+          <img v-for="(img, index) in selectedProduct.images" :key="index"
+            :src="img.startsWith('./') ? img.replace('./', '/') : img" alt="Ảnh phụ" @click="selectImage(img)"
+            class="img-thumbnail border border-2" :class="{ 'border-primary': selectedImage === img }"
+            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" />
+        </div>
       </div>
-    </div>
 
       <div class="col-md-6">
         <h2 class="fw-semibold mb-2">{{ selectedProduct.productName }}</h2>
@@ -269,22 +262,15 @@ onMounted(() => {
           </button>
         </div>
 
-          <div class="mb-3">
-            Kích thước:
-            <button
-              v-for="size in sizeList"
-              :key="size"
-              class="size-btn"
-              :class="[
-                { active: selectedProduct.size === size },
-                { unavailable: !availableSizes.includes(size) }
-              ]"
-              :disabled="!availableSizes.includes(size)"
-              @click="selectSize(size)"
-            >
-              {{ size }}
-            </button>
-          </div>
+        <div class="mb-3">
+          Kích thước:
+          <button v-for="size in sizeList" :key="size" class="size-btn" :class="[
+            { active: selectedProduct.size === size },
+            { unavailable: !availableSizes.includes(size) }
+          ]" :disabled="!availableSizes.includes(size)" @click="selectSize(size)">
+            {{ size }}
+          </button>
+        </div>
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
@@ -336,21 +322,13 @@ onMounted(() => {
       </div>
     </div>
   <!-- Toast thông báo thêm vào giỏ thành công -->
-  <div
-    v-if="showToast"
-    class="position-fixed top-0 end-0 p-3"
-    style="z-index: 1055;"
-  >
+  <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     <div class="toast align-items-center show bg-success text-white border-0">
       <div class="d-flex">
         <div class="toast-body">
           ✅ Đã thêm sản phẩm vào giỏ hàng!
         </div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          @click="showToast = false"
-        ></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showToast = false"></button>
       </div>
     </div>
   </div>
@@ -419,6 +397,7 @@ onMounted(() => {
   cursor: not-allowed;
   border-color: #dee2e6;
 }
+
 .toast {
   animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
   min-width: 250px;
@@ -432,6 +411,7 @@ onMounted(() => {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0%);
     opacity: 1;

@@ -24,7 +24,6 @@ import VerifyCode from "../components/auth/VerifyCode.vue";
 // Admin Page
 import Manage from "../components/admin/Manage.vue";
 
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -42,10 +41,25 @@ const router = createRouter({
           component: ProductDetail,
         },
         { path: "contact", name: "contact", component: Contact },
-        { path: "cart", name: "cart", component: Cart },
-        { path: "payment", name: "payment", component: Payment },
+        {
+          path: "cart",
+          name: "cart",
+          component: Cart,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: "payment",
+          name: "payment",
+          component: Payment,
+          meta: { requiresAuth: true },
+        },
         { path: "introduce", name: "introduce", component: Introduce },
-        { path: "favorite", name: "favorite", component: Favorite },
+        {
+          path: "favorite",
+          name: "favorite",
+          component: Favorite,
+          meta: { requiresAuth: true },
+        },
         {
           path: "informationcustomer",
           name: "informationcustomer",
@@ -95,6 +109,17 @@ const router = createRouter({
       component: Manage,
     },
   ],
+});
+router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const isAuthenticated = !!user;
+
+  // Nếu route yêu cầu đăng nhập nhưng chưa đăng nhập → chuyển về login
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return next("/auth/login");
+  }
+
+  next();
 });
 
 export default router;

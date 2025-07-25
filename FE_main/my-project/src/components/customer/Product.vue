@@ -42,6 +42,7 @@ const filters = ref({
   collars: [],
   search: ''
 })
+
 const userJson = localStorage.getItem("user")
 if (userJson) {
   try {
@@ -51,8 +52,6 @@ if (userJson) {
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error)
   }
-} else {
-  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user")
 }
 
 const goToDetail = (id) => {
