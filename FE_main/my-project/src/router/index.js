@@ -33,7 +33,11 @@ const router = createRouter({
       component: CustomerLayout,
       children: [
         { path: "", redirect: "/home" },
-        { path: "home", name: "home", component: Home },
+        {
+          path: "home",
+          name: "home",
+          component: Home,
+        },
         { path: "product", name: "product", component: Product },
         {
           path: "productdetail/:id",
@@ -107,19 +111,40 @@ const router = createRouter({
       path: "/manage",
       name: "manage",
       component: Manage,
+      meta: { requiresAuth: true },
     },
   ],
 });
+
+import { useUserStore } from "@/stores/userStore";
+
 router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const isAuthenticated = !!user;
+  const userStore = useUserStore()
+  userStore.loadUserFromLocalStorage()
+  const user = userStore.user
 
-  // Nếu route yêu cầu đăng nhập nhưng chưa đăng nhập → chuyển về login
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return next("/auth/login");
+  if (user) {
+    // Không cho admin/employee vào home
+    if ((user.role === 'ADMIN' || user.role === 'EMPLOYEE') && to.path === '/home') {
+      return next('/manage')
+    }
+
+    // Không cho đã đăng nhập quay lại login
+    if (to.path === '/auth/login') {
+      return next(user.role === 'CUSTOMER' ? '/home' : '/manage')
+    }
+
+    next() // Cho đi tiếp nếu không vi phạm
+  } else {
+    // Chưa đăng nhập thì chỉ chặn các trang yêu cầu đăng nhập như /cart, /informationcustomer, /manage
+    const protectedPaths = ['/cart', '/informationcustomer', '/manage']
+    if (protectedPaths.includes(to.path)) {
+      return next('/auth/login')
+    }
+
+    next() // Cho đi tiếp vào /home và các trang công khai khác
   }
+})
 
-  next();
-});
 
 export default router;

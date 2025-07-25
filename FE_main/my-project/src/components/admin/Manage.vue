@@ -1,5 +1,13 @@
 <script setup>
-import { ref, shallowRef, defineAsyncComponent } from "vue";
+import { ref, shallowRef, defineAsyncComponent, onMounted } from "vue";
+
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/userStore'
+
+const router = useRouter()
+const userStore = useUserStore()
+userStore.loadUserFromLocalStorage()
+
 
 // shallowRef để tối ưu các component => thay đổi cả component
 const activeComponent = shallowRef(
@@ -165,14 +173,21 @@ const menuItems = [
 
 function handleClick(target) {
   if (target === 'logout') {
-    // Xử lý logic đăng xuất ở đây
-    // Ví dụ: xóa token, gọi API, chuyển hướng về trang đăng nhập
-    console.log("Đăng xuất...");
-    // window.location.href = '/login';
+    userStore.logout()
+
+    // Điều hướng bằng replace để không quay lại được
+    router.replace("/auth/login").then(() => {
+      // Reload để clear cache nội dung đã xem
+      window.location.reload();
+    });
   } else {
-    loadContent(target);
+    loadContent(target)
   }
 }
+
+onMounted(() => {
+  console.log('Thông tin user đang đăng nhập:', userStore.user)
+})
 </script>
 
 <template>

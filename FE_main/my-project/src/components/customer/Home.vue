@@ -25,6 +25,11 @@ if (userJson) {
     const user = JSON.parse(userJson);
     customerId = user.customerId;
     console.log("✅ Customer ID:", customerId);
+
+    // ✅ Kiểm tra role để chuyển trang nếu là ADMIN hoặc EMPLOYEE
+    if (user.roleId === 1 || user.roleId === 3) {
+      router.replace("/manage");
+    }
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error);
   }
