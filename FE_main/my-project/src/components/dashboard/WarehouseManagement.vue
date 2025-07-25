@@ -18,6 +18,7 @@
         <tr>
           <th>STT</th>
           <th>Tên sản phẩm</th>
+          <th>Màu sắc</th>
           <th>Kích cỡ</th>
           <th>Số lượng tồn</th>
           <th>Ngày cập nhật</th>
@@ -27,6 +28,7 @@
         <tr v-for="(item, index) in filteredInventory" :key="item.id">
           <td>{{ index + 1 }}</td>
           <td>{{ item.productName }}</td>
+          <td>{{ item.color }}</td>
           <td>{{ item.size }}</td>
           <td>{{ item.quantity }}</td>
           <td>{{ formatDate(item.modifiedDate) }}</td>

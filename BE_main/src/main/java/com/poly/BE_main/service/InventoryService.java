@@ -58,7 +58,6 @@ public class InventoryService {
             int currentQuantity = inventory.getQuantity();
 
             if (currentQuantity < purchasedQuantity) {
-                // ❌ Không đủ hàng, không trừ
                 return false;
             }
 
