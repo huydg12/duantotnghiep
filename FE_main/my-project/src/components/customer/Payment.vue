@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, reactive, watch } from 'vue';
+import { ref, onMounted, computed, reactive, onUnmounted} from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2'
 const showAddressOverlay = ref(false);
@@ -49,6 +49,13 @@ const discountAmount = computed(() => {
 
   return Math.floor(discount); // làm tròn tiền giảm nếu cần
 });
+
+function handlePageShow(event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+    console.log('Reload triggered from pageshow')
+    window.location.reload()
+  }
+}
 const fetchPromotion = async () => {
   try {
     const response = await axios.get('http://localhost:8080/promotion/show');
@@ -676,6 +683,7 @@ const createQR = async () => {
 };
 
 onMounted(() => {
+  window.addEventListener('pageshow', handlePageShow)
   const stored = sessionStorage.getItem("checkoutItems");
   if (stored) {
     checkoutItems.value = JSON.parse(stored);
@@ -687,6 +695,9 @@ onMounted(() => {
   fetchPromotion();
   fetchProvinces();
 });
+onUnmounted(() => {
+  window.removeEventListener('pageshow', handlePageShow)
+})
 
 </script>
 
