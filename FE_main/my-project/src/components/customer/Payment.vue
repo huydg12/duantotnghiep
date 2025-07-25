@@ -164,22 +164,17 @@ const fetchWards = async (districtCode) => {
 
 
 
-
-const saveAddress = async () => {
+ const saveAddress = async () => {
   try {
     const province = provinces.value.find(p => p.code === selectedProvinceCode.value);
     const district = districts.value.find(d => d.code === selectedDistrictCode.value);
     const ward = wards.value.find(w => w.code === selectedWardCode.value);
 
-    if (!province || !district || !ward) {
-      alert('Vui lòng chọn đầy đủ Tỉnh / Quận / Phường');
-      return;
-    }
+
 
     const fullAddress = `${detailAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
 
     if (!customerId) {
-      alert('Không tìm thấy ID khách hàng');
       return;
     }
 
@@ -207,14 +202,16 @@ const saveAddress = async () => {
 
     const result = await response.json();
     console.log('Thêm địa chỉ thành công:', result);
+
     resetAddressForm();
+    closeAddAddressOverlay();
+    await fetchAddressList();
 
     // Nếu cần, load lại danh sách địa chỉ
     // await fetchAddressList();
 
   } catch (error) {
     console.error(error);
-    alert('Không thể thêm địa chỉ. Vui lòng thử lại!');
   }
 };
 
@@ -244,10 +241,10 @@ const setAsDefault = async (address) => {
 
 
     // ✅ Optional: Hiển thị thông báo
-    alert('Đã chọn địa chỉ làm mặc định!');
+
   } catch (error) {
     console.error('Lỗi khi đặt mặc định:', error);
-    alert('Không thể đặt địa chỉ làm mặc định!');
+
   }
 }
 
@@ -323,12 +320,12 @@ const updateAddress = async () => {
       throw new Error('Cập nhật địa chỉ thất bại');
     }
 
-    alert('✅ Cập nhật địa chỉ thành công!');
+
     await fetchAddressList();
     closeUpdateAddressOverlay();
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
-    alert('❌ Cập nhật địa chỉ thất bại');
+
   }
 };
 const fetchAddressList = async () => {
@@ -633,18 +630,27 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 };
 const deleteAddress = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
+  const addressToDelete = addressList.value.find(addr => addr.id === id)
+
+
+
+  // Nếu là mặc định thì không cho xóa
+  if (addressToDelete.default) {
+    alert("❌ Không thể xoá địa chỉ mặc định.\nVui lòng chọn địa chỉ khác làm mặc định trước.")
+    return
+  }
+
+  if (!confirm('🗑️ Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
 
   try {
-    console.log("ID: " + id)
     await axios.delete(`http://localhost:8080/address/delete/${id}`);
-    // Xoá thành công, cập nhật lại danh sách
     addressList.value = addressList.value.filter(addr => addr.id !== id);
+    alert("✅ Xoá địa chỉ thành công.")
   } catch (error) {
-    console.error('Lỗi khi xoá địa chỉ:', error);
-    alert('Xoá địa chỉ thất bại. Vui lòng thử lại!');
+    console.error('❌ Lỗi khi xoá địa chỉ:', error);
+    alert("Đã xảy ra lỗi khi xoá địa chỉ.")
   }
-};
+}
 
 const qrImage = ref(null);
 const amount = ref(0);
@@ -677,7 +683,6 @@ const createQR = async () => {
     }
 
   } catch (err) {
-    alert('Lỗi tạo mã QR. Vui lòng thử lại.');
     console.error(err);
   }
 };
@@ -1030,6 +1035,26 @@ onUnmounted(() => {
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+        <!-- Toast thông báo thêm vào giỏ thành công -->
+  <div
+    v-if="showToast"
+    class="position-fixed top-0 end-0 p-3"
+    style="z-index: 1055;"
+  >
+    <div class="toast align-items-center show bg-success text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Đã thêm vào mục yêu thích!
+        </div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          @click="showToast = false"
+        ></button>
+      </div>
     </div>
   </div>
 

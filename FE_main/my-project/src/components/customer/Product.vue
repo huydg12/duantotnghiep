@@ -34,13 +34,9 @@ const fetchBrands = async () => {
 // Filter states
 const filters = ref({
   sort: '',
-  brands: '',
+  brands: route.query.brand || '',
   prices: '',
-  sizes: [],
-  colors: [],
-  soles: [],
-  collars: [],
-  search: ''
+  search: route.query.keyword || ''
 })
 
 const userJson = localStorage.getItem("user")
@@ -168,14 +164,19 @@ onMounted(() => {
   const selectedBrand = router.options.history.state?.brandFromHeader || ''
   if (selectedBrand) {
     filters.value.brands = selectedBrand
-
+    fetchProducts() // => Gọi luôn để hiển thị sản phẩm theo brand
     // Xóa brandFromHeader khỏi state để khi quay lại không còn giữ nữa
     history.replaceState({ ...history.state, brandFromHeader: null }, '')
   }
 filters.value.search = route.query.keyword || ''
   fetchBrands()
   fetchFavorites()
-  fetchProducts()
+
+  if (!selectedBrand) {
+    fetchProducts()
+  }
+
+
 })
 
 
@@ -209,46 +210,6 @@ const filterSections = computed(() => [
       { id: 'price-2', label: '1 - 2 triệu', value: '1-2m' },
       { id: 'price-3', label: 'Trên 2 triệu', value: 'over-2m' }
     ]
-  },
-  {
-    title: 'Size',
-    model: 'sizes',
-    type: 'checkbox',
-    options: [38, 39, 40, 41, 42, 43].map(s => ({
-      id: `size-${s}`,
-      label: s.toString(),
-      value: s.toString()
-    }))
-  },
-  {
-    title: 'Màu sắc',
-    model: 'colors',
-    type: 'checkbox',
-    options: ['Đen', 'Trắng', 'Đỏ'].map(c => ({
-      id: `color-${c.toLowerCase()}`,
-      label: c,
-      value: c
-    }))
-  },
-  {
-    title: 'Loại đế',
-    model: 'soles',
-    type: 'checkbox',
-    options: ['Đế bằng', 'Đế cao'].map(s => ({
-      id: `sole-${s === 'Đế bằng' ? 'flat' : 'platform'}`,
-      label: s,
-      value: s
-    }))
-  },
-  {
-    title: 'Loại cổ',
-    model: 'collars',
-    type: 'checkbox',
-    options: ['Cổ thấp', 'Cổ cao'].map(c => ({
-      id: `collar-${c === 'Cổ thấp' ? 'low' : 'high'}`,
-      label: c,
-      value: c
-    }))
   },
 ])
 const handleRadioClick = (model, value) => {

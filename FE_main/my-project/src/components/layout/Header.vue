@@ -99,6 +99,13 @@ const formatCurrency = (value) => {
     currency: "VND",
   });
 };
+const searchByBrand = (brandName) => {
+  router.push({
+    path: "/product",
+    query: { brand: brandName }
+  });
+  showSearch.value = false;
+};
 watch(searchText, (newVal) => {
   fetchSuggestedProducts();
 });
@@ -142,10 +149,10 @@ const goToDetail = (id) => {
               </div>
               <ul class="dropdown-menu">
                 <li v-for="brand in brandList" :key="brand.id">
-                  <a class="dropdown-item cursor-pointer"
-                    @click="$router.push({ path: '/product', state: { brandFromHeader: brand.name } })">
-                    {{ brand.name }}
-                  </a>
+                <a class="dropdown-item cursor-pointer"
+                  @click="searchByBrand(brand.name)">
+                  {{ brand.name }}
+                </a>
                 </li>
               </ul>
             </li>
