@@ -33,7 +33,11 @@ const router = createRouter({
       component: CustomerLayout,
       children: [
         { path: "", redirect: "/home" },
-        { path: "home", name: "home", component: Home },
+        {
+          path: "home",
+          name: "home",
+          component: Home,
+        },
         { path: "product", name: "product", component: Product },
         {
           path: "productdetail/:id",
@@ -107,19 +111,48 @@ const router = createRouter({
       path: "/manage",
       name: "manage",
       component: Manage,
+      meta: { requiresAuth: true },
     },
   ],
 });
-router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  const isAuthenticated = !!user;
 
-  // Nếu route yêu cầu đăng nhập nhưng chưa đăng nhập → chuyển về login
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return next("/auth/login");
+import { useUserStore } from "@/stores/userStore";
+
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  userStore.loadUserFromLocalStorage();
+  const user = userStore.user;
+
+  const requiresAuth = to.meta.requiresAuth === true;
+
+  // Nếu chưa đăng nhập
+  if (!user) {
+    if (requiresAuth) {
+      return next('/auth/login');
+    }
+    return next(); // Vào home, introduce, v.v. được
   }
 
-  next();
+  // Nếu đã đăng nhập
+  const role = user.role || user.roleName || user.roleId;
+
+  // Ngăn không cho quay lại trang login
+  if (to.path.startsWith('/auth')) {
+    return next(role === 'CUSTOMER' || role === 2 ? '/home' : '/manage');
+  }
+
+  // Nếu là ADMIN hoặc EMPLOYEE mà vào /home thì chuyển về /manage
+  if ((role === 'ADMIN' || role === 'EMPLOYEE' || role === 1 || role === 3) && to.path === '/home') {
+    return next('/manage');
+  }
+
+  // Nếu là CUSTOMER mà cố vào /manage thì chuyển về /home
+  if ((role === 'CUSTOMER' || role === 2) && to.path.startsWith('/manage')) {
+    return next('/home');
+  }
+
+  // Mặc định cho đi tiếp
+  return next();
 });
 
 export default router;

@@ -9,27 +9,26 @@ const username = ref("");
 const password = ref("");
 const errorMessage = ref("");
 const userStore = useUserStore(); // khởi tạo store
+
 const handleLogin = async () => {
-    errorMessage.value = ""; // reset lỗi trước khi gửi
+  errorMessage.value = ""; // reset lỗi trước khi gửi
   try {
     const response = await axios.post("http://localhost:8080/auth/login", {
       username: username.value,
       password: password.value
     })
-
     const data = response.data
-
     // Lưu token vào localStorage
     localStorage.setItem("accessToken", data.accessToken);
     // Lưu thông tin user vào localStorage (nếu cần)
     localStorage.setItem("user", JSON.stringify(data.user));
-        userStore.setUser(data.user); // cập nhật reactive
+    userStore.setUser(data.user); // cập nhật reactive
     // Điều hướng dựa trên roleId
-if (data.user.roleId === 1 || data.user.roleId === 3) {
-  router.push("/manage").then(() => window.location.reload());
-} else {
-  router.push("/home").then(() => window.location.reload());
-}
+    if (data.user.roleId === 1 || data.user.roleId === 3) {
+      router.push("/manage").then(() => window.location.reload());
+    } else {
+      router.push("/home").then(() => window.location.reload());
+    }
   } catch (error) {
     console.error(error);
     errorMessage.value = "Tên tài khoản hoặc mật khẩu không đúng!";
@@ -58,5 +57,4 @@ if (data.user.roleId === 1 || data.user.roleId === 3) {
   </form>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

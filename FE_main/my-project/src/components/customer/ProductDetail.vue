@@ -42,7 +42,21 @@ const findCartIdByCustomerId = async () => {
     console.error("❌ Lỗi khi lấy cartId:", error)
   }
 }
+function validateQuantity() {
+  const max = selectedProduct.value.quantity || 0
 
+  if (quantity.value < 1) {
+    quantity.value = 1
+  } else if (quantity.value > max) {
+    quantity.value = max
+  }
+}
+
+function blockMinus(e) {
+  if (e.key === '-' || e.key === 'e'|| e.key === '+') {
+    e.preventDefault()
+  }
+}
 
 
 const addToCart = async () => {

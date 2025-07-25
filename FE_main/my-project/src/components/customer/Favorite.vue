@@ -74,7 +74,7 @@ onMounted(() => {
           <i
             class="fas fa-heart favorite-icon text-danger"
             :class="{ 'scale-up': favorite.favoriteId === recentlyRemovedId }"
-            @click.stop="handleFavoriteClick(favorite.favoriteId)"
+            @click.stop="deleteFavorite(favorite.favoriteId)"
           ></i>
 
           <div class="image-container position-relative">
