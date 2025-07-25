@@ -41,6 +41,21 @@ const findCartIdByCustomerId = async () => {
 }
 
 
+function validateQuantity() {
+  const max = selectedProduct.value.quantity || 0
+
+  if (quantity.value < 1) {
+    quantity.value = 1
+  } else if (quantity.value > max) {
+    quantity.value = max
+  }
+}
+
+function blockMinus(e) {
+  if (e.key === '-' || e.key === 'e'|| e.key === '+') {
+    e.preventDefault()
+  }
+}
 
 const addToCart = async () => {
   try {
@@ -216,7 +231,7 @@ onMounted(() => {
 
   <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
-<div class="col-md-6 position-relative">
+  <div class="col-md-6 position-relative">
       <!-- Ảnh chính -->
       <img
         :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage"
@@ -273,19 +288,53 @@ onMounted(() => {
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
-          <input type="number" v-model="quantity" min="1" class="form-control">
+          <input
+            type="number"
+            v-model.number="quantity"
+            min="1"
+            :max="selectedProduct.quantity"
+            class="form-control"
+            @blur="validateQuantity"
+            @change="validateQuantity"
+            @keydown="blockMinus"
+          />
+            <small class="text-muted mt-1 d-block">
+             {{ selectedProduct.quantity }} sản phẩm có sẵn
+          </small>
         </div>
 
-        <div class="d-flex gap-3 mb-4">
-          <button class="btn btn-primary product-button fw-semibold" @click="addToCart()">Thêm vào giỏ</button>
-          <button class="btn btn-danger product-button fw-semibold" @click="buyNow()">Mua ngay</button>
-        </div>
+
+      <!-- Thông báo khi không thể mua -->
+      <div v-if="selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
+        Sản phẩm hiện đã hết hàng
+      </div>
+
+      <!-- Luôn hiển thị 2 nút nhưng disable nếu không thể mua -->
+      <div class="d-flex gap-3 mb-4">
+        <button
+          class="btn btn-primary product-button fw-semibold"
+          @click="addToCart()"
+          :disabled="quantity > selectedProduct.quantity ||selectedProduct.quantity === 0"
+        >
+          Thêm vào giỏ
+        </button>
+
+        <button
+          class="btn btn-danger product-button fw-semibold"
+          @click="buyNow()"
+          :disabled=" quantity > selectedProduct.quantity ||selectedProduct.quantity === 0"
+        >
+          Mua ngay
+        </button>
+      </div>
 
         <hr />
         <p class="text-muted">{{ selectedProduct.descriptionProduct }}</p>
       </div>
+
+
+      </div>
     </div>
-  </div>
   <!-- Toast thông báo thêm vào giỏ thành công -->
   <div
     v-if="showToast"
