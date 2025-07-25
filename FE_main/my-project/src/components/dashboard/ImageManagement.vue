@@ -105,14 +105,18 @@ async function saveImage() {
 
     if (isEditing.value) {
       formData.append('id', form.value.id)
-      formData.append('isMain', form.value.isMain)
+      formData.append('isMain', form.value.isMain ? 'true' : 'false')
+      formData.append('productDetailId', form.value.productDetailId)
+
       if (selectedFiles.value.length) {
         formData.append('file', selectedFiles.value[0])
       }
+
       await axios.put(`http://localhost:8080/image/update/${form.value.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-    } else {
+    }
+    else {
       selectedFiles.value.forEach(file => {
         formData.append('files', file)
       })

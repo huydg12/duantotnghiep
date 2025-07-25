@@ -10,31 +10,41 @@ import com.poly.BE_main.repository.ImageRepository;
 
 @Service
 public class ImageService {
-@Autowired
-ImageRepository imageRepository;
 
-public List<Image>FinAll(){
-    return  imageRepository.findAll();
-}
+    @Autowired
+    ImageRepository imageRepository;
 
-public Image create(Image i){
-    return imageRepository.save(i);
-}
+    public List<Image> FinAll() {
+        return imageRepository.findAll();
+    }
 
-public void delete (int id){
-    imageRepository.deleteById(id);
-}
-
-public Image update(int id, Image iupdate) {
-    return imageRepository.findById(id).map(i -> {
-        i.setUrl(iupdate.getUrl());
-        i.setMain(iupdate.isMain()); // sửa tại đây
+    public Image create(Image i) {
         return imageRepository.save(i);
-    }).orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
-}
+    }
 
-public long countByProductDetailId(int productDetailId) {
-    return imageRepository.countByProductDetailId(productDetailId);
-}
+    public void delete(int id) {
+        imageRepository.deleteById(id);
+    }
 
+    public Image update(int id, Image iupdate) {
+        return imageRepository.findById(id).map(i -> {
+            i.setUrl(iupdate.getUrl());
+            i.setMain(iupdate.isMain());
+            return imageRepository.save(i);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
+    }
+
+    public long countByProductDetailId(int productDetailId) {
+        return imageRepository.countByProductDetailId(productDetailId);
+    }
+
+    public List<Image> findByProductDetailId(int productDetailId) {
+        return imageRepository.findByProductDetailId(productDetailId);
+    }
+
+    // ✅ Hàm tìm ảnh theo ID (dùng cho update ảnh có file mới)
+    public Image findById(int id) {
+        return imageRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
+    }
 }

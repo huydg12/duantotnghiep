@@ -3,7 +3,6 @@ import { reactive, ref, computed, nextTick, onMounted } from 'vue'
 import * as bootstrap from 'bootstrap'
 import axios from 'axios'
 
-// Dữ liệu và hàm fetch
 const brands = ref([])
 const categories = ref([])
 const soles = ref([])
@@ -14,6 +13,63 @@ const products = ref([])
 const productDetailList = ref([])
 const selectedImages = ref([])
 const previewUrls = ref([])
+const mainImageIndex = ref(null)
+const selectedDetailImages = ref([])
+const currentDetailId = ref(null)
+const newFileInput = document.createElement("input");
+newFileInput.type = "file";
+newFileInput.accept = "image/*";
+const mainImageIndexViewer = ref(null) // ảnh chính trong modal image viewer
+
+function openImageViewer(detail) {
+    selectedDetailImages.value = detail.images || []
+    currentDetailId.value = detail.productDetailId
+
+    mainImageIndexViewer.value = 0;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageViewerModal'))
+    modal.show()
+}
+
+const editImage = async (detailId, imageIndex) => {
+    const newFileInput = document.createElement("input");
+    newFileInput.type = "file";
+    newFileInput.accept = "image/*";
+
+    newFileInput.onchange = async () => {
+        const file = newFileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("productDetailId", detailId);
+        formData.append("imageIndex", imageIndex);
+
+        try {
+            const response = await axios.post("http://localhost:8080/image/update-file", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            console.log("Ảnh đã cập nhật:", response.data);
+
+            // Tải lại danh sách chi tiết để cập nhật ảnh
+            await loadProductDetails(currentProduct.value.id);
+
+            // Tìm lại chi tiết hiện tại để cập nhật ảnh trong modal
+            const updatedDetail = productDetailList.value.find(
+                (d) => d.productDetailId === detailId
+            );
+            if (updatedDetail) {
+                selectedDetailImages.value = updatedDetail.images || [];
+            }
+
+        } catch (error) {
+            console.error("Lỗi khi cập nhật ảnh:", error);
+        }
+    };
+
+    newFileInput.click();
+};
+
 
 function handleMultipleImageChange(event) {
     const files = Array.from(event.target.files)
@@ -21,13 +77,18 @@ function handleMultipleImageChange(event) {
 
     selectedImages.value = files
     previewUrls.value = files.map(file => URL.createObjectURL(file))
+    mainImageIndex.value = null
+}
+
+function selectMainImage(index) {
+    mainImageIndex.value = index
 }
 
 async function uploadImages(detailId) {
     const formData = new FormData();
     selectedImages.value.forEach(file => formData.append('files', file));
     formData.append('productDetailId', detailId);
-
+    formData.append('mainImageIndex', mainImageIndex.value ?? -1)
     try {
         await axios.post('http://localhost:8080/image/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -212,34 +273,41 @@ function getVietnamTimeWithoutSeconds() {
     const dd = String(date.getDate()).padStart(2, '0')
     const HH = String(date.getHours()).padStart(2, '0')
     const mm = String(date.getMinutes()).padStart(2, '0')
-
     return `${yyyy}-${MM}-${dd}T${HH}:${mm}`
 }
 
 async function saveProduct() {
-    if (!form.productName) return alert('Nhập tên sản phẩm')
+    if (!form.productName) return alert('Nhập tên sản phẩm');
 
-    // Lưu createdBy là tên người dùng
-    const payload = { ...form, createdBy: user.value.fullName }
+    // Kiểm tra trùng tên khi thêm mới
+    const isDuplicate = products.value.some(
+        (p) => p.productName.trim().toLowerCase() === form.productName.trim().toLowerCase()
+    );
+
+    if (!form.id && isDuplicate) {
+        alert('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.');
+        return;
+    }
+
+    const payload = { ...form, createdBy: user.value.fullName };
 
     try {
         if (form.id) {
-            await axios.put(`http://localhost:8080/product/update/${form.id}`, payload)
-            alert('Cập nhật thành công')
+            await axios.put(`http://localhost:8080/product/update/${form.id}`, payload);
+            alert('Cập nhật thành công');
         } else {
-            form.createdDate = getVietnamTimeWithoutSeconds()
-            await axios.post('http://localhost:8080/product/add', payload)
-            alert('Thêm sản phẩm thành công')
+            form.createdDate = getVietnamTimeWithoutSeconds();
+            await axios.post('http://localhost:8080/product/add', payload);
+            alert('Thêm sản phẩm thành công');
         }
 
-        resetForm()
-        fetchproduct()
+        resetForm();
+        fetchproduct();
     } catch (error) {
-        console.error('Lỗi khi lưu sản phẩm:', error)
-        alert('Có lỗi khi lưu sản phẩm')
+        console.error('Lỗi khi lưu sản phẩm:', error);
+        alert('Có lỗi khi lưu sản phẩm');
     }
 }
-
 
 function editProduct(p) {
     Object.assign(form, JSON.parse(JSON.stringify(p)))
@@ -266,64 +334,81 @@ async function openDetailModal(product) {
 }
 
 async function saveProductDetails() {
-    if (loading.value) return
-    loading.value = true
+    if (loading.value) return;
+    loading.value = true;
 
     if (!currentProduct.value?.id) {
-        loading.value = false
-        return
+        loading.value = false;
+        return;
     }
 
     if (!detailForm.price || !detailForm.description ||
         selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0) {
-        alert('Vui lòng điền đầy đủ thông tin trước khi lưu')
-        loading.value = false
-        return
+        alert('Vui lòng điền đầy đủ thông tin trước khi lưu');
+        loading.value = false;
+        return;
     }
 
     try {
-        const newDetails = []
+        if (detailForm.id) {
+            // === Cập nhật chi tiết ===
+            const updatedDetail = {
+                product: { id: currentProduct.value.id },
+                size: { id: selectedSizes.value[0] },
+                color: { id: selectedColors.value[0] },
+                collar: { id: selectedCollars.value[0] },
+                price: detailForm.price,
+                description: detailForm.description,
+                status: 1
+            };
 
-        for (const size of selectedSizes.value) {
-            for (const color of selectedColors.value) {
-                for (const collar of selectedCollars.value) {
-                    newDetails.push({
-                        product: { id: currentProduct.value.id },
-                        size: { id: size },
-                        color: { id: color },
-                        collar: { id: collar },
-                        price: detailForm.price,
-                        description: detailForm.description,
-                        status: 1,
-                    })
+            await axios.put(`http://localhost:8080/productDetail/update/${detailForm.id}`, updatedDetail);
+            alert('Cập nhật chi tiết thành công');
+        } else {
+            // === Thêm mới ===
+            const newDetails = [];
+
+            for (const size of selectedSizes.value) {
+                for (const color of selectedColors.value) {
+                    for (const collar of selectedCollars.value) {
+                        newDetails.push({
+                            product: { id: currentProduct.value.id },
+                            size: { id: size },
+                            color: { id: color },
+                            collar: { id: collar },
+                            price: detailForm.price,
+                            description: detailForm.description,
+                            status: 1,
+                        });
+                    }
                 }
             }
-        }
 
-        // === 1. Lưu chi tiết trước ===
-        const addedDetailIds = []
-        for (const detail of newDetails) {
-            const response = await axios.post('http://localhost:8080/productDetail/add', detail)
-            addedDetailIds.push(response.data.id) // giả sử backend trả về id sau khi thêm
-        }
-
-        // === 2. Gửi ảnh tương ứng với mỗi detailId vừa tạo ===
-        for (const detailId of addedDetailIds) {
-            if (selectedImages.value.length > 0) {
-                await uploadImages(detailId)
+            const addedDetailIds = [];
+            for (const detail of newDetails) {
+                const response = await axios.post('http://localhost:8080/productDetail/add', detail);
+                addedDetailIds.push(response.data.id);
             }
+
+            for (const detailId of addedDetailIds) {
+                if (selectedImages.value.length > 0) {
+                    await uploadImages(detailId);
+                }
+            }
+
+            alert('Lưu chi tiết và ảnh thành công!');
         }
 
-        alert('Lưu chi tiết và ảnh thành công!')
-        resetDetailForm()
-        await loadProductDetails(currentProduct.value.id)
+        resetDetailForm();
+        await loadProductDetails(currentProduct.value.id);
     } catch (err) {
-        console.error('Lỗi khi lưu chi tiết:', err)
-        alert('Không thể lưu chi tiết!')
+        console.error('Lỗi khi lưu chi tiết:', err);
+        alert('Không thể lưu chi tiết!');
     } finally {
-        loading.value = false
+        loading.value = false;
     }
 }
+
 
 
 function editDetail(detail) {
@@ -339,10 +424,10 @@ async function deleteDetail(id) {
     if (!confirm('Bạn có chắc muốn xoá chi tiết này?')) return
     try {
         await axios.delete(`http://localhost:8080/productDetail/delete/${id}`)
-        alert('Đã xoá chi tiết')
+        alert('Đã xoá sản phẩm chi tiết')
         await loadProductDetails(currentProduct.value.id)
     } catch (err) {
-        console.error('Lỗi xoá chi tiết:', err)
+        console.error('Lỗi xoá sản phẩm chi tiết:', err)
         alert('Không thể xoá chi tiết sản phẩm')
     }
 }
@@ -508,12 +593,10 @@ onMounted(() => {
                                 <input type="text" class="form-control" v-model="detailForm.description" />
 
                                 <button class="btn btn-primary mt-3 w-100" @click="saveProductDetails">
-                                    {{ detailForm.id ? '✔ Cập nhật' : '➕ Thêm' }}
+                                    {{ detailForm.id ? '✔ Cập nhật' : 'Thêm' }}
                                 </button>
 
-                                <button class="btn btn-secondary mt-2 w-100" @click="resetDetailForm">
-                                    🧹 Làm mới
-                                </button>
+                                <button class="btn btn-secondary mt-2 w-100" @click="resetDetailForm">Làm mới</button>
                             </div>
 
                             <!-- Cột phải: Chọn ảnh -->
@@ -524,8 +607,45 @@ onMounted(() => {
 
                                 <div class="mt-3 d-flex flex-wrap gap-2 justify-content-start"
                                     v-if="previewUrls.length">
-                                    <img v-for="(url, index) in previewUrls" :key="index" :src="url" alt="Preview"
-                                        class="img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;" />
+                                    <div v-for="(url, index) in previewUrls" :key="index" class="position-relative"
+                                        style="cursor: pointer;" @click="selectMainImage(index)">
+                                        <img :src="url" alt="Preview" class="img-thumbnail" :style="{
+                                            width: '120px',
+                                            height: '120px',
+                                            objectFit: 'cover',
+                                            border: mainImageIndex === index ? '3px solid red' : '1px solid #ccc',
+                                            boxShadow: mainImageIndex === index ? '0 0 6px red' : 'none'
+                                        }" />
+                                        <span v-if="mainImageIndex === index"
+                                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                            Chính
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Modal Xem/Sửa ảnh - căn giữa -->
+                        <div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- căn giữa -->
+                                <div class="modal-content shadow rounded-4">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title">Ảnh chi tiết sản phẩm</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="d-flex flex-wrap gap-3 justify-content-center">
+                                            <div v-for="(img, index) in selectedDetailImages" :key="index"
+                                                class="position-relative" style="cursor: pointer;">
+                                                <img :src="img" alt="Ảnh" class="img-thumbnail shadow"
+                                                    style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;"
+                                                    @click="editImage(currentDetailId, index)" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -552,10 +672,11 @@ onMounted(() => {
                                         <td class="text-center">{{ productDetail.price }}</td>
                                         <td>{{ productDetail.descriptionProduct }}</td>
                                         <td class="text-center">
-                                            <div class="d-flex flex-wrap justify-content-center gap-1">
-                                                <img v-for="(img, idx) in productDetail.images" :key="idx" :src="img"
-                                                    alt="Ảnh" class="img-thumbnail"
-                                                    style="width: 60px; height: 60px; object-fit: cover;" />
+                                            <div v-if="productDetail.images && productDetail.images.length">
+                                                <img :src="productDetail.images[0]" alt="Ảnh chính"
+                                                    class="img-thumbnail"
+                                                    style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;"
+                                                    @click="openImageViewer(productDetail)" />
                                             </div>
                                         </td>
                                         <td class="text-center">
