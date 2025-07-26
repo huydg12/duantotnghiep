@@ -17,7 +17,7 @@ public class ProductDetailDTO {
     private String brandName;
     private String color;
     private String collar;
-    private String descriptionProduct;
+    private String description;
     private String size;
     private BigDecimal price;
     private Integer quantity;

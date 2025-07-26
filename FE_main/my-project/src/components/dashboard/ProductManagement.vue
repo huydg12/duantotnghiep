@@ -370,7 +370,7 @@ async function saveProductDetails() {
                 color: { id: selectedColors.value[0] },
                 collar: { id: selectedCollars.value[0] },
                 price: detailForm.price,
-                description: detailForm.descriptionProduct,
+                description: detailForm.description,
                 status: 1
             };
 
@@ -428,7 +428,7 @@ function editDetail(detail) {
     selectedColors.value = [detail.color?.id ?? getIdByName(colors.value, detail.color)]
     selectedCollars.value = [detail.collar?.id ?? getIdByName(collars.value, detail.collar)]
     detailForm.price = detail.price
-    detailForm.description = detail.descriptionProduct
+    detailForm.description = detail.description
     detailForm.id = detail.productDetailId
 }
 
@@ -747,7 +747,7 @@ onMounted(() => {
                                         <td>{{ productDetail.color }}</td>
                                         <td>{{ productDetail.collar }}</td>
                                         <td class="text-center">{{ productDetail.price }}</td>
-                                        <td>{{ productDetail.descriptionProduct }}</td>
+                                        <td>{{ productDetail.description }}</td>
                                         <td class="text-center">
                                             <div v-if="productDetail.images && productDetail.images.length">
                                                 <img :src="productDetail.images[0]" alt="Ảnh chính"

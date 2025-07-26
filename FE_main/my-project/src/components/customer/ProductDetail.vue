@@ -329,7 +329,7 @@ onMounted(() => {
       </div>
 
         <hr />
-        <p class="text-muted">{{ selectedProduct.descriptionProduct }}</p>
+        <p class="text-muted">{{ selectedProduct.description }}</p>
       </div>
 
 

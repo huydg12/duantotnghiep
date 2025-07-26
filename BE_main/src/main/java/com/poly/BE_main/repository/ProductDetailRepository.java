@@ -26,7 +26,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                 B.NAME AS brandName,
                 C.NAME AS color,
                 CL.NAME AS collar,
-                P.DESCRIPTION AS descriptionProduct,
+                P.DESCRIPTION AS description,
                 S.EU AS size,
                 PD.PRICE AS price,
                 ITR.QUANTITY AS quantity,
