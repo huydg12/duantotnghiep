@@ -55,6 +55,6 @@ public class Employee {
 
     @OneToOne
     @JoinColumn(name = "ACCOUNT_ID")
-    @JsonManagedReference
+    @JsonManagedReference(value = "customer_employee")
     private Account account;
 }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.poly.BE_main.dto.AccountDTO;
+import com.poly.BE_main.dto.AuthDTO;
 import com.poly.BE_main.dto.ForgetPasswordDTO;
 import com.poly.BE_main.dto.LoginDTO;
 import com.poly.BE_main.dto.RegisterDTO;
@@ -55,7 +55,7 @@ public class AuthController {
         // Tạo JWT
         String token = jwtUtil.generateToken(account.getUsername());
 
-        AccountDTO accountDTO = new AccountDTO(account);
+        AuthDTO accountDTO = new AuthDTO(account);
         if (account.getRoleId() == 2) {
         Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
         customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));

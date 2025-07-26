@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.poly.BE_main.model.Employee;
+import com.poly.BE_main.dto.EmployeeDTO;
 import com.poly.BE_main.service.EmployeeService;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -24,12 +24,12 @@ public class EmployeeController {
     EmployeeService employeeService;
 
     @GetMapping("/show")
-    public List<Employee> findAll() {
+    public List<EmployeeDTO> findAll() {
         return employeeService.findAll();
     }
 
     @PostMapping("/add")
-    public Employee add(@RequestBody Employee e) {
+    public EmployeeDTO add(@RequestBody EmployeeDTO e) {
         System.out.println("thêm thành công");
         return employeeService.create(e);
     }
@@ -40,7 +40,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/update/{id}")
-    public Employee update(@PathVariable int id, @RequestBody Employee e) {
+    public EmployeeDTO update(@PathVariable int id, @RequestBody EmployeeDTO e) {
         return employeeService.update(id, e);
     }
 }

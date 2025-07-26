@@ -53,8 +53,6 @@ const form = ref({
     id: null,
     username: '',
     password: '',
-    email: '',
-    numberPhone: '',
     createdDate: getVietnamDateTimeLocalFormat(),
     isActive: true,
     roleId: 1
@@ -76,8 +74,6 @@ function resetForm() {
         id: null,
         username: '',
         password: '',
-        email: '',
-        numberPhone: '',
         isActive: true,
         createdDate: getVietnamDateTimeLocalFormat(),
         roleId: 1

@@ -50,11 +50,11 @@ public class Account {
     private int roleId;
 
     @OneToOne(mappedBy = "account")
-    @JsonBackReference
+    @JsonBackReference(value = "customer_account")
     private Customer customer;
 
     @OneToOne(mappedBy = "account")
-    @JsonBackReference
+    @JsonBackReference(value = "employee_account")
     private Employee employee;
 
 }

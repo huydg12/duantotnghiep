@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.poly.BE_main.dto.CustomerDTO;
 import com.poly.BE_main.dto.CustomerInfoDTO;
 import com.poly.BE_main.dto.InformationCustomerDTO;
-import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.service.CustomerService;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -26,7 +26,7 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping("/show")
-    public List<Customer> findAll() {
+    public List<CustomerDTO> findAll() {
         return customerService.findAll();
     }
     @GetMapping("/showInfoCustomer/{customerId}")
@@ -35,8 +35,9 @@ public class CustomerController {
     }
 
     @PostMapping("/add")
-    public Customer add(@RequestBody Customer c) {
-        System.out.println("thêm thành công");
+    public CustomerDTO add(@RequestBody CustomerDTO c) {
+        System.out.println("Thêm thành công");
+        System.out.println("Received: " + c);
         return customerService.create(c);
     }
 
@@ -46,7 +47,8 @@ public class CustomerController {
     }
 
     @PutMapping("/update/{id}")
-    public Customer update(@PathVariable int id, @RequestBody Customer c) {
+    public CustomerDTO update(@PathVariable int id, @RequestBody CustomerDTO c) {
+        System.out.println("Received: " + c);
         return customerService.update(id, c);
     }
 

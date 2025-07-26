@@ -1,36 +1,20 @@
 package com.poly.BE_main.dto;
 
-import com.poly.BE_main.model.Account;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class AccountDTO {
-    private int id;
+    private Integer id;
     private String username;
-    private int roleId;
-    private String email;
-    private Integer customerId;
-    private Integer employeeId;
-
-    public AccountDTO(Account account) {
-        this.id = account.getId();
-        this.username = account.getUsername();
-        this.roleId = account.getRoleId();
-        if (account.getCustomer() != null) {
-            this.email = account.getCustomer().getEmail();
-        } else if (account.getEmployee() != null) {
-            this.email = account.getEmployee().getEmail();
-        } else {
-            this.email = null;
-        }
-        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ
-                                                                                                // Customer
-        this.employeeId = account.getEmployee() != null ? account.getEmployee().getId() : null;
-    }
-
+    private String password;
+    private Boolean isActive;
+    private Integer roleId;
+    private LocalDateTime createdDate;
 }
+

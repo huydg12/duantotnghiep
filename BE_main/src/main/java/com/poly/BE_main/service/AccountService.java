@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.poly.BE_main.dto.AccountDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.model.Employee;
@@ -107,22 +109,48 @@ public class AccountService {
     }
 
     // Account
-    public List<Account> findAll() {
-        return accountRepository.findAll();
+
+    public List<AccountDTO> findAll() {
+        return accountRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Account create(Account account) {
-        return accountRepository.save(account);
+    public AccountDTO create(AccountDTO dto) {
+        Account account = toEntity(dto);
+        account.setCreatedDate(java.time.LocalDateTime.now());
+        return toDTO(accountRepository.save(account));
+    }
+
+    public AccountDTO update(int id, AccountDTO dto) {
+        return accountRepository.findById(id).map(account -> {
+            account.setPassword(dto.getPassword());
+            account.setIsActive(dto.getIsActive());
+            return toDTO(accountRepository.save(account));
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với id: " + id));
     }
 
     public void deleteById(Integer id) {
         accountRepository.deleteById(id);
     }
 
-    public Account update(int id, Account account) {
-        return accountRepository.findById(id).map(a -> {
-            a.setIsActive(account.getIsActive());
-            return accountRepository.save(a);
-        }).orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu có id: " + id));
+    private AccountDTO toDTO(Account account) {
+        AccountDTO dto = new AccountDTO();
+        dto.setId(account.getId());
+        dto.setUsername(account.getUsername());
+        dto.setPassword(account.getPassword());
+        dto.setRoleId(account.getRoleId());
+        dto.setIsActive(account.getIsActive());
+        dto.setCreatedDate(account.getCreatedDate());
+        return dto;
+    }
+
+    private Account toEntity(AccountDTO dto) {
+        Account account = new Account();
+        account.setUsername(dto.getUsername());
+        account.setPassword(dto.getPassword());
+        account.setRoleId(dto.getRoleId());
+        account.setIsActive(dto.getIsActive());
+        return account;
     }
 }
