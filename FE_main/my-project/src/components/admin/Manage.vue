@@ -19,7 +19,7 @@ const activeTarget = ref("StatisticsManagement");
 
 // Map các component và dùng defineAsyncComponent
 const componentMap = {
-  Sell: defineAsyncComponent(() => import("../dashboard/Sell.vue")),
+  Pos: defineAsyncComponent(() => import("../dashboard/Pos.vue")),
   ProductManagement: defineAsyncComponent(() =>
     import("../dashboard/ProductManagement.vue")
   ),
@@ -84,9 +84,9 @@ function loadContent(target) {
 // Dữ kiệu của menu sidebar
 const menuItems = [
   {
-    id: "sell",
+    id: "pos",
     label: "Bán hàng tại quầy",
-    target: "Sell",
+    target: "Pos",
     icon: "fa-solid fa-cash-register",
   },
   {
@@ -188,6 +188,17 @@ function handleClick(target) {
 onMounted(() => {
   console.log('Thông tin user đang đăng nhập:', userStore.user)
 })
+
+const openMenus = ref({})
+
+function toggleCollapse(id) {
+  openMenus.value[id] = !openMenus.value[id]
+}
+
+function isCollapseOpen(id) {
+  return openMenus.value[id]
+}
+
 </script>
 
 <template>
@@ -212,22 +223,23 @@ onMounted(() => {
             </a>
 
             <template v-else>
-              <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" :href="'#' + item.id"
-                role="button" aria-expanded="false" :aria-controls="item.id">
+              <a href="#" class="nav-link d-flex align-items-center" @click.prevent="toggleCollapse(item.id)">
                 <i :class="item.icon"></i>
-                <span>{{ item.label }}</span>
-                <i class="fa-solid fa-chevron-down ms-auto"></i>
+                <span class="ms-2">{{ item.label }}</span>
+                <i class="fa-solid fa-chevron-down ms-auto" :class="{ 'rotate-180': isCollapseOpen(item.id) }"></i>
               </a>
-              <div class="collapse submenu-collapse" :id="item.id">
-                <ul class="nav flex-column">
-                  <li v-for="sub in item.sub" :key="sub.target">
-                    <a href="#" class="nav-link" :class="{ active: activeTarget === sub.target }"
-                      @click.prevent="loadContent(sub.target)">
-                      <i :class="sub.icon"></i> {{ sub.label }}
-                    </a>
-                  </li>
-                </ul>
-              </div>
+              <Transition name="slide">
+                <div v-if="isCollapseOpen(item.id)" class="submenu-collapse">
+                  <ul class="nav flex-column">
+                    <li v-for="sub in item.sub" :key="sub.target">
+                      <a href="#" class="nav-link" :class="{ active: activeTarget === sub.target }"
+                        @click.prevent="loadContent(sub.target)">
+                        <i :class="sub.icon"></i> {{ sub.label }}
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </Transition>
             </template>
           </li>
         </ul>
@@ -331,5 +343,33 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.fa-chevron-down {
+  transition: transform 0.3s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  max-height: 500px;
+  /* đủ lớn để chứa menu con */
+  opacity: 1;
 }
 </style>

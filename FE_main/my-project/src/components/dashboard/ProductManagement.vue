@@ -70,7 +70,6 @@ const editImage = async (detailId, imageIndex) => {
     newFileInput.click();
 };
 
-
 function handleMultipleImageChange(event) {
     const files = Array.from(event.target.files)
     if (!files.length) return

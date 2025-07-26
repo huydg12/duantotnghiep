@@ -20,14 +20,14 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                 FROM PRODUCT P
                 JOIN BRAND B ON P.BRAND_ID = B.ID
 
-                CROSS APPLY (
+                OUTER APPLY (
                     SELECT TOP 1 *
                     FROM PRODUCT_DETAIL PD
                     WHERE PD.PRODUCT_ID = P.ID
                     ORDER BY PD.ID
                 ) PD
 
-                JOIN (
+                LEFT JOIN (
                     SELECT
                         ID, PRODUCT_DETAIL_ID, URL,
                         ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
