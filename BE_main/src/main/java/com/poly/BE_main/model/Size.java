@@ -26,4 +26,5 @@ public class Size {
     @Column(name = "DESCRIPTION")
     private String description;
 
+    
 }
