@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, computed, reactive, onUnmounted} from 'vue';
 import axios from 'axios';
+const currentCustomerId = ref(null);
+
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
@@ -107,7 +109,7 @@ const saveAddress = async () => {
       fullAddress: fullAddress,
       numberPhone: phoneNumber.value,
       fullName: recipientName.value,
-      customerId: customers.id,
+      customerId: currentCustomerId.value,
       default: isDefaultAddress.value,
       detailAddress: detailAddress.value,
       wardName: ward.name,
@@ -119,7 +121,7 @@ const saveAddress = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      },
+      },  
       body: JSON.stringify(newAddress)
     });
 
@@ -127,7 +129,10 @@ const saveAddress = async () => {
 
     const result = await response.json();
     console.log('Thêm địa chỉ thành công:', result);
+
+    await fetchAddressList(currentCustomerId.value);
     resetAddressForm();
+    closeAddAddressOverlay();
 
     // Nếu cần, load lại danh sách địa chỉ
     // await fetchAddressList();
@@ -160,7 +165,7 @@ const setAsDefault = async (address) => {
     }
 
     // ✅ Gọi lại fetchAddressList để cập nhật UI
-    await fetchAddressList();
+    await fetchAddressList(currentCustomerId.value);
 
 
     // ✅ Optional: Hiển thị thông báo
@@ -207,7 +212,7 @@ const getWardNameByCode = (code) => {
 const updateAddress = async () => {
   try {
     const data = {
-      customerId: customers.id,
+      customerId: currentCustomerId.value,
       fullName: addressBeingEdited.fullName,
       numberPhone: addressBeingEdited.numberPhone,
       fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
@@ -219,31 +224,26 @@ const updateAddress = async () => {
       cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
     };
 
-    console.log("📦 Dữ liệu gửi đi:", data);
-
     const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("⚠️ Response status:", response.status);
-      console.error("📩 Response body:", errorText);
-      throw new Error('Cập nhật địa chỉ thất bại');
+      throw new Error(`Cập nhật địa chỉ thất bại: ${errorText}`);
     }
 
+    await fetchAddressList(currentCustomerId.value);  // 👈 Gọi trước alert để cập nhật danh sách
     alert('✅ Cập nhật địa chỉ thành công!');
-    await fetchAddressList();
     closeUpdateAddressOverlay();
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
     alert('❌ Cập nhật địa chỉ thất bại');
   }
 };
+
 const fetchAddressList = async (id) => {
   try {
     const response = await axios.get(`http://localhost:8080/address/showById/${id}`);
@@ -253,7 +253,7 @@ const fetchAddressList = async (id) => {
     defaultAddress.value = addressList.value.find(addr => addr.default === true);
 
     // Đóng overlay nếu muốn
-    closeAddAddressOverlay();
+    // closeAddAddressOverlay();
   } catch (error) {
     console.error('Lỗi khi lấy địa chỉ:', error);
   }
@@ -277,6 +277,7 @@ const newAddressForm = ref(null);
 
 // Mở popup chọn địa chỉ
 const openAddressOverlay = (id) => {
+  currentCustomerId.value = id;  
   fetchAddressList(id);          // gọi API lấy địa chỉ
   showAddressOverlay.value = true;      // (nếu bạn dùng overlay)
 };
@@ -383,7 +384,7 @@ const deleteAddress = async (id) => {
 
 
 onMounted(() => {
-    fetchAddressList();
+    // fetchAddressList();
   fetchProvinces();
 });
 
@@ -420,18 +421,37 @@ const fetchCustomer = async () => {
 
 const saveCustomer = async () => {
   try {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
     if (isEditing.value) {
-      await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
+      await axios.put(
+        `http://localhost:8080/customer/update/${form.value.id}`,
+        JSON.stringify(form.value),
+        { headers }
+      );
     } else {
-      const newCustomer = { ...form.value, createdDate: new Date().toISOString() };
-      await axios.post('http://localhost:8080/customer/add', newCustomer);
+      const newCustomer = {
+        ...form.value,
+        gender: Number(form.value.gender),
+        status: Number(form.value.status),
+        createdDate: new Date().toISOString(),
+      };
+      await axios.post(
+        'http://localhost:8080/customer/add',
+        JSON.stringify(newCustomer),
+        { headers }
+      );
     }
+
     await fetchCustomer();
     resetForm();
   } catch (error) {
     console.error('Lỗi lưu khách hàng:', error);
   }
 };
+
 
 const deleteCustomer = async (id) => {
   if (confirm("Bạn có chắc muốn xoá khách hàng này?")) {
@@ -492,11 +512,11 @@ onMounted(fetchCustomer);
       <div class="mb-3">
         <label class="form-label d-block">Giới tính</label>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" value="Nam" v-model="form.gender" />
+          <input class="form-check-input" type="radio" value="0" v-model="form.gender" />
           <label class="form-check-label">Nam</label>
         </div>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" value="Nữ" v-model="form.gender" />
+          <input class="form-check-input" type="radio" value="1" v-model="form.gender" />
           <label class="form-check-label">Nữ</label>
         </div>
       </div>
