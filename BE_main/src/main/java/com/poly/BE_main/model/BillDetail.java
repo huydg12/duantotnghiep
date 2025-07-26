@@ -56,6 +56,6 @@ public class BillDetail {
 
     @ManyToOne
     @JoinColumn(name = "BILL_ID")
-    @JsonBackReference // ✅ Thêm dòng này
+    @JsonBackReference 
     private Bill bill;
 }
