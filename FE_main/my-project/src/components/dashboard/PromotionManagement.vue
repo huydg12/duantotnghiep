@@ -30,24 +30,33 @@ const fetchPromotions = async () => {
 
 const savePromotion = async () => {
   try {
+    const payload = {
+      ...form.value,
+      startDate: form.value.startDate + "T00:00:00",
+      endDate: form.value.endDate + "T00:00:00"
+    };
+
     if (form.value.id) {
-      await axios.put(`http://localhost:8080/promotion/update/${form.value.id}`, form.value);
+      await axios.put(`http://localhost:8080/promotion/update/${form.value.id}`, payload);
     } else {
-      const response = await axios.post(
-        "http://localhost:8080/promotion/add",
-        form.value
-      );
+      const response = await axios.post("http://localhost:8080/promotion/add", payload);
       form.value.id = response.data.id;
     }
+
     await fetchPromotions();
     resetForm();
   } catch (error) {
-    console.error("Lỗi khi lưu khuyến mãi:", err);
+    console.error("Lỗi khi lưu khuyến mãi:", error); // sửa từ `err` -> `error`
   }
 };
 
+
 const editPromotion = (promo) => {
-  form.value = { ...promo };
+  form.value = {
+    ...promo,
+    startDate: promo.startDate ? promo.startDate.substring(0, 10) : "",
+    endDate: promo.endDate ? promo.endDate.substring(0, 10) : ""
+  };
 };
 
 const deletePromotion = async (id) => {
@@ -90,103 +99,10 @@ const searchKeyword = ref("");
 const pageSize = 5;
 const currentPage = ref(1);
 
-const fetchProductDetails = async () => {
-  try {
-    const response = await axios.get("http://localhost:8080/product/showSPdto");
-    products.value = response.data;
-    console.log("Danh sách sản phẩm DTO:", products.value);
-  } catch (err) {
-    console.error("Lỗi khi load sản phẩm chi tiết:", err);
-  }
-};
 
-const filteredProducts = computed(() =>
-  products.value.filter((p) =>
-    (p.productName || "").toLowerCase().includes(searchKeyword.value.toLowerCase())
-  )
-);
-
-const totalPages = computed(() =>
-  Math.ceil(filteredProducts.value.length / pageSize)
-);
-
-const paginatedProducts = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
-  return filteredProducts.value.slice(start, start + pageSize);
-});
-
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
-};
-
-let currentPromoId = null;
-const isPromotionDisabled = ref(false);
-
-const openPromotionDetailModal = async (promo) => {
-  currentPromoId = promo.id;
-  isPromotionDisabled.value = promo.status === 0;
-
-  try {
-    // Nếu đang hoạt động thì load các productDetail đã được chọn
-    if (!promo.apply_all && !isPromotionDisabled.value) {
-      const detailRes = await axios.get(
-        `http://localhost:8080/promotionDetail/by-promotion/${promo.id}`
-      );
-      const selectedIds = detailRes.data.map((item) => item.productDetailId);
-      selectedProducts.value = selectedIds;
-      
-    } else {
-      selectedProducts.value = [];
-    }
-
-    // Reset trang
-    currentPage.value = 1;
-    new Modal(document.getElementById("promotionDetailModal")).show();
-  } catch (err) {
-    console.error("Lỗi khi mở modal:", err);
-  }
-};
-
-const savePromotionDetails = async () => {
-  if (currentPromoId !== null) {
-    try {
-      const res = await axios.get(`http://localhost:8080/promotionDetail/by-promotion/${currentPromoId}`);
-      const allDetails = res.data;
-
-      await Promise.all(
-        allDetails.map(detail => {
-          const isSelected = selectedProducts.value.includes(detail.productDetailId);
-          const newStatus = isSelected ? 1 : 0;
-
-          if (detail.status !== newStatus) {
-            return axios.put(`http://localhost:8080/promotionDetail/update/${detail.id}`, {
-              ...detail,
-              status: newStatus
-            });
-          }
-        }).filter(Boolean)
-      );
-
-      products.value.sort((a, b) => {
-        const aSelected = selectedProducts.value.includes(a.id) ? -1 : 1;
-        const bSelected = selectedProducts.value.includes(b.id) ? -1 : 1;
-        return aSelected - bSelected;
-      });
-
-      const modalEl = document.getElementById("promotionDetailModal");
-      const modal = Modal.getInstance(modalEl);
-      modal.hide();
-    } catch (error) {
-      console.error("Lỗi khi cập nhật chi tiết khuyến mãi:", error);
-    }
-  }
-};
 
 onMounted(async () => {
   await fetchPromotions();     
-  await fetchProductDetails();  
 });
 
 </script>
@@ -239,14 +155,6 @@ onMounted(async () => {
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="radio" id="statusInactive" value="0" v-model="form.status" />
               <label class="form-check-label" for="statusInactive">Ngưng áp dụng</label>
-            </div>
-          </div>
-          <div class="col-md-12">
-            <div class="form-check mt-2">
-              <input class="form-check-input" type="checkbox" id="applyAll" v-model="form.apply_all" />
-              <label class="form-check-label" for="applyAll">
-                Áp dụng cho toàn bộ sản phẩm
-              </label>
             </div>
           </div>
 
@@ -305,86 +213,12 @@ onMounted(async () => {
             <button class="btn btn-sm btn-danger me-1" @click="deletePromotion(promo.id)">
               Xoá
             </button>
-            <button class="btn btn-sm btn-info" v-if="!promo.apply_all" @click="openPromotionDetailModal(promo)">
-              Chi tiết
-            </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Modal chọn sản phẩm áp dụng -->
-    <div class="modal fade" id="promotionDetailModal" tabindex="-1" aria-labelledby="promotionDetailModalLabel"
-      aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Chọn sản phẩm áp dụng khuyến mãi</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Tìm kiếm -->
-            <div class="mb-3">
-              <input type="text" v-model="searchKeyword" class="form-control" placeholder="Tìm sản phẩm..." />
-            </div>
 
-            <!-- Bảng sản phẩm -->
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Chọn</th>
-                  <th>ID</th>
-                  <th>Tên sản phẩm</th>
-                  <th>Size</th>
-                  <th>Màu</th>
-                  <th>Giá</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="product in paginatedProducts" :key="product.id">
-                  <td>
-                    <input type="checkbox" :value="product.id" v-model="selectedProducts[currentPromoId]"
-                      :disabled="isPromotionDisabled" />
-                  </td>
-                  <td>{{ product.id }}</td>
-                  <td>{{ product.productName }}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <nav>
-              <ul class="pagination justify-content-center mt-4 custom-pagination">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                  <button class="page-link" @click="goToPage(currentPage - 1)">
-                    «
-                  </button>
-                </li>
-                <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-                  <button class="page-link" @click="goToPage(page)">
-                    {{ page }}
-                  </button>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                  <button class="page-link" @click="goToPage(currentPage + 1)">
-                    »
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">
-              Đóng
-            </button>
-            <button class="btn btn-success" @click="savePromotionDetails">
-              Lưu
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 

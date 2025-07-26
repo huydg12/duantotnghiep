@@ -17,7 +17,21 @@ let customerId = null
 const searchQuery = route.query.keyword || '';
 const hasSearch = computed(() => !!searchQuery);
 const brandOptions = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 9
+const totalPages = computed(() => Math.ceil(products.value.length / itemsPerPage))
 
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return products.value.slice(start, start + itemsPerPage)
+})
+
+function setPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    window.scrollTo({ top: 0, behavior: 'smooth' }) // Cuộn lên đầu
+  }
+}
 const fetchBrands = async () => {
   try {
     const res = await axios.get('http://localhost:8080/brand/show')
@@ -151,6 +165,13 @@ const toggleFavorite = async (productId) => {
     console.error("Lỗi toggle yêu thích", err)
   }
 }
+watch(
+  () => [filters.value.search, filters.value.brands, filters.value.sort, filters.value.prices],
+  () => {
+    currentPage.value = 1
+    fetchProducts()
+  }
+)
 // Theo dõi khi route thay đổi query
 watch(() => router.currentRoute.value.query.brand, (newBrand) => {
   if (newBrand) {
@@ -283,7 +304,7 @@ const handleRadioClick = (model, value) => {
       <!-- Danh sách sản phẩm -->
       <div class="col-lg-9">
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
-      <div v-for="product in products" :key="product.id" class="col">
+      <div v-for="product in paginatedProducts" :key="product.id" class="col">
         <div class="card h-100 shadow-sm" @click="goToDetail(product.productId)" style="cursor: pointer;">
           <!-- Icon yêu thích -->
           <i
@@ -319,42 +340,52 @@ const handleRadioClick = (model, value) => {
       </div>
     </div>
 
-        <!-- Phân trang -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-              <a class="page-link" href="#"><span>&laquo;</span></a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#"><span>&raquo;</span></a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </div>
-    <!-- Toast thông báo thêm vào giỏ thành công -->
-  <div
-    v-if="showToast"
-    class="position-fixed top-0 end-0 p-3"
-    style="z-index: 1055;"
-  >
-    <div class="toast align-items-center show bg-success text-white border-0">
-      <div class="d-flex">
-        <div class="toast-body">
-          ✅ Đã thêm vào mục yêu thích!
+      <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <a class="page-link" href="#" @click.prevent="setPage(currentPage - 1)">
+              &laquo;
+            </a>
+          </li>
+
+          <li class="page-item"
+              v-for="page in totalPages"
+              :key="page"
+              :class="{ active: page === currentPage }">
+            <a class="page-link" href="#" @click.prevent="setPage(page)">
+              {{ page }}
+            </a>
+          </li>
+
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <a class="page-link" href="#" @click.prevent="setPage(currentPage + 1)">
+              &raquo;
+            </a>
+          </li>
+        </ul>
+      </nav>
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          @click="showToast = false"
-        ></button>
-      </div>
-    </div>
-  </div>
+          <!-- Toast thông báo thêm vào giỏ thành công -->
+        <div
+          v-if="showToast"
+          class="position-fixed top-0 end-0 p-3"
+          style="z-index: 1055;"
+        >
+          <div class="toast align-items-center show bg-success text-white border-0">
+            <div class="d-flex">
+              <div class="toast-body">
+                ✅ Đã thêm vào mục yêu thích!
+              </div>
+              <button
+                type="button"
+                class="btn-close btn-close-white me-2 m-auto"
+                @click="showToast = false"
+              ></button>
+            </div>
+          </div>
+        </div>
 
   <!-- Toast xóa khỏi yêu thích -->
 <div

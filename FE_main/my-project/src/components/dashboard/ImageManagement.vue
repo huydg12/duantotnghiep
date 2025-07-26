@@ -106,8 +106,6 @@ async function saveImage() {
     if (isEditing.value) {
       formData.append('id', form.value.id)
       formData.append('isMain', form.value.isMain ? 'true' : 'false')
-      formData.append('productDetailId', form.value.productDetailId)
-
       if (selectedFiles.value.length) {
         formData.append('file', selectedFiles.value[0])
       }
@@ -115,17 +113,14 @@ async function saveImage() {
       await axios.put(`http://localhost:8080/image/update/${form.value.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-    }
-    else {
+    } else {
       selectedFiles.value.forEach(file => {
         formData.append('files', file)
       })
       formData.append('mainImageIndex', mainImageIndex.value ?? -1)
 
       await axios.post('http://localhost:8080/image/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
     }
 
@@ -135,7 +130,6 @@ async function saveImage() {
     console.error('Lỗi lưu ảnh:', error)
   }
 }
-
 
 function editImage(image) {
   form.value = {
@@ -205,7 +199,6 @@ async function deleteImage(id) {
       </div>
     </form>
 
-    <!-- Danh sách ảnh -->
     <div class="table-container table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-secondary text-center">
@@ -232,7 +225,6 @@ async function deleteImage(id) {
       </table>
     </div>
 
-    <!-- Phân trang -->
     <nav>
       <ul class="pagination justify-content-center mt-4 custom-pagination">
         <li class="page-item" :class="{ disabled: currentPage === 1 }">

@@ -19,16 +19,28 @@ const currentDetailId = ref(null)
 const newFileInput = document.createElement("input");
 newFileInput.type = "file";
 newFileInput.accept = "image/*";
-const mainImageIndexViewer = ref(null) // ảnh chính trong modal image viewer
+const mainImageIndexViewer = ref(0)
 
-function openImageViewer(detail) {
-    selectedDetailImages.value = detail.images || []
-    currentDetailId.value = detail.productDetailId
+async function openImageViewer(detail) {
+    try {
+        // Gán ID chi tiết sản phẩm hiện tại
+        currentDetailId.value = detail.productDetailId;
 
-    mainImageIndexViewer.value = 0;
+        // Gọi API lấy ảnh theo productDetailId
+        const response = await axios.get(`http://localhost:8080/image/show/${detail.productDetailId}`);
+        selectedDetailImages.value = response.data;
 
-    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageViewerModal'))
-    modal.show()
+        // Tìm index ảnh chính
+        const mainIndex = selectedDetailImages.value.findIndex(img => img.isMain === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
+
+        // Mở modal
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageViewerModal'));
+        modal.show();
+    } catch (error) {
+        console.error("Lỗi khi tải ảnh chi tiết:", error);
+        selectedDetailImages.value = [];
+    }
 }
 
 const editImage = async (detailId, imageIndex) => {
@@ -69,6 +81,7 @@ const editImage = async (detailId, imageIndex) => {
 
     newFileInput.click();
 };
+
 
 function handleMultipleImageChange(event) {
     const files = Array.from(event.target.files)
@@ -357,7 +370,7 @@ async function saveProductDetails() {
                 color: { id: selectedColors.value[0] },
                 collar: { id: selectedCollars.value[0] },
                 price: detailForm.price,
-                description: detailForm.description,
+                description: detailForm.descriptionProduct,
                 status: 1
             };
 
@@ -430,6 +443,51 @@ async function deleteDetail(id) {
         alert('Không thể xoá chi tiết sản phẩm')
     }
 }
+
+async function setMainImage(img) {
+    try {
+        await axios.put(`http://localhost:8080/image/set-main/${img.id}`, null, {
+            params: {
+                productDetailId: img.productDetailId
+            }
+        });
+
+        // Gọi lại API để load danh sách ảnh mới
+        const response = await axios.get(`http://localhost:8080/image/show/${img.productDetailId}`);
+        selectedDetailImages.value = response.data;
+
+        // Cập nhật ảnh chính (main)
+        const mainIndex = selectedDetailImages.value.findIndex(i => i.main  === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
+
+        alert("Đã đặt ảnh chính thành công.");
+    } catch (err) {
+        console.error("Lỗi khi đặt ảnh chính:", err);
+        alert("Không thể đặt ảnh chính.");
+    }
+}
+
+async function deleteImage(imageId, productDetailId) {
+    if (!confirm("Bạn có chắc muốn xoá ảnh này?")) return;
+    try {
+        // Gửi yêu cầu xóa ảnh theo ID
+        await axios.delete(`http://localhost:8080/image/delete/${imageId}`);
+
+        // Sau khi xóa, gọi lại API lấy danh sách ảnh mới theo productDetailId
+        const response = await axios.get(`http://localhost:8080/image/show/${productDetailId}`);
+        selectedDetailImages.value = response.data;
+
+        // Tìm lại ảnh chính (main) mới nếu còn
+        const mainIndex = selectedDetailImages.value.findIndex(i => i.main === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
+
+        alert("Đã xoá ảnh thành công.");
+    } catch (err) {
+        console.error("Lỗi khi xoá ảnh:", err);
+        alert("Không thể xoá ảnh.");
+    }
+}
+
 
 // Fetch on mounted
 onMounted(() => {
@@ -602,7 +660,8 @@ onMounted(() => {
                             <div class="col-md-6">
                                 <label>Ảnh sản phẩm (có thể chọn nhiều)</label>
                                 <input type="file" multiple accept="image/*" class="form-control"
-                                    @change="handleMultipleImageChange" />
+                                    @change="handleMultipleImageChange" 
+                                    />
 
                                 <div class="mt-3 d-flex flex-wrap gap-2 justify-content-start"
                                     v-if="previewUrls.length">
@@ -625,7 +684,7 @@ onMounted(() => {
                         </div>
                         <!-- Modal Xem/Sửa ảnh - căn giữa -->
                         <div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- căn giữa -->
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
                                 <div class="modal-content shadow rounded-4">
                                     <div class="modal-header bg-primary text-white">
                                         <h5 class="modal-title">Ảnh chi tiết sản phẩm</h5>
@@ -634,11 +693,30 @@ onMounted(() => {
                                     </div>
                                     <div class="modal-body">
                                         <div class="d-flex flex-wrap gap-3 justify-content-center">
+                                            <!-- Chỉ 1 vòng lặp duy nhất -->
                                             <div v-for="(img, index) in selectedDetailImages" :key="index"
-                                                class="position-relative" style="cursor: pointer;">
-                                                <img :src="img" alt="Ảnh" class="img-thumbnail shadow"
+                                                class="d-flex flex-column align-items-center" style="width: 140px;">
+                                                <img :src="img.url" alt="Ảnh" class="img-thumbnail shadow"
                                                     style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;"
-                                                    @click="editImage(currentDetailId, index)" />
+                                                    :style="{
+                                                        border: mainImageIndexViewer === index ? '3px solid red' : '1px solid #ccc'
+                                                    }" @click="setMainImage(img)" />
+
+                                                <span v-if="mainImageIndexViewer === index" class="badge bg-danger mt-1"
+                                                    style="font-size: 12px;">
+                                                    Chính
+                                                </span>
+
+                                                <div class="btn-group mt-2" role="group">
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        @click="editImage(img.id, index)">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                        @click="deleteImage(img.id, img.productDetailId)">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

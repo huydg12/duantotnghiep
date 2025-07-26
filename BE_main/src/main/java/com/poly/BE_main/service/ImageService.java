@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import com.poly.BE_main.model.Image;
 import com.poly.BE_main.repository.ImageRepository;
 
+import jakarta.transaction.Transactional;
+
+@Transactional
 @Service
 public class ImageService {
 
@@ -45,6 +48,23 @@ public class ImageService {
     // ✅ Hàm tìm ảnh theo ID (dùng cho update ảnh có file mới)
     public Image findById(int id) {
         return imageRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
+
+
+    //     @Transactional
+    // public void resetMainImageByProductDetailId(Integer productDetailId) {
+    //     imageRepository.resetMainImageNative(productDetailId);
+    // }
+
+    // Nếu bạn có thêm hàm đặt ảnh chính, có thể gộp vào đây:
+    @Transactional
+    public void setMainImage(Integer imageId, Integer productDetailId) {
+        // Bước 1: reset tất cả ảnh IS_MAIN về false
+        imageRepository.resetMainImageNative(productDetailId);
+
+        // Bước 2: đặt ảnh có ID cụ thể thành IS_MAIN = true
+        imageRepository.setMainImageById(imageId);
+    }
+    
 }
