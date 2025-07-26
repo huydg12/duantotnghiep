@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import com.poly.BE_main.model.Image;
 import com.poly.BE_main.repository.ImageRepository;
 
+import jakarta.transaction.Transactional;
+
+@Transactional
 @Service
 public class ImageService {
 
@@ -45,6 +48,27 @@ public class ImageService {
     // ✅ Hàm tìm ảnh theo ID (dùng cho update ảnh có file mới)
     public Image findById(int id) {
         return imageRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
+
+    public void setMainImage(Long imageId) {
+    Image image = imageRepository.findById(imageId.intValue())
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh với ID: " + imageId));
+
+    Integer detailId = image.getProductDetailId();
+
+    if (detailId == null) {
+        throw new RuntimeException("Ảnh không có ProductDetailId.");
+    }
+
+    List<Image> images = imageRepository.findByProductDetailId(detailId);
+
+    for (Image img : images) {
+        img.setMain(img.getId() == image.getId()); // ✅ dùng toán tử so sánh
+    }
+
+    imageRepository.saveAll(images);
+}
+
+
 }

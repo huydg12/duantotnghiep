@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.poly.BE_main.model.Image;
+import com.poly.BE_main.repository.ImageRepository;
 import com.poly.BE_main.service.ImageService;
 
 @RestController
@@ -24,7 +26,10 @@ public class ImageController {
     @Autowired
     ImageService imageService;
 
-    private final String uploadFolder = "D:/ManhDuAn/duantotnghiep/BE_main/uploads";
+    @Autowired
+    ImageRepository imageRepository;
+
+    private final String uploadFolder = "D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images";
 
     @GetMapping("/show")
     public List<Image> findAll() {
@@ -41,43 +46,69 @@ public class ImageController {
         imageService.delete(id);
     }
 
-    @PutMapping("/update/{id}")
-public ResponseEntity<?> updateImage(
-        @PathVariable int id,
-        @RequestParam("isMain") boolean isMain,
-        @RequestParam("productDetailId") int productDetailId,
-        @RequestParam(value = "file", required = false) MultipartFile file) {
-    try {
-        Image image = imageService.findById(id);
-        if (image == null) {
-            return ResponseEntity.notFound().build();
+    @DeleteMapping("/delete-image/{id}")
+    public ResponseEntity<?> deleteImage(@PathVariable Integer id) {
+        Optional<Image> imageOpt = imageRepository.findById(id);
+
+        if (!imageOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ảnh không tồn tại");
         }
 
-        image.setMain(isMain);
-        image.setProductDetailId(productDetailId);
+        Image image = imageOpt.get();
 
-        if (file != null && !file.isEmpty()) {
-            // Xoá ảnh cũ
-            String oldFileName = image.getUrl().replace("./images/", "");
-            Path oldPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", oldFileName);
-            Files.deleteIfExists(oldPath);
+        // Đường dẫn tuyệt đối đến file ảnh
+        String imagePath = uploadFolder + "/" + image.getUrl().replace("./images/", "");
 
-            // Upload ảnh mới
-            String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
-            String newFileName = UUID.randomUUID().toString() + extension;
-            Path newPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", newFileName);
-            Files.write(newPath, file.getBytes());
-
-            image.setUrl("./images/" + newFileName);
+        try {
+            Path path = Paths.get(imagePath);
+            Files.deleteIfExists(path); // Xoá file ảnh thật
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi xoá file ảnh trên ổ đĩa");
         }
 
-        Image updated = imageService.update(id, image);
-        return ResponseEntity.ok(updated);
-    } catch (IOException e) {
-        return ResponseEntity.status(500).body("Lỗi cập nhật ảnh.");
+        // Xoá ảnh khỏi database
+        imageRepository.deleteById(id);
+
+        return ResponseEntity.ok("Đã xoá ảnh thành công");
     }
-}
 
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateImage(
+            @PathVariable int id,
+            @RequestParam("isMain") boolean isMain,
+            @RequestParam("productDetailId") int productDetailId,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        try {
+            Image image = imageService.findById(id);
+            if (image == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            image.setMain(isMain);
+            image.setProductDetailId(productDetailId);
+
+            if (file != null && !file.isEmpty()) {
+                // Xoá ảnh cũ
+                String oldFileName = image.getUrl().replace("./images/", "");
+                Path oldPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", oldFileName);
+                Files.deleteIfExists(oldPath);
+
+                // Upload ảnh mới
+                String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
+                String newFileName = UUID.randomUUID().toString() + extension;
+                Path newPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", newFileName);
+                Files.write(newPath, file.getBytes());
+
+                image.setUrl("./images/" + newFileName);
+            }
+
+            Image updated = imageService.update(id, image);
+            return ResponseEntity.ok(updated);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Lỗi cập nhật ảnh.");
+        }
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadImages(
@@ -156,7 +187,7 @@ public ResponseEntity<?> updateImage(
             Image imageToUpdate = images.get(imageIndex);
 
             // Xoá file cũ
-            String oldFileName = imageToUpdate.getUrl().replace("http://localhost:8080/uploads/", "");
+            String oldFileName = imageToUpdate.getUrl().replace("./images/", "");
             Path oldPath = Paths.get(uploadFolder, oldFileName);
             Files.deleteIfExists(oldPath);
 
@@ -166,8 +197,8 @@ public ResponseEntity<?> updateImage(
             Files.createDirectories(newPath.getParent());
             Files.write(newPath, file.getBytes());
 
-            imageToUpdate.setUrl("http://localhost:8080/uploads/" + newFileName);
-            imageService.create(imageToUpdate); // dùng lại create
+            imageToUpdate.setUrl("./images/" + newFileName);
+            imageService.update(imageToUpdate.getId(), imageToUpdate); // Đổi create → update
 
             return ResponseEntity.ok("Cập nhật ảnh thành công.");
         } catch (IOException e) {
@@ -175,4 +206,11 @@ public ResponseEntity<?> updateImage(
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật ảnh.");
         }
     }
+
+    @PutMapping("/set-main/{id}")
+    public ResponseEntity<?> setMainImage(@PathVariable Long id) {
+        imageService.setMainImage(id);
+        return ResponseEntity.ok().build();
+    }
+
 }
