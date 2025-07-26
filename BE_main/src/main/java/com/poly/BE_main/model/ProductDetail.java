@@ -50,4 +50,5 @@ public class ProductDetail {
 
     @Column(name = "STATUS")
     private Integer status;
+
 }
