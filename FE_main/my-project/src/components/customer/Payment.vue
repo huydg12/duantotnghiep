@@ -43,11 +43,20 @@ const errorMessage = ref(""); // nếu mã sai
 const discountAmount = computed(() => {
   if (!selectedPromotion.value) return 0;
 
-  const percent = Number(selectedPromotion.value.value || 0);
+  const promo = selectedPromotion.value;
   const totalBeforeDiscount = subTotal.value + shippingFee.value;
-  const discount = (totalBeforeDiscount * percent) / 100;
 
-  return Math.floor(discount);
+  if (promo.type === 1) {
+    // Giảm theo phần trăm
+    const percent = Number(promo.value || 0);
+    const discount = (totalBeforeDiscount * percent) / 100;
+    return Math.floor(discount);
+  } else if (promo.type === 2) {
+    // Giảm số tiền cố định
+    return Math.floor(Number(promo.value || 0));
+  }
+
+  return 0;
 });
 
 function handlePageShow(event) {
@@ -65,17 +74,26 @@ const fetchPromotion = async () => {
     console.error("Lỗi khuyến mãi", err);
   }
 };
-// Áp dụng mã khuyến mãi
 const applyPromotionCode = () => {
   const code = promotionCode.value.trim().toLowerCase();
-  const today = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  now.setHours(0, 0, 0, 0); // so sánh theo ngày, bỏ giờ
 
-  const promo = discountAmountList.value.find(p =>
-    p.promotionCode.toLowerCase() === code &&
-    p.status === 1 &&
-    p.startDate <= today &&
-    p.endDate >= today
-  );
+  console.log("Danh sách khuyến mãi hiện có:", discountAmountList.value);
+  console.log("Mã bạn nhập:", code);
+
+  const promo = discountAmountList.value.find(p => {
+    const start = new Date(p.startDate);
+    const end = new Date(p.endDate);
+    end.setHours(23, 59, 59, 999); // kết thúc trong ngày
+
+    return (
+      p.promotionCode.toLowerCase() === code &&
+      p.status === 1 &&
+      start <= now &&
+      end >= now
+    );
+  });
 
   if (promo) {
     selectedPromotion.value = promo;
@@ -85,6 +103,7 @@ const applyPromotionCode = () => {
     errorMessage.value = "Mã không hợp lệ hoặc đã hết hạn";
   }
 };
+
 const shippingFee = computed(() => {
   if (!defaultAddress.value || !defaultAddress.value.fullAddress) {
     return 0; // Nếu chưa chọn địa chỉ thì mặc định 0
@@ -263,9 +282,10 @@ const subTotal = computed(() =>
   checkoutItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
 );
 
-const grandTotal = computed(() =>
-  subTotal.value + shippingFee.value - discountAmount.value
-);
+const grandTotal = computed(() => {
+  const discount = discountAmount.value;
+  return Math.max(subTotal.value + shippingFee.value - discount, 0);
+});
 const getCityNameByCode = (code) => {
   const city = (provinces.value || []).find(p => p.code === code);
   return city ? city.name : '';

@@ -51,24 +51,20 @@ public class ImageService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
 
-    public void setMainImage(Long imageId) {
-    Image image = imageRepository.findById(imageId.intValue())
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh với ID: " + imageId));
 
-    Integer detailId = image.getProductDetailId();
+    //     @Transactional
+    // public void resetMainImageByProductDetailId(Integer productDetailId) {
+    //     imageRepository.resetMainImageNative(productDetailId);
+    // }
 
-    if (detailId == null) {
-        throw new RuntimeException("Ảnh không có ProductDetailId.");
+    // Nếu bạn có thêm hàm đặt ảnh chính, có thể gộp vào đây:
+    @Transactional
+    public void setMainImage(Integer imageId, Integer productDetailId) {
+        // Bước 1: reset tất cả ảnh IS_MAIN về false
+        imageRepository.resetMainImageNative(productDetailId);
+
+        // Bước 2: đặt ảnh có ID cụ thể thành IS_MAIN = true
+        imageRepository.setMainImageById(imageId);
     }
-
-    List<Image> images = imageRepository.findByProductDetailId(detailId);
-
-    for (Image img : images) {
-        img.setMain(img.getId() == image.getId()); // ✅ dùng toán tử so sánh
-    }
-
-    imageRepository.saveAll(images);
-}
-
-
+    
 }

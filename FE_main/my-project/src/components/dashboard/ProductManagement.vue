@@ -21,14 +21,26 @@ newFileInput.type = "file";
 newFileInput.accept = "image/*";
 const mainImageIndexViewer = ref(0)
 
-function openImageViewer(detail) {
-    selectedDetailImages.value = detail.images || []
-    currentDetailId.value = detail.productDetailId
+async function openImageViewer(detail) {
+    try {
+        // Gán ID chi tiết sản phẩm hiện tại
+        currentDetailId.value = detail.productDetailId;
 
-    mainImageIndexViewer.value = detail.mainImageIndex ?? 0;
+        // Gọi API lấy ảnh theo productDetailId
+        const response = await axios.get(`http://localhost:8080/image/show/${detail.productDetailId}`);
+        selectedDetailImages.value = response.data;
 
-    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageViewerModal'))
-    modal.show()
+        // Tìm index ảnh chính
+        const mainIndex = selectedDetailImages.value.findIndex(img => img.isMain === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
+
+        // Mở modal
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageViewerModal'));
+        modal.show();
+    } catch (error) {
+        console.error("Lỗi khi tải ảnh chi tiết:", error);
+        selectedDetailImages.value = [];
+    }
 }
 
 const editImage = async (detailId, imageIndex) => {
@@ -358,7 +370,7 @@ async function saveProductDetails() {
                 color: { id: selectedColors.value[0] },
                 collar: { id: selectedCollars.value[0] },
                 price: detailForm.price,
-                description: detailForm.description,
+                description: detailForm.descriptionProduct,
                 status: 1
             };
 
@@ -432,21 +444,21 @@ async function deleteDetail(id) {
     }
 }
 
-//thêm ảnh chính
-async function setMainImage(imageId) {
+async function setMainImage(img) {
     try {
-        await axios.put(`http://localhost:8080/set-main/${imageId}`);
+        await axios.put(`http://localhost:8080/image/set-main/${img.id}`, null, {
+            params: {
+                productDetailId: img.productDetailId
+            }
+        });
 
-        // Cập nhật ảnh lại
-        await loadProductDetails(currentProduct.value.id);
-        const updatedDetail = productDetailList.value.find(d => d.productDetailId === currentDetailId);
-        if (updatedDetail) {
-            selectedDetailImages.value = updatedDetail.images || [];
+        // Gọi lại API để load danh sách ảnh mới
+        const response = await axios.get(`http://localhost:8080/image/show/${img.productDetailId}`);
+        selectedDetailImages.value = response.data;
 
-            // Cập nhật lại index ảnh chính nếu muốn viền đỏ đúng
-            const mainIndex = updatedDetail.images.findIndex(img => img.main);
-            mainImageIndexViewer.value = mainIndex;
-        }
+        // Cập nhật ảnh chính (main)
+        const mainIndex = selectedDetailImages.value.findIndex(i => i.main  === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
 
         alert("Đã đặt ảnh chính thành công.");
     } catch (err) {
@@ -455,21 +467,19 @@ async function setMainImage(imageId) {
     }
 }
 
-//xóa ảnh
-async function deleteImage(detailId, index) {
+async function deleteImage(imageId, productDetailId) {
     if (!confirm("Bạn có chắc muốn xoá ảnh này?")) return;
     try {
-        await axios.delete(`http://localhost:8080/image/delete/${detailId}/${index}`);
+        // Gửi yêu cầu xóa ảnh theo ID
+        await axios.delete(`http://localhost:8080/image/delete/${imageId}`);
 
-        // Cập nhật lại ảnh
-        await loadProductDetails(currentProduct.value.id);
-        const updatedDetail = productDetailList.value.find(d => d.productDetailId === detailId);
-        if (updatedDetail) {
-            selectedDetailImages.value = updatedDetail.images || [];
-            if (mainImageIndexViewer.value >= selectedDetailImages.value.length) {
-                mainImageIndexViewer.value = 0;
-            }
-        }
+        // Sau khi xóa, gọi lại API lấy danh sách ảnh mới theo productDetailId
+        const response = await axios.get(`http://localhost:8080/image/show/${productDetailId}`);
+        selectedDetailImages.value = response.data;
+
+        // Tìm lại ảnh chính (main) mới nếu còn
+        const mainIndex = selectedDetailImages.value.findIndex(i => i.main === true);
+        mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
 
         alert("Đã xoá ảnh thành công.");
     } catch (err) {
@@ -650,7 +660,8 @@ onMounted(() => {
                             <div class="col-md-6">
                                 <label>Ảnh sản phẩm (có thể chọn nhiều)</label>
                                 <input type="file" multiple accept="image/*" class="form-control"
-                                    @change="handleMultipleImageChange" />
+                                    @change="handleMultipleImageChange" 
+                                    />
 
                                 <div class="mt-3 d-flex flex-wrap gap-2 justify-content-start"
                                     v-if="previewUrls.length">
@@ -685,11 +696,11 @@ onMounted(() => {
                                             <!-- Chỉ 1 vòng lặp duy nhất -->
                                             <div v-for="(img, index) in selectedDetailImages" :key="index"
                                                 class="d-flex flex-column align-items-center" style="width: 140px;">
-                                                <img :src="img" alt="Ảnh" class="img-thumbnail shadow"
+                                                <img :src="img.url" alt="Ảnh" class="img-thumbnail shadow"
                                                     style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;"
                                                     :style="{
                                                         border: mainImageIndexViewer === index ? '3px solid red' : '1px solid #ccc'
-                                                    }" @click="setMainImage(img.id)" />
+                                                    }" @click="setMainImage(img)" />
 
                                                 <span v-if="mainImageIndexViewer === index" class="badge bg-danger mt-1"
                                                     style="font-size: 12px;">
@@ -698,11 +709,11 @@ onMounted(() => {
 
                                                 <div class="btn-group mt-2" role="group">
                                                     <button class="btn btn-sm btn-outline-primary"
-                                                        @click="editImage(currentDetailId, index)">
+                                                        @click="editImage(img.id, index)">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
                                                     <button class="btn btn-sm btn-outline-danger"
-                                                        @click="deleteImage(currentDetailId, index)">
+                                                        @click="deleteImage(img.id, img.productDetailId)">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>

@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.poly.BE_main.model.Image;
 import com.poly.BE_main.repository.ImageRepository;
 import com.poly.BE_main.service.ImageService;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/image")
 public class ImageController {
@@ -34,6 +34,11 @@ public class ImageController {
     @GetMapping("/show")
     public List<Image> findAll() {
         return imageService.FinAll();
+    }
+
+    @GetMapping("/show/{productDetailId}")
+    public List<Image> findByProductDetailId(@PathVariable int productDetailId ) {
+        return imageService.findByProductDetailId(productDetailId);
     }
 
     @PostMapping("/add")
@@ -207,10 +212,16 @@ public class ImageController {
         }
     }
 
-    @PutMapping("/set-main/{id}")
-    public ResponseEntity<?> setMainImage(@PathVariable Long id) {
-        imageService.setMainImage(id);
-        return ResponseEntity.ok().build();
-    }
+        @PutMapping("/set-main/{imageId}")
+        public ResponseEntity<String> setMainImage(
+                @PathVariable Integer imageId,
+                @RequestParam Integer productDetailId) {
+            
+            imageService.setMainImage(imageId, productDetailId);
+            return ResponseEntity.ok("Đã đặt ảnh chính.");
+        }
+
+
+
 
 }
