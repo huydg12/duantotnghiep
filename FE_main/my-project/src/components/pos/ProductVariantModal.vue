@@ -47,8 +47,10 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-success"
-            :disabled="!selectedVariant || quantity < 1 || quantity > selectedVariant.quantity"
-            @click="$emit('confirm', { ...selectedVariant, quantity })">
+            :disabled="!selectedVariant || quantity < 1 || quantity > selectedVariant.quantity" @click="() => {
+              console.log('Sản phẩm được thêm:', { ...selectedVariant, quantity });
+              $emit('confirm', { ...selectedVariant, quantity });
+            }">
             Thêm vào giỏ
           </button>
         </div>
@@ -120,14 +122,19 @@ watch(selectedColor, (newColor) => {
   }
 })
 
-onMounted(() => {
-  if (props.variants.length > 0) {
-    const firstVariant = props.variants[0]
-    selectedColor.value = firstVariant.color
-    selectedSize.value = firstVariant.size
+watch(() => [props.product, props.variants], ([newProduct, newVariants]) => {
+  if (newVariants.length > 0) {
+    const first = newVariants[0]
+    selectedColor.value = first.color
+    selectedSize.value = first.size
+    quantity.value = 1
+  } else {
+    selectedColor.value = null
+    selectedSize.value = null
     quantity.value = 1
   }
-})
+}, { immediate: true })
+
 
 </script>
 
