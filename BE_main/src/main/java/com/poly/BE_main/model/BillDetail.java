@@ -45,6 +45,9 @@ public class BillDetail {
     @Column(name = "PRODUCT_IMAGE")
     private String productImage;
 
+    @Column(name = "COLOR")
+    private String color;
+
     @Column(name = "SIZE")
     private String size;
 

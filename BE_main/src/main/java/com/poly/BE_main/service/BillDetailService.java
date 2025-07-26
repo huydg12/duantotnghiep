@@ -42,4 +42,11 @@ public class BillDetailService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hoá đơn chi tiết có id:" + id));
     }
 
+    
+        public BillDetail updateQuantity(int id, int quantity) {
+            return billDetailRepository.findById(id).map(detail -> {
+                detail.setQuantity(quantity);
+                return billDetailRepository.save(detail);
+            }).orElseThrow(() -> new RuntimeException("Không tìm thấy hoá đơn chi tiết có id: " + id));
+        }
 }

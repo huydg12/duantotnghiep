@@ -43,11 +43,13 @@ const fetchBills = async () => {
 const mapBillDetailData = (data) => {
   return data.map((item) => ({
     ID: item.id,
+    PRODUCT_DETAIL_ID: item.PRODUCT_DETAIL_ID || item.productDetailId,
     PRODUCT_NAME: item.PRODUCT_NAME || item.productName,
     SIZE: item.SIZE || item.size,
     QUANTITY: item.QUANTITY || item.quantity,
     PRICE: item.PRICE || item.price,
     PRODUCT_IMAGE: item.PRODUCT_IMAGE || item.productImage,
+    COLOR: item.COLOR || item.color,
   }));
 };
 
@@ -91,19 +93,22 @@ const saveChanges = async () => {
   }
 
   try {
+    // 1. Cập nhật chi tiết hóa đơn
     for (let detail of billDetails.value) {
       await updateBillDetail(detail);
     }
 
+    // 2. Cập nhật tổng hóa đơn
     selectedBill.value.SUB_TOTAL = subTotal.value;
     selectedBill.value.GRAND_TOTAL = grandTotal.value;
-
     await axios.put(`http://localhost:8080/bill/update/${selectedBill.value.ID}`, selectedBill.value);
 
+
+    // 4. Load lại dữ liệu
     await fetchBills();
     await fetchBillDetails(selectedBill.value.ID);
-    console.log("Bill details sau khi lưu: ", billDetails.value);
 
+    console.log("Bill details sau khi lưu: ", billDetails.value);
     alert("Cập nhật hoá đơn thành công!");
     modalInstance.value.hide();
 
@@ -126,11 +131,23 @@ const deleteBill = async (id) => {
 };
 
 const removeDetail = async (index) => {
-  const detailId = billDetails.value[index].ID;
+  const detail = billDetails.value[index];
+
   if (confirm("Bạn có chắc muốn xoá sản phẩm này khỏi hoá đơn?")) {
     try {
-      await axios.delete(`http://localhost:8080/billDetail/delete/${detailId}`);
+      // 1. Xoá khỏi DB
+      await axios.delete(`http://localhost:8080/billDetail/delete/${detail.ID}`);
+
+      // 2. Nếu đã thanh toán, cộng lại số lượng vào kho
+      if (isPaid) {
+        await axios.put(`http://localhost:8080/inventory/updateQuantity/${detail.PRODUCT_DETAIL_ID}`, {
+          quantity: detail.QUANTITY
+        });
+      }
+
+      // 3. Xoá khỏi danh sách hiển thị
       billDetails.value.splice(index, 1);
+
     } catch (error) {
       console.log("Lỗi xoá chi tiết sản phẩm:", error);
     }
@@ -160,9 +177,7 @@ const grandTotal = computed(
     (parseFloat(selectedBill.value?.SHIPPING_FEE) || 0)
 );
 
-const isPaid = computed(
-  () => selectedBill.value?.STATUS_PAYMENT === "Đã thanh toán"
-);
+const isPaid = computed(() => selectedBill.value?.STATUS >= 3);
 
 const openEditDetail = (index) => {
   editingDetail.value = { ...billDetails.value[index] };
@@ -172,30 +187,62 @@ const openEditDetail = (index) => {
   editModal.show();
 };
 
-const saveEditDetail = () => {
-  if (editQuantity.value <= 0) {
-    alert("Số lượng phải lớn hơn 0");
-    return;
+function blockMinus(e) {
+  if (e.key === '-' || e.key === 'e') {
+    e.preventDefault()
   }
-  billDetails.value[editIndex.value].QUANTITY = editQuantity.value;
-  const editModal = Modal.getInstance(document.getElementById('editDetailModal'));
-  editModal.hide();
+}
+const cacheOldQuantity = (detail) => {
+  detail.oldQuantity = detail.QUANTITY;
 };
-
-const updateBillDetail = async (detail) => {
+const handleQuantityChange = async (detail) => {
   try {
-    console.log("Updating detail:", detail);
-    if (!detail.PRODUCT_DETAIL_ID) {
-      console.error("Thiếu PRODUCT_DETAIL_ID khi update:", detail);
+    // ✅ Lấy tồn kho hiện tại
+    const inventoryRes = await axios.get(`http://localhost:8080/inventory/getQuantity/${detail.PRODUCT_DETAIL_ID}`);
+    const quantityInventory = inventoryRes.data.quantityInventory;
+    detail.quantityInventory = quantityInventory;
+
+    // ✅ Lấy oldQuantity đúng thời điểm, trước khi thay đổi
+    const oldQuantity = detail.oldQuantity !== undefined ? detail.oldQuantity : parseInt(detail.QUANTITY) || 1;
+
+    // ✅ Parse lại QUANTITY người dùng nhập
+    detail.QUANTITY = parseInt(detail.QUANTITY);
+    if (!detail.QUANTITY || detail.QUANTITY < 1) {
+      detail.QUANTITY = 1;
+    } else if (detail.QUANTITY > quantityInventory + oldQuantity) {
+      detail.QUANTITY = quantityInventory + oldQuantity;
+    }
+
+    // ✅ Kiểm tra ID
+    if (!detail.ID || !detail.PRODUCT_DETAIL_ID) {
+      console.error("❌ Lỗi: ID hoặc PRODUCT_DETAIL_ID bị thiếu:", detail);
       return;
     }
-    await axios.put(`http://localhost:8080/billDetail/update/${detail.ID}`, detail, {
-      headers: { "Content-Type": "application/json" },
-    });
+
+    // ✅ Cập nhật BILL_DETAIL
+    await axios.put(`http://localhost:8080/billDetail/updateQuantity/${detail.ID}`, 
+      { quantity: detail.QUANTITY }, 
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    // ✅ Gửi chênh lệch để cập nhật kho
+    await axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${detail.PRODUCT_DETAIL_ID}`, 
+      { 
+        quantity: detail.QUANTITY,
+        oldQuantity: oldQuantity
+      },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    // ✅ Lưu lại oldQuantity mới nhất
+    detail.oldQuantity = detail.QUANTITY;
+            console.log("Old:", oldQuantity, "New:", detail.QUANTITY, "Chênh lệch:", detail.QUANTITY - oldQuantity);
   } catch (error) {
-    console.error("Lỗi cập nhật chi tiết hoá đơn:", error);
+    console.error("❌ Lỗi khi cập nhật số lượng:", error);
   }
 };
+
+
 function statusClass(s) {
   return [
     "", // 0 - Không dùng
@@ -229,7 +276,7 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="bill in bills" :key="bill.ID">
+        <tr v-for="bill in bills.slice().sort((a, b) => new Date(b.CREATED_DATE) - new Date(a.CREATED_DATE))" :key="bill.ID">
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
@@ -295,6 +342,7 @@ onMounted(() => {
                 <tr>
                   <th>Ảnh</th>
                   <th>Tên SP</th>
+                  <th>Màu</th>
                   <th>Kích cỡ</th>
                   <th>SL</th>
                   <th>Giá</th>
@@ -306,12 +354,25 @@ onMounted(() => {
                 <tr v-for="(detail, index) in billDetails" :key="detail.ID">
                   <td><img :src="detail.PRODUCT_IMAGE" width="50" /></td>
                   <td>{{ detail.PRODUCT_NAME }}</td>
+                  <td>{{ detail.COLOR }}</td>
                   <td>{{ detail.SIZE }}</td>
-                  <td>{{ detail.QUANTITY }}</td>
+                  <!-- ✅ Số lượng có nút tăng/giảm -->
+                  <td>
+                    <input
+                      type="number"
+                      v-model="detail.QUANTITY"
+                      min="1"
+                      class="form-control form-control-sm text-center"
+                      style="width: 60px;"
+                      @focus="cacheOldQuantity(detail)"
+                      @input="handleQuantityChange(detail)"
+                      @keydown="blockMinus"
+                      :readonly="isPaid"
+                    />
+                  </td>
                   <td>{{ formatCurrency(detail.PRICE) }}</td>
                   <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>
                   <td v-if="!isPaid">
-                    <button class="btn btn-sm btn-warning me-1" @click.prevent="openEditDetail(index)">Sửa</button>
                     <button class="btn btn-sm btn-danger" @click.prevent="removeDetail(index)">Xóa</button>
                   </td>
                 </tr>
@@ -375,150 +436,6 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<!-- <script>
-import { Modal } from 'bootstrap';
-
-export default {
-  data() {
-    return {
-      bills: [],
-      selectedBill: null,
-      billDetails: [],
-      modalInstance: null,
-    };
-  },
-  computed: {
-    subTotal() {
-      return this.billDetails.reduce((total, item) => total + item.QUANTITY * item.PRICE, 0);
-    },
-    grandTotal() {
-      return (
-        this.subTotal -
-        (parseFloat(this.selectedBill.DISCOUNT_AMOUNT) || 0) +
-        (parseFloat(this.selectedBill.SHIPPING_FEE) || 0)
-      );
-    },
-    isPaid() {
-      return this.selectedBill?.STATUS_PAYMENT === "Đã thanh toán";
-    },
-  },
-  methods: {
-    async fetchBills() {
-      this.bills = [
-        {
-          ID: 1,
-          CODE: "HD001",
-          CREATED_DATE: "2025-07-01",
-          RECIPIENT_NAME: "Nguyễn Văn A",
-          RECIPIENT_PHONE_NUMBER: "0909123456",
-          RECEIVER_ADDRESS: "123 Nguyễn Trãi",
-          STATUS: "Đã giao hàng",
-          STATUS_PAYMENT: "Đã thanh toán",
-          GRAND_TOTAL: 1050000,
-          SUB_TOTAL: 1200000,
-          DISCOUNT_AMOUNT: 200000,
-          SHIPPING_FEE: 50000,
-          NOTE: "Giao giờ hành chính",
-        },
-        {
-          ID: 2,
-          CODE: "HD002",
-          CREATED_DATE: "2025-07-10",
-          RECIPIENT_NAME: "Trần Thị B",
-          RECIPIENT_PHONE_NUMBER: "0912345678",
-          RECEIVER_ADDRESS: "456 Lê Lợi",
-          STATUS: "Chờ giao hàng",
-          STATUS_PAYMENT: "Chưa thanh toán",
-          GRAND_TOTAL: 700000,
-          SUB_TOTAL: 700000,
-          DISCOUNT_AMOUNT: 0,
-          SHIPPING_FEE: 0,
-          NOTE: "",
-        },
-      ];
-    },
-    async fetchBillDetails(billId) {
-      if (billId === 1) {
-        this.billDetails = [
-          {
-            ID: 1,
-            PRODUCT_NAME: "Áo thun Polo",
-            SIZE: "M",
-            QUANTITY: 2,
-            PRICE: 200000,
-            PRODUCT_IMAGE: "https://via.placeholder.com/50",
-          },
-          {
-            ID: 2,
-            PRODUCT_NAME: "Quần Jeans",
-            SIZE: "L",
-            QUANTITY: 1,
-            PRICE: 800000,
-            PRODUCT_IMAGE: "https://via.placeholder.com/50",
-          },
-        ];
-      } else {
-        this.billDetails = [
-          {
-            ID: 3,
-            PRODUCT_NAME: "Áo sơ mi trắng",
-            SIZE: "M",
-            QUANTITY: 1,
-            PRICE: 400000,
-            PRODUCT_IMAGE: "https://via.placeholder.com/50",
-          },
-          {
-            ID: 4,
-            PRODUCT_NAME: "Chân váy",
-            SIZE: "S",
-            QUANTITY: 1,
-            PRICE: 300000,
-            PRODUCT_IMAGE: "https://via.placeholder.com/50",
-          },
-        ];
-      }
-    },
-    openModal(bill) {
-      this.selectedBill = { ...bill };
-      this.fetchBillDetails(bill.ID);
-      this.$nextTick(() => {
-        this.modalInstance = new Modal(this.$refs.modal);
-        this.modalInstance.show();
-      });
-    },
-    saveChanges() {
-      if (this.isPaid) {
-        alert("Hóa đơn đã thanh toán không thể chỉnh sửa.");
-        return;
-      }
-      this.selectedBill.SUB_TOTAL = this.subTotal;
-      this.selectedBill.GRAND_TOTAL = this.grandTotal;
-      alert("Đã lưu thay đổi cho hóa đơn: " + this.selectedBill.CODE);
-      this.modalInstance.hide();
-    },
-    deleteBill(id) {
-      if (confirm("Bạn có chắc muốn xóa hóa đơn này không?")) {
-        this.bills = this.bills.filter(b => b.ID !== id);
-        alert("Đã xóa hóa đơn.");
-        if (this.modalInstance) this.modalInstance.hide();
-      }
-    },
-    removeDetail(index) {
-      this.billDetails.splice(index, 1);
-    },
-    formatCurrency(value) {
-      return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(value);
-    },
-  },
-  mounted() {
-    this.fetchBills();
-  },
-};
-</script> -->
 
 <style scoped>
 img {

@@ -1,5 +1,6 @@
 package com.poly.BE_main.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,4 +16,6 @@ public class InventoryDTO {
     private String size;
     private int quantity;
     private LocalDateTime modifiedDate;
+    private BigDecimal unitPrice;
+
 }

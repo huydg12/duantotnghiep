@@ -260,6 +260,7 @@ CREATE TABLE [dbo].[BILL_DETAIL]
 	[PRICE] [decimal](18, 2),
 	[STATUS] [int],
 	[PRODUCT_IMAGE] [nvarchar](200),
+	[COLOR] [nvarchar](50),
 	[SIZE] [nvarchar](50),
 	[PRODUCT_NAME] [nvarchar](200),
 	PRIMARY KEY CLUSTERED 
@@ -969,9 +970,9 @@ VALUES
 GO
 
 INSERT INTO dbo.BILL_DETAIL
-	(BILL_ID, PRODUCT_DETAIL_ID, QUANTITY, PRICE, STATUS, PRODUCT_IMAGE, SIZE, PRODUCT_NAME)
+	(BILL_ID, PRODUCT_DETAIL_ID, QUANTITY, PRICE, STATUS, PRODUCT_IMAGE, COLOR, SIZE, PRODUCT_NAME)
 VALUES
-	(1, 1, 1, 1000000, 1, './images/nike-air-max-90-white.webp', N'EU 33', N'Sneaker Model 1');
+	(2, 1, 1, 1000000, 1, './images/nike-air-max-90-white.webp', N'EU 33',N'White', N'Sneaker Model 1');
 GO
 
 -- 17. Bảng PROMOTION & PROMOTION_DETAIL --
@@ -1107,87 +1108,87 @@ GO
 -- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
-WITH
-	RepresentativeProductDetail
-	AS
-	(
-		SELECT
-			PRODUCT_ID,
-			COLOR_ID,
-			MIN(ID) AS REPRESENTATIVE_PD_ID
-		FROM PRODUCT_DETAIL
-		GROUP BY PRODUCT_ID, COLOR_ID
-	)
+-- WITH
+-- 	RepresentativeProductDetail
+-- 	AS
+-- 	(
+-- 		SELECT
+-- 			PRODUCT_ID,
+-- 			COLOR_ID,
+-- 			MIN(ID) AS REPRESENTATIVE_PD_ID
+-- 		FROM PRODUCT_DETAIL
+-- 		GROUP BY PRODUCT_ID, COLOR_ID
+-- 	)
 
-SELECT
-	P.ID AS productId,
-	PD.ID AS productDetailId,
-	P.PRODUCT_NAME AS productName,
-	B.NAME AS brandName,
-	C.NAME AS color,
-	CL.NAME AS collar,
-	P.DESCRIPTION AS descriptionProduct,
-	S.EU AS size,
-	PD.PRICE AS price,
-	STRING_AGG(I.URL, ',') AS images
-FROM
-	PRODUCT P
-	JOIN PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
-	JOIN BRAND B ON P.BRAND_ID = B.ID
-	JOIN COLOR C ON PD.COLOR_ID = C.ID
-	JOIN SIZE S ON PD.SIZE_ID = S.ID
-	LEFT JOIN COLLAR CL ON PD.COLLAR_ID = CL.ID
-	LEFT JOIN RepresentativeProductDetail RPD
-	ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
-	LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID
-WHERE P.ID = 1
-GROUP BY
-                P.ID, PD.ID, P.PRODUCT_NAME,
-                B.NAME, C.NAME, P.DESCRIPTION, S.EU, CL.NAME, PD.PRICE;
-
-
+-- SELECT
+-- 	P.ID AS productId,
+-- 	PD.ID AS productDetailId,
+-- 	P.PRODUCT_NAME AS productName,
+-- 	B.NAME AS brandName,
+-- 	C.NAME AS color,
+-- 	CL.NAME AS collar,
+-- 	P.DESCRIPTION AS descriptionProduct,
+-- 	S.EU AS size,
+-- 	PD.PRICE AS price,
+-- 	STRING_AGG(I.URL, ',') AS images
+-- FROM
+-- 	PRODUCT P
+-- 	JOIN PRODUCT_DETAIL PD ON P.ID = PD.PRODUCT_ID
+-- 	JOIN BRAND B ON P.BRAND_ID = B.ID
+-- 	JOIN COLOR C ON PD.COLOR_ID = C.ID
+-- 	JOIN SIZE S ON PD.SIZE_ID = S.ID
+-- 	LEFT JOIN COLLAR CL ON PD.COLLAR_ID = CL.ID
+-- 	LEFT JOIN RepresentativeProductDetail RPD
+-- 	ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
+-- 	LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID
+-- WHERE P.ID = 1
+-- GROUP BY
+--                 P.ID, PD.ID, P.PRODUCT_NAME,
+--                 B.NAME, C.NAME, P.DESCRIPTION, S.EU, CL.NAME, PD.PRICE;
 
 
-WITH
-	RepresentativeProductDetail
-	AS
-	(
-		SELECT
-			PRODUCT_ID,
-			COLOR_ID,
-			MIN(ID) AS REPRESENTATIVE_PD_ID
-		FROM PRODUCT_DETAIL
-		GROUP BY PRODUCT_ID, COLOR_ID
-	)
 
-SELECT
-	CD.ID                  AS cartDetailId,
-	C.ID                   AS cartId,
-	CU.ID                  AS customerId,
-	P.ID                   AS productId,
-	P.PRODUCT_NAME         AS productName,
-	PD.ID                  AS productDetailId,
-	S.EU                 AS size,
-	CO.NAME                AS color,
-	PD.PRICE               AS price,
-	CD.QUANTITY            AS quantity,
-	I.URL                  AS image
-FROM CART_DETAIL CD
-	JOIN CART C ON CD.CART_ID = C.ID
-	JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.ID
-	JOIN PRODUCT_DETAIL PD ON CD.PRODUCT_DETAIL_ID = PD.ID
-	JOIN PRODUCT P ON PD.PRODUCT_ID = P.ID
-	JOIN SIZE S ON PD.SIZE_ID = S.ID
-	JOIN COLOR CO ON PD.COLOR_ID = CO.ID
 
-	-- Lấy product detail đại diện theo màu
-	LEFT JOIN RepresentativeProductDetail RPD
-	ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
+-- WITH
+-- 	RepresentativeProductDetail
+-- 	AS
+-- 	(
+-- 		SELECT
+-- 			PRODUCT_ID,
+-- 			COLOR_ID,
+-- 			MIN(ID) AS REPRESENTATIVE_PD_ID
+-- 		FROM PRODUCT_DETAIL
+-- 		GROUP BY PRODUCT_ID, COLOR_ID
+-- 	)
 
-	-- Lấy ảnh chính (is_main = 1) từ bản ghi đại diện
-	LEFT JOIN IMAGE I
-	ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID AND I.IS_MAIN = 1
-WHERE CU.ID = 1
+-- SELECT
+-- 	CD.ID                  AS cartDetailId,
+-- 	C.ID                   AS cartId,
+-- 	CU.ID                  AS customerId,
+-- 	P.ID                   AS productId,
+-- 	P.PRODUCT_NAME         AS productName,
+-- 	PD.ID                  AS productDetailId,
+-- 	S.EU                 AS size,
+-- 	CO.NAME                AS color,
+-- 	PD.PRICE               AS price,
+-- 	CD.QUANTITY            AS quantity,
+-- 	I.URL                  AS image
+-- FROM CART_DETAIL CD
+-- 	JOIN CART C ON CD.CART_ID = C.ID
+-- 	JOIN CUSTOMER CU ON C.CUSTOMER_ID = CU.ID
+-- 	JOIN PRODUCT_DETAIL PD ON CD.PRODUCT_DETAIL_ID = PD.ID
+-- 	JOIN PRODUCT P ON PD.PRODUCT_ID = P.ID
+-- 	JOIN SIZE S ON PD.SIZE_ID = S.ID
+-- 	JOIN COLOR CO ON PD.COLOR_ID = CO.ID
+
+-- 	-- Lấy product detail đại diện theo màu
+-- 	LEFT JOIN RepresentativeProductDetail RPD
+-- 	ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
+
+-- 	-- Lấy ảnh chính (is_main = 1) từ bản ghi đại diện
+-- 	LEFT JOIN IMAGE I
+-- 	ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID AND I.IS_MAIN = 1
+-- WHERE CU.ID = 1
 
 
 -- SELECT CASE WHEN COUNT(cd) > 0 THEN true ELSE false END FROM CART_DETAIL cd WHERE cd.cart.id = 1 AND cd.productDetail.id = 1
@@ -1205,58 +1206,57 @@ WHERE CU.ID = 1
 
 
 
-SELECT
-	P.ID AS productId,
-	P.PRODUCT_NAME AS productName,
-	B.NAME AS brandName,
-	PD.PRICE AS price,
-	MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
-	MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
-FROM (
-        SELECT TOP 4
-		PD.PRODUCT_ID
-	FROM BILL_DETAIL BD
-		JOIN PRODUCT_DETAIL PD ON BD.PRODUCT_DETAIL_ID = PD.ID
-	GROUP BY PD.PRODUCT_ID
-	ORDER BY SUM(BD.QUANTITY) DESC
-    ) TOP_PRODUCT
+-- SELECT
+-- 	P.ID AS productId,
+-- 	P.PRODUCT_NAME AS productName,
+-- 	B.NAME AS brandName,
+-- 	PD.PRICE AS price,
+-- 	MAX(CASE WHEN RN = 1 THEN I.URL END) AS image1,
+-- 	MAX(CASE WHEN RN = 2 THEN I.URL END) AS image2
+-- FROM (
+--         SELECT TOP 4
+-- 		PD.PRODUCT_ID
+-- 	FROM BILL_DETAIL BD
+-- 		JOIN PRODUCT_DETAIL PD ON BD.PRODUCT_DETAIL_ID = PD.ID
+-- 	GROUP BY PD.PRODUCT_ID
+-- 	ORDER BY SUM(BD.QUANTITY) DESC
+--     ) TOP_PRODUCT
 
-	JOIN PRODUCT P ON P.ID = TOP_PRODUCT.PRODUCT_ID
-	JOIN BRAND B ON P.BRAND_ID = B.ID
+-- 	JOIN PRODUCT P ON P.ID = TOP_PRODUCT.PRODUCT_ID
+-- 	JOIN BRAND B ON P.BRAND_ID = B.ID
 
-    CROSS APPLY (
-        SELECT TOP 1
-		*
-	FROM PRODUCT_DETAIL PD
-	WHERE PD.PRODUCT_ID = P.ID
-	ORDER BY PD.ID
-    ) PD
+--     CROSS APPLY (
+--         SELECT TOP 1
+-- 		*
+-- 	FROM PRODUCT_DETAIL PD
+-- 	WHERE PD.PRODUCT_ID = P.ID
+-- 	ORDER BY PD.ID
+--     ) PD
 
-	JOIN (
-        SELECT
-		ID, PRODUCT_DETAIL_ID, URL,
-		ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
-	FROM IMAGE
-    ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
+-- 	JOIN (
+--         SELECT
+-- 		ID, PRODUCT_DETAIL_ID, URL,
+-- 		ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
+-- 	FROM IMAGE
+--     ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
 
-WHERE P.STATUS = 1
-GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
+-- WHERE P.STATUS = 1
+-- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
-SELECT
-	A.ID AS addressId,
-	C.ID AS customerId,
-	C.FULL_NAME AS CustomerName,
-	A.NUMBER_PHONE AS numberPhone,
-	A.FULL_ADDRESS AS fullAddress,
-	A.IS_DEFAULT AS isDefault
-FROM
-	ADDRESS A
-	JOIN
-	CUSTOMER C ON A.CUSTOMER_ID = C.ID
-WHERE 
-    C.ID = 1; 
-
+-- SELECT
+-- 	A.ID AS addressId,
+-- 	C.ID AS customerId,
+-- 	C.FULL_NAME AS CustomerName,
+-- 	A.NUMBER_PHONE AS numberPhone,
+-- 	A.FULL_ADDRESS AS fullAddress,
+-- 	A.IS_DEFAULT AS isDefault
+-- FROM
+-- 	ADDRESS A
+-- 	JOIN
+-- 	CUSTOMER C ON A.CUSTOMER_ID = C.ID
+-- WHERE 
+--     C.ID = 1; 
 
 
 

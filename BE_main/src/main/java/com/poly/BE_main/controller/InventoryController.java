@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +57,33 @@ public class InventoryController {
         int quantity = body.get("quantity");
         inventoryService.updateQuantityByPayment(productDetailId, quantity);
         return ResponseEntity.ok().build();
+    }
+
+
+     @GetMapping("/getQuantity/{productDetailId}")
+    public ResponseEntity<?> getQuantity(@PathVariable Integer productDetailId) {
+        Integer quantity = inventoryService.getQuantityByProductDetailId(productDetailId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("productDetailId", productDetailId);
+        result.put("quantityInventory", quantity);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/updateQuantityByBill/{productDetailId}")
+    public ResponseEntity<?> updateQuantityByPayMent(
+        @PathVariable("productDetailId") Integer productDetailId,
+        @RequestBody Map<String, Integer> payload
+    ) {
+    int newQuantity = payload.get("quantity");
+    int oldQuantity = payload.get("oldQuantity");
+
+    boolean updated = inventoryService.updateQuantityByBill(productDetailId, newQuantity, oldQuantity);
+
+    if (!updated) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không đủ tồn kho hoặc lỗi");
+    }
+
+    return ResponseEntity.ok("Cập nhật tồn kho thành công");
     }
     
 }

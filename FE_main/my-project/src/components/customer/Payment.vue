@@ -43,11 +43,11 @@ const errorMessage = ref(""); // nếu mã sai
 const discountAmount = computed(() => {
   if (!selectedPromotion.value) return 0;
 
-  const percent = selectedPromotion.value.value; // ví dụ: 10%
-  const totalBeforeDiscount = subTotal.value + shippingFee;
+  const percent = Number(selectedPromotion.value.value || 0);
+  const totalBeforeDiscount = subTotal.value + shippingFee.value;
   const discount = (totalBeforeDiscount * percent) / 100;
 
-  return Math.floor(discount); // làm tròn tiền giảm nếu cần
+  return Math.floor(discount);
 });
 
 function handlePageShow(event) {
@@ -417,13 +417,21 @@ const generateBillPayload = () => {
   const _grandTotal = grandTotal.value
 
   const today = new Date().toISOString().split("T")[0]
-
+  const getEstimatedDeliveryDate = () => {
+    const addressText = defaultAddress.value?.fullAddress?.toLowerCase() || "";
+    const isInHaiPhong = addressText.includes("hải phòng") || addressText.includes("haiphong");
+    const daysToAdd = isInHaiPhong ? 2 : 5;
+    const estimated = new Date();
+    estimated.setDate(estimated.getDate() + daysToAdd);
+    return estimated.toISOString().split("T")[0];
+  };
   const billDetails = checkoutItems.value.map(item => ({
     productDetailId: item.productDetailId,
     quantity: item.quantity,
     price: item.price,
     status: 1,
     productImage: item.images,
+    color: item.color,
     size: item.size,
     productName: item.productName
   }))
@@ -437,6 +445,7 @@ const generateBillPayload = () => {
     ptttId: paymentMethodMapping[selectedPaymentMethod.value] || 1, // Mặc định là CASH
     code: billCode.value, // auto code
     billType: "ONLINE",
+    promotion: 2,
     status: 1,
     createdBy: customerId,
     createdDate: today,
@@ -446,7 +455,7 @@ const generateBillPayload = () => {
     recipientPhoneNumber: defaultAddress.value?.numberPhone,
     receiverAddress: defaultAddress.value?.fullAddress,
     addressMethod: "GIAO_TAN_NOI",
-    estimatedDeliveryDate: today,
+    estimatedDeliveryDate: getEstimatedDeliveryDate(),
     modifiedBy: null,
     modifiedDate: today,
     note: note.value,

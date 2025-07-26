@@ -1,6 +1,7 @@
 package com.poly.BE_main.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,17 @@ public class BillDetailController {
     @PutMapping("/update/{id}")
     public BillDetail update(@PathVariable int id, @RequestBody BillDetail i){
         return billDetailService.update(id, i);
+    }
+
+    @PutMapping("/updateQuantity/{id}")
+    public ResponseEntity<?> updateQuantityOnly(@PathVariable("id") Integer id,
+                                                @RequestBody Map<String, Integer> body) {
+        Integer quantity = body.get("quantity");
+        if (quantity == null || quantity < 1) {
+            return ResponseEntity.badRequest().body("Số lượng không hợp lệ.");
+        }
+        BillDetail updated = billDetailService.updateQuantity(id, quantity);
+        return ResponseEntity.ok(updated);
     }
 
 }

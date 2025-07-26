@@ -6,7 +6,7 @@ import axios from "axios";
 
 const showModal = ref(false);
 const isEdit = ref(false);
-
+const isViewOnly = ref(false); // 👈 mới
 const products = ref([]);
 
 const receipts = ref([]);
@@ -69,15 +69,18 @@ function openCreate() {
   showModal.value = true;
 }
 
- async function openEdit(receipt) {
-  isEdit.value = true;
+async function openEdit(receipt) {
+  isEdit.value = receipt.status !== 2;
+  isViewOnly.value = receipt.status === 2;
+
   Object.assign(form, JSON.parse(JSON.stringify(receipt)));
+
   try {
     const res = await axios.get(`http://localhost:8080/importReceiptDetail/showById/${receipt.id}`);
     form.details = res.data;
   } catch (error) {
     console.error("Lỗi lấy chi tiết phiếu nhập:", error);
-    form.details = []; // fallback nếu lỗi
+    form.details = [];
   }
 
   showModal.value = true;
@@ -224,7 +227,8 @@ async function complete(receipt) {
         // 3b. Nếu chưa có → tạo mới bản ghi kho
         await axios.post(`http://localhost:8080/inventory/create`, {
           productDetailId: detail.productDetailId,
-          quantity: detail.quantity
+          quantity: detail.quantity,
+          modifiedDate: new Date().toISOString() // nếu muốn gửi
         });
       }
     }
@@ -331,6 +335,9 @@ if (userJson) {
             <button v-if="receipt.status === 1" class="btn btn-sm btn-success me-1" @click="complete(receipt)">
               Ghi nhận kho
             </button>
+            <button v-if="receipt.status === 2" class="btn btn-sm btn-success me-1" @click="openEdit(receipt)">
+              Chi tiết
+            </button>
             <button v-if="[0, 1].includes(receipt.status)" class="btn btn-sm btn-danger" @click="cancel(receipt)">
               Huỷ
             </button>
@@ -356,11 +363,18 @@ if (userJson) {
             </div>
             <div class="mb-3">
               <label>Ngày nhập</label>
-              <input v-model="form.importDate" type="datetime-local" class="form-control" />
+              <input v-model="form.importDate" type="datetime-local"
+              class="form-control"
+              :readonly="isViewOnly"
+              :disabled="isViewOnly"
+            />
             </div>
             <div class="mb-3">
               <label>Ghi chú</label>
-              <textarea v-model="form.note" class="form-control"></textarea>
+              <textarea v-model="form.note" class="form-control"
+                :readonly="isViewOnly"
+                :disabled="isViewOnly"
+              ></textarea>
             </div>
 
             <!-- Chi tiết sản phẩm -->
@@ -370,7 +384,7 @@ if (userJson) {
                 <tr>
                   <th>ID sản phẩm</th>
                   <th>Số lượng</th>
-                  <th>Đơn giá</th>
+                  <th>Giá nhập</th>
                   <th>Thành tiền</th>
                   <th>Hành động</th>
                 </tr>
@@ -379,32 +393,53 @@ if (userJson) {
                 <tr v-for="(item, idx) in form.details" :key="idx">
                   <td style="min-width: 250px;">
                     <div class="form-control p-0">
-                      <v-select v-model="item.productDetailId" :options="products" label="name" :reduce="p => p.id"
-                        class="w-100" placeholder="Chọn sản phẩm" />
+                      <v-select
+                        v-model="item.productDetailId"
+                        :options="products"
+                        label="name"
+                        :reduce="p => p.id"
+                        class="w-100"
+                        placeholder="Chọn sản phẩm"
+                        :disabled="isViewOnly"
+                      />
                     </div>
                   </td>
                   <td>
-                    <input type="number" v-model.number="item.quantity" class="form-control form-control-sm" />
+                    <input
+                      type="number"
+                      v-model.number="item.quantity"
+                      class="form-control form-control-sm"
+                      :readonly="isViewOnly"
+                    />
                   </td>
                   <td>
-                    <input type="number" v-model.number="item.unitPrice" class="form-control form-control-sm" />
+                    <input
+                      type="number"
+                      v-model.number="item.unitPrice"
+                      class="form-control form-control-sm"
+                      :readonly="isViewOnly"
+                    />
                   </td>
                   <td>{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
                   <td>
-                    <button class="btn btn-sm btn-danger" @click="removeDetail(idx)">
-                      Xoá
-                    </button>
+                  <button
+                    class="btn btn-sm btn-danger"
+                    @click="removeDetail(idx)"
+                    v-if="!isViewOnly"
+                  >
+                    Xoá
+                  </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <button class="btn btn-sm btn-outline-primary" @click="addDetail">
+            <button class="btn btn-sm btn-outline-primary" @click="addDetail"v-if="!isViewOnly">
               + Thêm dòng
             </button>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="closeModal">Hủy</button>
-            <button class="btn btn-primary" @click="saveReceipt">Lưu</button>
+            <button class="btn btn-primary" @click="saveReceipt" v-if="!isViewOnly">Lưu</button>
           </div>
         </div>
       </div>

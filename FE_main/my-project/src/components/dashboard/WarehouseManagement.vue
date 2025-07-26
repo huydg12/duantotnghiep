@@ -21,6 +21,7 @@
           <th>Màu sắc</th>
           <th>Kích cỡ</th>
           <th>Số lượng tồn</th>
+          <th>Giá nhập</th>
           <th>Ngày cập nhật</th>
         </tr>
       </thead>
@@ -31,6 +32,7 @@
           <td>{{ item.color }}</td>
           <td>{{ item.size }}</td>
           <td>{{ item.quantity }}</td>
+          <td>{{ item.unitPrice }}</td>
           <td>{{ formatDate(item.modifiedDate) }}</td>
         </tr>
         <tr v-if="filteredInventory.length === 0">

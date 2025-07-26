@@ -147,7 +147,7 @@ momo.post('/callback', async (req, res) => {
       const cartItems = parsedExtra.cartItems || [];
       const billPayload = {
         ...parsedExtra, // nếu client truyền full bill payload vào extraData
-        code: orderId,
+        // code: orderId,
         grandTotal: amount,
         statusPayment: "DA_THANH_TOAN",
         billType: "ONLINE",
