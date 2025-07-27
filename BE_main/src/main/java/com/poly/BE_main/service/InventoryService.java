@@ -11,6 +11,8 @@ import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.repository.InventoryRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 
 public class InventoryService {
@@ -43,6 +45,8 @@ public class InventoryService {
     public boolean checkInventoryExists(int productDetailId) {
         return inventoryRepository.existsByProductDetailId(productDetailId);
     }
+
+    @Transactional
     public boolean updateQuantity(int productDetailId, int addedQuantity) {
         Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 

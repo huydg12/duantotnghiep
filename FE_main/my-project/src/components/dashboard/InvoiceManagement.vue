@@ -64,17 +64,36 @@ const fetchBillDetails = async (billId) => {
     console.log("Lỗi lấy chi tiết hoá đơn", error);
   }
 };
-const updateBillStatus = (bill) => {
-  axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
-    status: bill.STATUS
-  })
-  .then(() => {
-    alert("Cập nhật trạng thái thành công");
-  })
-  .catch((error) => {
-    console.error("Lỗi khi cập nhật trạng thái:", error);
+const updateBillStatus = async (bill) => {
+  try {
+    // Gọi API cập nhật trạng thái
+    await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
+      status: bill.STATUS
+    });
+
+    // ✅ Nếu trạng thái mới là "Đã hủy"
+    if (bill.STATUS === 5) {
+      // Gọi API lấy danh sách bill detail theo bill ID
+      const res = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
+      const billDetails = res.data;
+
+      // ✅ Lặp qua từng chi tiết đơn hàng để cộng lại vào kho
+      for (const detail of billDetails) {
+        console.log("Bill details:", billDetails);
+        await axios.put(`http://localhost:8080/inventory/updateQuantity/${detail.productDetailId}`, {
+          quantity: detail.quantity
+        });
+      }
+
+      alert("Đơn hàng đã hủy và số lượng tồn kho đã được khôi phục.");
+    } else {
+      alert("Cập nhật trạng thái thành công");
+    }
+
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật trạng thái:", error);
     alert("Cập nhật trạng thái thất bại");
-  });
+  }
 };
 const openModal = async (bill) => {
   selectedBill.value = { ...bill };
@@ -282,18 +301,18 @@ onMounted(() => {
           <td>{{ bill.RECIPIENT_NAME }}</td>
           <td>
             <select v-model="bill.STATUS" @change="updateBillStatus(bill)" class="form-select form-select-sm" :class="statusClass(bill.STATUS)">
-              <option value="1">Chờ xác nhận</option>
-              <option value="2">Đã xác nhận</option>
-              <option value="3">Đang giao</option>
-              <option value="4">Hoàn tất</option>
-              <option value="5">Đã hủy</option>
+            <option value="1" :disabled="bill.STATUS > 1">Chờ xác nhận</option>
+            <option value="2" :disabled="bill.STATUS > 2">Đã xác nhận</option>
+            <option value="3" :disabled="bill.STATUS > 3">Đang giao</option>
+            <option value="4" :disabled="bill.STATUS > 4">Hoàn tất</option>
+            <option value="5" :disabled="bill.STATUS === 5">Đã hủy</option>
             </select>
           </td>
           <td>{{ bill.STATUS_PAYMENT }}</td>
           <td>{{ formatCurrency(bill.GRAND_TOTAL || 0) }}</td>
           <td>
             <button class="btn btn-sm btn-primary me-2" @click="openModal(bill)">Chi tiết</button>
-            <button class="btn btn-sm btn-danger" @click="deleteBill(bill.ID)">Xóa</button>
+            <button v-show="false" class="btn btn-sm btn-danger" @click="deleteBill(bill.ID)">Xóa</button>
           </td>
         </tr>
       </tbody>
@@ -440,5 +459,10 @@ onMounted(() => {
 <style scoped>
 img {
   border-radius: 4px;
+}
+
+option:disabled {
+  background-color: #f8f9fa;
+  color: #999;
 }
 </style>
