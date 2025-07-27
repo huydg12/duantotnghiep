@@ -66,6 +66,8 @@ if (userJson) {
 
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`)
+  console.log("proudct:", id)
+
 }
 
 const fetchProducts = async () => {

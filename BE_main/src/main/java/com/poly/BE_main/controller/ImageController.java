@@ -29,7 +29,7 @@ public class ImageController {
     @Autowired
     ImageRepository imageRepository;
 
-    private final String uploadFolder = "D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images";
+    private final String uploadFolder = "D:/duantotnghiep/FE_main/my-project/public/images";
 
     @GetMapping("/show")
     public List<Image> findAll() {
@@ -96,13 +96,13 @@ public class ImageController {
             if (file != null && !file.isEmpty()) {
                 // Xoá ảnh cũ
                 String oldFileName = image.getUrl().replace("./images/", "");
-                Path oldPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", oldFileName);
+                Path oldPath = Paths.get("D:/duantotnghiep/FE_main/my-project/public/images", oldFileName);
                 Files.deleteIfExists(oldPath);
 
                 // Upload ảnh mới
                 String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
                 String newFileName = UUID.randomUUID().toString() + extension;
-                Path newPath = Paths.get("D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images", newFileName);
+                Path newPath = Paths.get("D:/duantotnghiep/FE_main/my-project/public/images", newFileName);
                 Files.write(newPath, file.getBytes());
 
                 image.setUrl("./images/" + newFileName);
@@ -121,7 +121,7 @@ public class ImageController {
             @RequestParam("productDetailId") int productDetailId,
             @RequestParam("mainImageIndex") int mainImageIndex,
             @RequestParam(value = "customFilename", required = false) String customFilename) {
-        String feImageFolder = "D:/ManhDuAn/duantotnghiep/FE_main/my-project/public/images";
+        String feImageFolder = "D:/duantotnghiep/FE_main/my-project/public/images";
         String urlPrefix = "./images/";
 
         long currentCount = imageService.countByProductDetailId(productDetailId);

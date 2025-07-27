@@ -13,6 +13,7 @@ const userInfo = ref(JSON.parse(localStorage.getItem("user")));
 let customerId = ref(null);
 const brandList = ref([])
 const suggestedProducts = ref([]);
+let fetchCallCount = 0;
 const fetchSuggestedProducts = async () => {
   const keyword = searchText.value.trim();
   if (!keyword) {
@@ -54,6 +55,7 @@ const doSearchFromModal = () => {
   if (searchText.value.trim()) {
     router.push({ path: "/product", query: { keyword: searchText.value } });
     showSearch.value = false; // ✅ Đóng popup khi nhấn Enter
+      searchText.value = ''; // ✅ Reset
   }
 };
 
@@ -78,7 +80,11 @@ const syncUserFromStorage = () => {
     }
   }
 };
-
+const fixImageUrl = (url) => {
+  if (!url) return '/images/no-image.jpg';
+  if (url.startsWith('./')) return 'http://localhost:5173' + url.slice(1); // bỏ dấu chấm
+  return url; // đã là full URL
+};
 // Hàm đăng xuất
 const handleLogout = () => {
   // Xóa localStorage và store
@@ -126,6 +132,8 @@ function goToProductDetail(productDetailId) {
 }
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`)
+    showSearch.value = false;
+  searchText.value = ''; // ✅ Reset
 }
 </script>
 
@@ -254,7 +262,7 @@ const goToDetail = (id) => {
             <li v-for="product in suggestedProducts" :key="product.productId"
               class="d-flex align-items-center py-1 px-2 hover-highlight" style="cursor: pointer;"
               @click="goToDetail(product.productId); showSearch = false">
-              <img :src="product.image1" alt="img" class="me-2"
+              <img   :src="fixImageUrl(product.image1)" alt="img" class="me-2"
                 style="width: 40px; height: 40px; object-fit: contain;" />
               <span class="text-white">{{ product.productName }}</span>
             </li>

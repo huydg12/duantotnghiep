@@ -182,7 +182,7 @@ const fetchProductDetail = async () => {
     console.log("productId sau xử lý: ", productId)
 
     // Gọi API để lấy tất cả phiên bản sản phẩm theo productId
-    const response = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
+    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
     console.log("Dữ liệu API trả về: ", response.data)
 
     if (Array.isArray(response.data) && response.data.length > 0) {

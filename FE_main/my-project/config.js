@@ -4,7 +4,7 @@ const config = {
   orderInfo: 'pay with MoMo',
   partnerCode: 'MOMO',
   redirectUrl: 'http://localhost:5173/home',
-  ipnUrl: 'https://155ed305b221.ngrok-free.app/callback',
+  ipnUrl: 'https://354c4f6ead9c.ngrok-free.app/callback',
   requestType: 'payWithMethod',
   extraData: '',
   orderGroupId: '',
