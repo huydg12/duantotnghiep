@@ -26,7 +26,7 @@ public class BillDetailController {
     BillDetailService billDetailService;
 
     @GetMapping("/show")
-    public List<BillDetail> findAll(){
+    public List<BillDetail> findAll() {
         return billDetailService.findAll();
     }
 
@@ -37,23 +37,23 @@ public class BillDetailController {
     }
 
     @PostMapping("/create")
-    public BillDetail create(@RequestBody BillDetail i){
+    public BillDetail create(@RequestBody BillDetail i) {
         return billDetailService.create(i);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable Integer id){
+    public void delete(@PathVariable Integer id) {
         billDetailService.delete(id);
     }
 
     @PutMapping("/update/{id}")
-    public BillDetail update(@PathVariable int id, @RequestBody BillDetail i){
+    public BillDetail update(@PathVariable int id, @RequestBody BillDetail i) {
         return billDetailService.update(id, i);
     }
 
     @PutMapping("/updateQuantity/{id}")
     public ResponseEntity<?> updateQuantityOnly(@PathVariable("id") Integer id,
-                                                @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body) {
         Integer quantity = body.get("quantity");
         if (quantity == null || quantity < 1) {
             return ResponseEntity.badRequest().body("Số lượng không hợp lệ.");

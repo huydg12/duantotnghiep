@@ -34,7 +34,7 @@ public class ProductController {
     @GetMapping("/showSPdto")
     public ResponseEntity<List<ProductDTO>> getAllProductDTOs() {
         List<ProductDTO> products = productService.getProducts();
-        return ResponseEntity.ok(products); // Trả về 200 OK với danh sách ProductDTO
+        return ResponseEntity.ok(products); 
     }
 
     @PostMapping("/add")

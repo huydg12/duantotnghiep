@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerDTO {
-private Integer id;
+    private Integer id;
     private String fullName;
     private String gender;
     private String email;

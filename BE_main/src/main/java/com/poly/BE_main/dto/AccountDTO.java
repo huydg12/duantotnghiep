@@ -17,4 +17,3 @@ public class AccountDTO {
     private Integer roleId;
     private LocalDateTime createdDate;
 }
-

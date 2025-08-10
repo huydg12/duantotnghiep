@@ -1,6 +1,5 @@
 package com.poly.BE_main.service;
 
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +13,20 @@ public class CollarService {
     @Autowired
     CollarRepository collarRepository;
 
-    public List<Collar>FindAll(){
+    public List<Collar> findAll() {
         return collarRepository.findAll();
     }
 
-    public Collar create (Collar c){
+    public Collar create(Collar c) {
         return collarRepository.save(c);
     }
 
-    public void delete(int id){
+    public void delete(int id) {
         collarRepository.deleteById(id);
     }
 
-    public Collar update (int id, Collar cUpdate) {
-        return collarRepository.findById(id).map(c ->{
+    public Collar update(int id, Collar cUpdate) {
+        return collarRepository.findById(id).map(c -> {
             c.setName(cUpdate.getName());
             c.setDescription(cUpdate.getDescription());
             return collarRepository.save(c);

@@ -22,8 +22,8 @@ public class RoleController {
     RoleService roleService;
 
     @GetMapping("/show")
-    public List<Role> findall() {
-        return roleService.FindAll();
+    public List<Role> findAll() {
+        return roleService.findAll();
     }
 
     @PostMapping("/add")

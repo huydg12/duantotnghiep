@@ -14,36 +14,37 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.poly.BE_main.model.ImportReceiptDetail;
 import com.poly.BE_main.service.ImportReceiptDetailService;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/importReceiptDetail")
 public class ImportReceiptDetailController {
-    
+
     @Autowired
     ImportReceiptDetailService importReceiptDetailService;
 
     @GetMapping("/show")
-    public List<ImportReceiptDetail> findALL(){
+    public List<ImportReceiptDetail> findALL() {
         return importReceiptDetailService.findAll();
     }
+
     @GetMapping("/showById/{importReceiptId}")
-    public List<ImportReceiptDetail> findByImportReceiptId(@PathVariable Integer importReceiptId){
+    public List<ImportReceiptDetail> findByImportReceiptId(@PathVariable Integer importReceiptId) {
         return importReceiptDetailService.findByImportReceiptId(importReceiptId);
     }
 
-
     @PostMapping("create")
-    public ImportReceiptDetail create(@RequestBody ImportReceiptDetail i){
+    public ImportReceiptDetail create(@RequestBody ImportReceiptDetail i) {
         return importReceiptDetailService.create(i);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable Integer id){
+    public void delete(@PathVariable Integer id) {
         importReceiptDetailService.delete(id);
     }
 
     @PutMapping("/update/{id}")
-    public ImportReceiptDetail update(@PathVariable int id, @RequestBody ImportReceiptDetail i){
+    public ImportReceiptDetail update(@PathVariable int id, @RequestBody ImportReceiptDetail i) {
         return importReceiptDetailService.update(id, i);
     }
 }

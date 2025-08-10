@@ -32,7 +32,7 @@ public class InventoryController {
     }
 
     @PostMapping("/create")
-        public Inventory create(@RequestBody Inventory inventory) {
+    public Inventory create(@RequestBody Inventory inventory) {
         return inventoryService.create(inventory);
     }
 
@@ -43,24 +43,24 @@ public class InventoryController {
         response.put("exists", exists);
         return ResponseEntity.ok(response);
     }
+
     @PutMapping("/updateQuantity/{productDetailId}")
     public ResponseEntity<?> updateQuantity(@PathVariable("productDetailId") Integer productDetailId,
-                                            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body) {
         int quantity = body.get("quantity");
         inventoryService.updateQuantity(productDetailId, quantity);
         return ResponseEntity.ok().build();
     }
 
-        @PutMapping("/updateQuantityByPayMent/{productDetailId}")
+    @PutMapping("/updateQuantityByPayMent/{productDetailId}")
     public ResponseEntity<?> updateQuantityBypayment(@PathVariable("productDetailId") Integer productDetailId,
-                                            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body) {
         int quantity = body.get("quantity");
         inventoryService.updateQuantityByPayment(productDetailId, quantity);
         return ResponseEntity.ok().build();
     }
 
-
-     @GetMapping("/getQuantity/{productDetailId}")
+    @GetMapping("/getQuantity/{productDetailId}")
     public ResponseEntity<?> getQuantity(@PathVariable Integer productDetailId) {
         Integer quantity = inventoryService.getQuantityByProductDetailId(productDetailId);
         Map<String, Object> result = new HashMap<>();
@@ -71,19 +71,18 @@ public class InventoryController {
 
     @PutMapping("/updateQuantityByBill/{productDetailId}")
     public ResponseEntity<?> updateQuantityByPayMent(
-        @PathVariable("productDetailId") Integer productDetailId,
-        @RequestBody Map<String, Integer> payload
-    ) {
-    int newQuantity = payload.get("quantity");
-    int oldQuantity = payload.get("oldQuantity");
+            @PathVariable("productDetailId") Integer productDetailId,
+            @RequestBody Map<String, Integer> payload) {
+        int newQuantity = payload.get("quantity");
+        int oldQuantity = payload.get("oldQuantity");
 
-    boolean updated = inventoryService.updateQuantityByBill(productDetailId, newQuantity, oldQuantity);
+        boolean updated = inventoryService.updateQuantityByBill(productDetailId, newQuantity, oldQuantity);
 
-    if (!updated) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không đủ tồn kho hoặc lỗi");
+        if (!updated) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không đủ tồn kho hoặc lỗi");
+        }
+
+        return ResponseEntity.ok("Cập nhật tồn kho thành công");
     }
 
-    return ResponseEntity.ok("Cập nhật tồn kho thành công");
-    }
-    
 }

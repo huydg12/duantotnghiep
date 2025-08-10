@@ -9,6 +9,5 @@ public class StockStatisticDTO {
     private String productName;
     private String color;
     private String size;
-    private Long totalSold;         // đã bán
+    private Long totalSold; // đã bán
 }
-

@@ -9,11 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
-    private Integer productId; 
+    private Integer productId;
     private String productName;
     private String brandName;
     private BigDecimal price;
-    private String image1; 
+    private String image1;
     private String image2;
-    
 }

@@ -39,7 +39,7 @@ public class Bill {
 
     @Column(name = "PTTT_ID")
     private Integer ptttId;
-     
+
     @Column(name = "PROMOTION_ID")
     private Integer promotionId;
 

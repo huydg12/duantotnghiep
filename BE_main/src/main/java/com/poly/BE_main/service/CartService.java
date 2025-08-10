@@ -20,6 +20,6 @@ public class CartService {
     }
 
     public Integer getCartIdByCustomerId(Integer customerId) {
-    return cartRepository.findCartIdByCustomerId(customerId);
+        return cartRepository.findCartIdByCustomerId(customerId);
     }
 }

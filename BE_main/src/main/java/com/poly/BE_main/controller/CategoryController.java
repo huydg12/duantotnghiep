@@ -16,30 +16,29 @@ import com.poly.BE_main.service.CategoryService;
 
 import org.springframework.web.bind.annotation.PutMapping;
 
-
 @RestController
 @RequestMapping("/style")
 public class CategoryController {
-@Autowired
-CategoryService categoryService;
+    @Autowired
+    CategoryService categoryService;
 
-@GetMapping("/show")
-public List<Category>FindAll(){
-    return categoryService.findAll();
-}
+    @GetMapping("/show")
+    public List<Category> FindAll() {
+        return categoryService.findAll();
+    }
 
-@PostMapping("/add")
-public Category add(@RequestBody Category category){
-    return categoryService.create(category);
-}
+    @PostMapping("/add")
+    public Category add(@RequestBody Category category) {
+        return categoryService.create(category);
+    }
 
-@DeleteMapping("/delete/{id}")
-public void delete(@PathVariable Integer id){
-    categoryService.delete(id);
-}
+    @DeleteMapping("/delete/{id}")
+    public void delete(@PathVariable Integer id) {
+        categoryService.delete(id);
+    }
 
-@PutMapping("/update/{id}")
-public Category update(@PathVariable Integer id, @RequestBody Category category) {    
-    return categoryService.update(id, category);
-}
+    @PutMapping("/update/{id}")
+    public Category update(@PathVariable Integer id, @RequestBody Category category) {
+        return categoryService.update(id, category);
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.poly.BE_main.model.Image;
 import com.poly.BE_main.repository.ImageRepository;
 import com.poly.BE_main.service.ImageService;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/image")
@@ -29,15 +30,15 @@ public class ImageController {
     @Autowired
     ImageRepository imageRepository;
 
-    private final String uploadFolder = "D:/duantotnghiep/FE_main/my-project/public/images";
+    private final String uploadFolder = "D:/Shoes/FE_main/my-project/public/images";
 
     @GetMapping("/show")
     public List<Image> findAll() {
-        return imageService.FinAll();
+        return imageService.findAll();
     }
 
     @GetMapping("/show/{productDetailId}")
-    public List<Image> findByProductDetailId(@PathVariable int productDetailId ) {
+    public List<Image> findByProductDetailId(@PathVariable int productDetailId) {
         return imageService.findByProductDetailId(productDetailId);
     }
 
@@ -96,13 +97,13 @@ public class ImageController {
             if (file != null && !file.isEmpty()) {
                 // Xoá ảnh cũ
                 String oldFileName = image.getUrl().replace("./images/", "");
-                Path oldPath = Paths.get("D:/duantotnghiep/FE_main/my-project/public/images", oldFileName);
+                Path oldPath = Paths.get("D:/Shoes/FE_main/my-project/public/images", oldFileName);
                 Files.deleteIfExists(oldPath);
 
                 // Upload ảnh mới
                 String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
                 String newFileName = UUID.randomUUID().toString() + extension;
-                Path newPath = Paths.get("D:/duantotnghiep/FE_main/my-project/public/images", newFileName);
+                Path newPath = Paths.get("D:/Shoes/FE_main/my-project/public/images", newFileName);
                 Files.write(newPath, file.getBytes());
 
                 image.setUrl("./images/" + newFileName);
@@ -121,7 +122,7 @@ public class ImageController {
             @RequestParam("productDetailId") int productDetailId,
             @RequestParam("mainImageIndex") int mainImageIndex,
             @RequestParam(value = "customFilename", required = false) String customFilename) {
-        String feImageFolder = "D:/duantotnghiep/FE_main/my-project/public/images";
+        String feImageFolder = "D:/Shoes/FE_main/my-project/public/images";
         String urlPrefix = "./images/";
 
         long currentCount = imageService.countByProductDetailId(productDetailId);
@@ -212,16 +213,13 @@ public class ImageController {
         }
     }
 
-        @PutMapping("/set-main/{imageId}")
-        public ResponseEntity<String> setMainImage(
-                @PathVariable Integer imageId,
-                @RequestParam Integer productDetailId) {
-            
-            imageService.setMainImage(imageId, productDetailId);
-            return ResponseEntity.ok("Đã đặt ảnh chính.");
-        }
+    @PutMapping("/set-main/{imageId}")
+    public ResponseEntity<String> setMainImage(
+            @PathVariable Integer imageId,
+            @RequestParam Integer productDetailId) {
 
-
-
+        imageService.setMainImage(imageId, productDetailId);
+        return ResponseEntity.ok("Đã đặt ảnh chính.");
+    }
 
 }

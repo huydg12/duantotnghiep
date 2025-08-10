@@ -13,7 +13,7 @@ public class SizeService {
     @Autowired
     SizeRepository sizeRepository;
 
-    public List<Size> finall() {
+    public List<Size> findAll() {
         return sizeRepository.findAll();
     }
 

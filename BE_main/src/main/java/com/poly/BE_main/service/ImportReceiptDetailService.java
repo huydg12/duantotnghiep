@@ -18,7 +18,7 @@ public class ImportReceiptDetailService {
         return importReceiptDetailRepository.findAll();
     }
 
-    public List<ImportReceiptDetail> findByImportReceiptId(Integer importReceiptId){
+    public List<ImportReceiptDetail> findByImportReceiptId(Integer importReceiptId) {
         return importReceiptDetailRepository.findByImportReceiptId(importReceiptId);
     }
 

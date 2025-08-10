@@ -20,7 +20,6 @@ public class BillDetail {
     @Column(name = "ID")
     private int id;
 
-
     @Column(name = "PRODUCT_DETAIL_ID")
     private int productDetailId;
 
@@ -47,10 +46,9 @@ public class BillDetail {
 
     @ManyToOne
     @JoinColumn(name = "BILL_ID")
-    @JsonBackReference 
+    @JsonBackReference
     private Bill bill;
 
-    // ✅ Thêm ánh xạ đến ProductDetail
     @ManyToOne
     @JoinColumn(name = "PRODUCT_DETAIL_ID", insertable = false, updatable = false)
     private ProductDetail productDetail;

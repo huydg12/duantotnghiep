@@ -30,7 +30,7 @@ public class EmployeeService {
         dto.setCreatedDate(e.getCreatedDate());
         if (e.getAccount() != null) {
             dto.setAccountId(e.getAccount().getId());
-            dto.setAccountUsername(e.getAccount().getUsername()); // nếu cần
+            dto.setAccountUsername(e.getAccount().getUsername());
         }
         System.out.println(dto);
         return dto;

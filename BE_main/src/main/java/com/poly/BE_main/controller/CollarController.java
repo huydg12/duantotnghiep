@@ -22,22 +22,22 @@ public class CollarController {
     CollarService collarService;
 
     @GetMapping("/show")
-    public List<Collar>FindAll(){
-        return collarService.FindAll();
+    public List<Collar> findAll() {
+        return collarService.findAll();
     }
 
     @PostMapping("/add")
-    public Collar create (@RequestBody Collar c) {
+    public Collar create(@RequestBody Collar c) {
         return collarService.create(c);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable int id){
+    public void delete(@PathVariable int id) {
         collarService.delete(id);
     }
 
     @PutMapping("/update/{id}")
-        public Collar update (@PathVariable int id, @RequestBody Collar c){
+    public Collar update(@PathVariable int id, @RequestBody Collar c) {
         return collarService.update(id, c);
-        }
+    }
 }

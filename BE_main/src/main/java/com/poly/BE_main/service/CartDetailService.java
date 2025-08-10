@@ -88,11 +88,10 @@ public class CartDetailService {
     @Transactional
     public void updateQuantity(Integer cartId, Integer productDetailId, Integer quantity) {
         cartDetailRepository.updateQuantityByCartIdAndProductDetailId(
-            cartId,
-            productDetailId,
-            quantity,
-            LocalDateTime.now()
-        );
+                cartId,
+                productDetailId,
+                quantity,
+                LocalDateTime.now());
     }
 
     public void upateQuantityByCartDetailID(Integer cartDetailId, Integer quantity) {

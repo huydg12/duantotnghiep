@@ -34,5 +34,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     Object findInformationCustomerByCustomerId(@Param("customerId") Integer customerId);
 
     Optional<Customer> findByEmail(String email);
+
     boolean existsByEmail(String email);
 }

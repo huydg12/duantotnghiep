@@ -33,6 +33,7 @@ public class ProductDetailController {
     public List<ProductDetail> findAll() {
         return productDetailService.findAll();
     }
+
     @GetMapping("/showProductReceipt")
     public List<ProductReceiptDTO> getProductReceipt() {
         return productDetailService.getAllProductReceiptDTO();
@@ -51,18 +52,19 @@ public class ProductDetailController {
         response.put("productId", productId);
         return ResponseEntity.ok(response);
     }
-        @PostMapping("/add")
+
+    @PostMapping("/add")
     public ProductDetail create(@RequestBody ProductDetail p) {
         return productDetailService.create(p);
     }
 
     @PutMapping("/update/{id}")
     public ProductDetail update(@PathVariable int id, @RequestBody ProductDetail p) {
-        return productDetailService.update(id,p);
+        return productDetailService.update(id, p);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void delete(@PathVariable int id){
+    public void delete(@PathVariable int id) {
         productDetailService.deleteById(id);
     }
 }

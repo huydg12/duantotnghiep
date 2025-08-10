@@ -59,30 +59,30 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                         """, nativeQuery = true)
     List<Object[]> findAllCartDetailByCustomer(@Param("customerId") Integer customerId);
 
-
     @Query(value = """
-        SELECT CASE 
-                WHEN COUNT(*) > 0 THEN CAST(1 AS BIT) 
-                ELSE CAST(0 AS BIT) 
-            END 
-        FROM CART_DETAIL 
-        WHERE CART_ID = :cartId 
-        AND PRODUCT_DETAIL_ID = :productDetailId
-        """, nativeQuery = true)
-    boolean existsByCartIdAndProductDetailId(@Param("cartId") Integer cartId, @Param("productDetailId") Integer productDetailId);
+            SELECT CASE
+                    WHEN COUNT(*) > 0 THEN CAST(1 AS BIT)
+                    ELSE CAST(0 AS BIT)
+                END
+            FROM CART_DETAIL
+            WHERE CART_ID = :cartId
+            AND PRODUCT_DETAIL_ID = :productDetailId
+            """, nativeQuery = true)
+    boolean existsByCartIdAndProductDetailId(@Param("cartId") Integer cartId,
+            @Param("productDetailId") Integer productDetailId);
+
     // ✅ Hàm cập nhật quantity
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query(value = """
-        UPDATE CART_DETAIL
-        SET QUANTITY = QUANTITY + :quantity,
-        MODIFIED_DATE = :now
-        WHERE CART_ID = :cartId AND PRODUCT_DETAIL_ID = :productDetailId
-        """, nativeQuery = true)
+            UPDATE CART_DETAIL
+            SET QUANTITY = QUANTITY + :quantity,
+            MODIFIED_DATE = :now
+            WHERE CART_ID = :cartId AND PRODUCT_DETAIL_ID = :productDetailId
+            """, nativeQuery = true)
     void updateQuantityByCartIdAndProductDetailId(
-        @Param("cartId") Integer cartId,
-        @Param("productDetailId") Integer productDetailId,
-        @Param("quantity") Integer quantity,
-        @Param("now") LocalDateTime now
-    );
+            @Param("cartId") Integer cartId,
+            @Param("productDetailId") Integer productDetailId,
+            @Param("quantity") Integer quantity,
+            @Param("now") LocalDateTime now);
 }

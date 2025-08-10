@@ -1,6 +1,5 @@
 package com.poly.BE_main.model;
 
-
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -32,6 +31,6 @@ public class CartDetail {
     @Column(name = "QUANTITY")
     private int quantity;
     @Column(name = "MODIFIED_DATE")
-    private LocalDateTime  modifiedDate = LocalDateTime.now();
+    private LocalDateTime modifiedDate = LocalDateTime.now();
 
 }

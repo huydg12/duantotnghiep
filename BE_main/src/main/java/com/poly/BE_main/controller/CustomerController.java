@@ -29,6 +29,7 @@ public class CustomerController {
     public List<CustomerDTO> findAll() {
         return customerService.findAll();
     }
+
     @GetMapping("/showInfoCustomer/{customerId}")
     public InformationCustomerDTO findInformationCustomerByCustomerId(@PathVariable Integer customerId) {
         return customerService.findInformationCustomerByCustomerId(customerId);

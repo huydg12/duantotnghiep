@@ -26,7 +26,6 @@ import com.poly.BE_main.utils.JwtUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/auth")
@@ -57,13 +56,13 @@ public class AuthController {
 
         AuthDTO accountDTO = new AuthDTO(account);
         if (account.getRoleId() == 2) {
-        Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
-        customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
+            Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
+            customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
         }
-            
+
         if (account.getRoleId() == 1) {
-        Optional<Employee> employeeOptional = accountService.getEmployeeByAccountId(account.getId());
-        employeeOptional.ifPresent(employee -> accountDTO.setEmployeeId(employee.getId()));
+            Optional<Employee> employeeOptional = accountService.getEmployeeByAccountId(account.getId());
+            employeeOptional.ifPresent(employee -> accountDTO.setEmployeeId(employee.getId()));
         }
 
         LoginResponseDTO response = new LoginResponseDTO(token, accountDTO);
@@ -110,10 +109,9 @@ public class AuthController {
         return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 
-
     @GetMapping("/show")
     public String getMethodName(@RequestParam String param) {
         return new String();
     }
-    
+
 }

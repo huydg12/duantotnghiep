@@ -57,17 +57,16 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                         """, nativeQuery = true)
     Integer findProductId(@Param("id") Integer id);
 
-    
     @Query(value = """
-    SELECT
-        PD.ID AS productDetailId,
-        P.PRODUCT_NAME AS productName,
-        S.EU AS size,
-        C.NAME AS color
-    FROM PRODUCT_DETAIL PD
-    JOIN PRODUCT P ON PD.PRODUCT_ID = P.ID
-    JOIN SIZE S ON PD.SIZE_ID = S.ID
-    JOIN COLOR C ON PD.COLOR_ID = C.ID
-    """, nativeQuery = true)
+            SELECT
+                PD.ID AS productDetailId,
+                P.PRODUCT_NAME AS productName,
+                S.EU AS size,
+                C.NAME AS color
+            FROM PRODUCT_DETAIL PD
+            JOIN PRODUCT P ON PD.PRODUCT_ID = P.ID
+            JOIN SIZE S ON PD.SIZE_ID = S.ID
+            JOIN COLOR C ON PD.COLOR_ID = C.ID
+            """, nativeQuery = true)
     List<Object[]> findAllProductReceiptDTO();
 }

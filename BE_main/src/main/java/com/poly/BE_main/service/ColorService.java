@@ -13,7 +13,7 @@ public class ColorService {
     @Autowired
     ColorRepository colorRepository;
 
-    public List<Color> FinAll() {
+    public List<Color> findAll() {
         return colorRepository.findAll();
     }
 

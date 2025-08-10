@@ -12,7 +12,7 @@ public class ImportReceiptService {
     @Autowired
     ImportReceiptRepository importReceiptRepository;
 
-    public List<ImportReceipt> findALL() {
+    public List<ImportReceipt> findAll() {
         return importReceiptRepository.findAll();
     }
 
@@ -38,9 +38,9 @@ public class ImportReceiptService {
     }
 
     public ImportReceipt updateStatus(Integer id, Integer status) {
-    return importReceiptRepository.findById(id).map(importReceipt -> {
-        importReceipt.setStatus(status);
-        return importReceiptRepository.save(importReceipt);
-    }).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập có id: " + id));
+        return importReceiptRepository.findById(id).map(importReceipt -> {
+            importReceipt.setStatus(status);
+            return importReceiptRepository.save(importReceipt);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu nhập có id: " + id));
     }
 }

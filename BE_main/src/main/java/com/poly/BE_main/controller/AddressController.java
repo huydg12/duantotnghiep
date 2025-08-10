@@ -49,7 +49,8 @@ public class AddressController {
     public List<Address> getByCustomerId(@PathVariable Integer customerId) {
         return addressService.findByCustomerId(customerId);
     }
-        @PutMapping("/set-default/{id}")
+
+    @PutMapping("/set-default/{id}")
     public ResponseEntity<?> setDefaultAddress(@PathVariable("id") Integer id) {
         try {
             addressService.setDefaultAddress(id);

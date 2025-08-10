@@ -23,8 +23,8 @@ public class ColorController {
     ColorService colorService;
 
     @GetMapping("/show")
-    public List<Color> FinAll() {
-        return colorService.FinAll();
+    public List<Color> findAll() {
+        return colorService.findAll();
     }
 
     @PostMapping("/add")

@@ -76,7 +76,7 @@ const form = ref({
     id: null,
     accountId: null,
     fullName: "",   
-    gender: "",
+    gender: 1,
     email: "",
     numberPhone: "",
     birthOfDate: "",
@@ -133,11 +133,11 @@ function goToPage(page) {
             <div class="mb-3">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-male" value="Nam" v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="gender-male" value="1" v-model="form.gender" />
                     <label class="form-check-label" for="gender-male">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-female" value="Nữ" v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="gender-female" value="0" v-model="form.gender" />
                     <label class="form-check-label" for="gender-female">Nữ</label>
                 </div>
             </div>
@@ -202,7 +202,7 @@ function goToPage(page) {
                         <td class="text-center">{{ employee.id }}</td>
                         <td class="text-center">{{ employee.accountId }}</td>
                         <td class="text-center">{{ employee.fullName }}</td>
-                        <td class="text-center">{{ employee.gender }}</td>
+                        <td class="text-center">{{ employee.gender === '1' ? 'Nam' : 'Nữ'}}</td>
                         <td class="text-center">{{ employee.email }}</td>
                         <td class="text-center">{{ employee.numberPhone }}</td>
                         <td class="text-center">{{ formatDateTime(employee.birthOfDate) }}</td>

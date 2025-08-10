@@ -20,6 +20,7 @@ import com.poly.BE_main.dto.CartDetailDTO;
 import com.poly.BE_main.dto.UpdateQuantityDTO;
 import com.poly.BE_main.model.CartDetail;
 import com.poly.BE_main.service.CartDetailService;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/cartDetail")
@@ -27,6 +28,7 @@ public class CartDetailController {
 
     @Autowired
     private final CartDetailService cartDetailService;
+
     public CartDetailController(CartDetailService cartDetailService) {
         this.cartDetailService = cartDetailService;
     }
@@ -48,13 +50,11 @@ public class CartDetailController {
 
     @GetMapping("/exists")
     public ResponseEntity<Boolean> checkProductExistsInCart(
-        @RequestParam("cartId") Integer cartId,
-        @RequestParam("productDetailId") Integer productDetailId
-    ) {
-    boolean exists = cartDetailService.existsProductDetailInCarDetail(cartId, productDetailId);
-    return ResponseEntity.ok(exists);
+            @RequestParam("cartId") Integer cartId,
+            @RequestParam("productDetailId") Integer productDetailId) {
+        boolean exists = cartDetailService.existsProductDetailInCarDetail(cartId, productDetailId);
+        return ResponseEntity.ok(exists);
     }
-
 
     @PutMapping("/updateQuantity")
     public ResponseEntity<String> updateQuantity(@RequestBody UpdateQuantityDTO request) {
@@ -68,8 +68,8 @@ public class CartDetailController {
 
     @PutMapping("/updateQuantityByCartDetailID/{id}")
     public ResponseEntity<?> updateQuantity(@PathVariable Integer id, @RequestBody Map<String, Integer> body) {
-    Integer quantity = body.get("quantity");
-    cartDetailService.upateQuantityByCartDetailID(id, quantity);
-    return ResponseEntity.ok("Cập nhật thành công");
+        Integer quantity = body.get("quantity");
+        cartDetailService.upateQuantityByCartDetailID(id, quantity);
+        return ResponseEntity.ok("Cập nhật thành công");
     }
 }

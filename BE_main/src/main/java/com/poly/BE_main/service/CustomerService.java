@@ -21,6 +21,49 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    private CustomerDTO toDTO(Customer customer) {
+        if (customer == null)
+            return null;
+        CustomerDTO dto = new CustomerDTO();
+        dto.setId(customer.getId());
+        dto.setFullName(customer.getFullName());
+        dto.setGender(customer.getGender());
+        dto.setEmail(customer.getEmail());
+        dto.setNumberPhone(customer.getNumberPhone());
+        dto.setBirthOfDate(customer.getBirthOfDate());
+        dto.setStatus(customer.getStatus());
+        dto.setCreatedDate(customer.getCreatedDate());
+
+        if (customer.getAccount() != null) {
+            dto.setAccountId(customer.getAccount().getId());
+        }
+
+        return dto;
+    }
+
+    private Customer toEntity(CustomerDTO dto) {
+        if (dto == null)
+            return null;
+        Customer customer = new Customer();
+        customer.setId(dto.getId());
+        customer.setFullName(dto.getFullName());
+        customer.setGender(dto.getGender());
+        customer.setEmail(dto.getEmail());
+        customer.setNumberPhone(dto.getNumberPhone());
+        customer.setBirthOfDate(dto.getBirthOfDate());
+        customer.setStatus(dto.getStatus());
+        customer.setCreatedDate(dto.getCreatedDate());
+
+        // Nếu cần gán account theo accountId thì xử lý ở đây
+        if (dto.getAccountId() != null) {
+            Account account = new Account();
+            account.setId(dto.getAccountId());
+            customer.setAccount(account);
+        }
+
+        return customer;
+    }
+
     // Lấy tất cả khách hàng (dạng DTO)
     public List<CustomerDTO> findAll() {
         return customerRepository.findAll().stream()
@@ -66,9 +109,9 @@ public class CustomerService {
     public InformationCustomerDTO findInformationCustomerByCustomerId(Integer customerId) {
         Object[] data = (Object[]) customerRepository.findInformationCustomerByCustomerId(customerId);
         return new InformationCustomerDTO(
-                (String) data[0],   // fullName
-                (String) data[1],   // email
-                (String) data[2],   // numberPhone
+                (String) data[0], // fullName
+                (String) data[1], // email
+                (String) data[2], // numberPhone
                 new java.util.Date(((java.util.Date) data[3]).getTime()) // createdDate
         );
     }
@@ -83,47 +126,4 @@ public class CustomerService {
         }).collect(Collectors.toList());
     }
 
-    // ================================
-    // Convert thủ công giữa Entity ↔ DTO
-    // ================================
-    private CustomerDTO toDTO(Customer customer) {
-        if (customer == null) return null;
-        CustomerDTO dto = new CustomerDTO();
-        dto.setId(customer.getId());
-        dto.setFullName(customer.getFullName());
-        dto.setGender(customer.getGender());
-        dto.setEmail(customer.getEmail());
-        dto.setNumberPhone(customer.getNumberPhone());
-        dto.setBirthOfDate(customer.getBirthOfDate());
-        dto.setStatus(customer.getStatus());
-        dto.setCreatedDate(customer.getCreatedDate());
-
-        if (customer.getAccount() != null) {
-            dto.setAccountId(customer.getAccount().getId());
-        }
-
-        return dto;
-    }
-
-    private Customer toEntity(CustomerDTO dto) {
-        if (dto == null) return null;
-        Customer customer = new Customer();
-        customer.setId(dto.getId());
-        customer.setFullName(dto.getFullName());
-        customer.setGender(dto.getGender());
-        customer.setEmail(dto.getEmail());
-        customer.setNumberPhone(dto.getNumberPhone());
-        customer.setBirthOfDate(dto.getBirthOfDate());
-        customer.setStatus(dto.getStatus());
-        customer.setCreatedDate(dto.getCreatedDate());
-
-        // Nếu cần gán account theo accountId thì xử lý ở đây
-        if (dto.getAccountId() != null) {
-            Account account = new Account();
-            account.setId(dto.getAccountId());
-            customer.setAccount(account);
-        }
-
-        return customer;
-    }
 }

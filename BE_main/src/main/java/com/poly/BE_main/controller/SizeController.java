@@ -22,8 +22,8 @@ public class SizeController {
     SizeService sizeService;
 
     @GetMapping("/show")
-    public List<Size> finall() {
-        return sizeService.finall();
+    public List<Size> findAll() {
+        return sizeService.findAll();
     }
 
     @PostMapping("/add")

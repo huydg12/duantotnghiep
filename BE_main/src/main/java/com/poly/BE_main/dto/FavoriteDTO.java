@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 public class FavoriteDTO {
     private Integer favoriteId;
     private Integer customerId;
-    private Integer productId; 
+    private Integer productId;
     private String productName;
     private String brandName;
     private BigDecimal price;
-    private String image1; 
+    private String image1;
     private String image2;
 }

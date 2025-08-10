@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.poly.BE_main.model.ImportReceiptDetail;
 
-public interface ImportReceiptDetailRepository extends JpaRepository<ImportReceiptDetail, Integer>{
+public interface ImportReceiptDetailRepository extends JpaRepository<ImportReceiptDetail, Integer> {
     List<ImportReceiptDetail> findByImportReceiptId(Integer importReceiptId);
 }

@@ -11,18 +11,18 @@ import com.poly.BE_main.model.Image;
 
 import jakarta.transaction.Transactional;
 
-public interface ImageRepository extends JpaRepository<Image, Integer>{
+public interface ImageRepository extends JpaRepository<Image, Integer> {
     List<Image> findByProductDetailId(int productDetailId);
+
     long countByProductDetailId(int productDetailId);
-    
 
-@Modifying
-@Transactional
-@Query(value = "UPDATE IMAGE SET IS_MAIN = 0 WHERE PRODUCT_DETAIL_ID = :productDetailId", nativeQuery = true)
-void resetMainImageNative(@Param("productDetailId") Integer productDetailId);
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE IMAGE SET IS_MAIN = 0 WHERE PRODUCT_DETAIL_ID = :productDetailId", nativeQuery = true)
+    void resetMainImageNative(@Param("productDetailId") Integer productDetailId);
 
-@Modifying
-@Transactional
-@Query(value = "UPDATE IMAGE SET IS_MAIN = 1 WHERE ID = :imageId", nativeQuery = true)
-void setMainImageById(@Param("imageId") Integer imageId);
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE IMAGE SET IS_MAIN = 1 WHERE ID = :imageId", nativeQuery = true)
+    void setMainImageById(@Param("imageId") Integer imageId);
 }

@@ -17,7 +17,7 @@ public class ImageService {
     @Autowired
     ImageRepository imageRepository;
 
-    public List<Image> FinAll() {
+    public List<Image> findAll() {
         return imageRepository.findAll();
     }
 
@@ -51,10 +51,9 @@ public class ImageService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
 
-
-    //     @Transactional
+    // @Transactional
     // public void resetMainImageByProductDetailId(Integer productDetailId) {
-    //     imageRepository.resetMainImageNative(productDetailId);
+    // imageRepository.resetMainImageNative(productDetailId);
     // }
 
     // Nếu bạn có thêm hàm đặt ảnh chính, có thể gộp vào đây:
@@ -66,5 +65,5 @@ public class ImageService {
         // Bước 2: đặt ảnh có ID cụ thể thành IS_MAIN = true
         imageRepository.setMainImageById(imageId);
     }
-    
+
 }
