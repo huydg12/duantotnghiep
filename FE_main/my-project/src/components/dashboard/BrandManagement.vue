@@ -4,19 +4,15 @@ import { ref, computed, onMounted } from 'vue'
 
 const brands = ref([])
 
-const fetchBrand = async() => {
-    try{
+const fetchBrand = async () => {
+    try {
         const response = await axios.get('http://localhost:8080/brand/show')
         brands.value = response.data
         console.log(brands.value)
-    }catch(error){
+    } catch (error) {
         console.log('Lỗi hiển thị hãng ' + error)
     }
 }
-
-onMounted(() => {
-    fetchBrand()
-})
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -44,35 +40,38 @@ function goToPage(page) {
 }
 
 async function saveBrand() {
-    try{
-        if(isEditing.value){
-            await axios.put(`http://localhost:8080/brand/update/${form.value.id}`,form.value)
-        }else{
-            await axios.post('http://localhost:8080/brand/add',form.value)
+    try {
+        if (isEditing.value) {
+            await axios.put(`http://localhost:8080/brand/update/${form.value.id}`, form.value)
+        } else {
+            await axios.post('http://localhost:8080/brand/add', form.value)
         }
         await fetchBrand()
         resetForm()
-    }catch(error){
-        console.log('Lỗi lưu hãng',error)
+    } catch (error) {
+        console.log('Lỗi lưu hãng', error)
     }
 }
 
-function editBrand(brand){
-    form.value = {...brand}
+function editBrand(brand) {
+    form.value = { ...brand }
     isEditing.value = true
 }
 
 async function deleteBrand(id) {
-    try{
-    if(confirm('Bạn có chắc chắn là muốn xóa hãng này không ?')){
-        await axios.delete(`http://localhost:8080/brand/delete/${id}`)
-        await fetchBrand()
+    try {
+        if (confirm('Bạn có chắc chắn là muốn xóa hãng này không ?')) {
+            await axios.delete(`http://localhost:8080/brand/delete/${id}`)
+            await fetchBrand()
+        }
+    } catch (error) {
+        console.error('lỗi khi xóa hãng ' + error)
     }
-}catch(error){
-    console.error('lỗi khi xóa hãng ' + error)
-}
 }
 
+onMounted(() => {
+    fetchBrand()
+})
 </script>
 <template>
     <div class="container py-4">

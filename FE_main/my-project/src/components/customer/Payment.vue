@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, computed, reactive, onUnmounted} from 'vue';
+import { ref, onMounted, computed, reactive, onUnmounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2'
+
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
@@ -114,6 +115,7 @@ const shippingFee = computed(() => {
 
   return isInHaiPhong ? 30000 : 50000;
 });
+
 // Hàm normalize để so sánh tên không dấu
 const normalize = (str) => {
   return str
@@ -122,6 +124,7 @@ const normalize = (str) => {
     .toLowerCase()
     .trim();
 };
+
 if (userJson) {
   try {
     const user = JSON.parse(userJson);
@@ -134,6 +137,7 @@ if (userJson) {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 
 }
+
 // ✅ Lấy danh sách tỉnh/thành phố (và districts cấp 2 luôn)
 const fetchProvinces = async () => {
   try {
@@ -181,16 +185,11 @@ const fetchWards = async (districtCode) => {
   }
 };
 
-
-
- const saveAddress = async () => {
+const saveAddress = async () => {
   try {
     const province = provinces.value.find(p => p.code === selectedProvinceCode.value);
     const district = districts.value.find(d => d.code === selectedDistrictCode.value);
     const ward = wards.value.find(w => w.code === selectedWardCode.value);
-
-
-
     const fullAddress = `${detailAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
 
     if (!customerId) {
@@ -244,6 +243,7 @@ const handleDistrictChange = () => {
   addressBeingEdited.wardCode = '';
   fetchWards(addressBeingEdited.districtCode);
 };
+
 const setAsDefault = async (address) => {
   try {
     const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
@@ -278,6 +278,7 @@ const resetAddressForm = () => {
   wards.value = [];
   isDefaultAddress.value = false;
 };
+
 const subTotal = computed(() =>
   checkoutItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
 );
@@ -286,6 +287,7 @@ const grandTotal = computed(() => {
   const discount = discountAmount.value;
   return Math.max(subTotal.value + shippingFee.value - discount, 0);
 });
+
 const getCityNameByCode = (code) => {
   const city = (provinces.value || []).find(p => p.code === code);
   return city ? city.name : '';
@@ -308,6 +310,7 @@ const getWardNameByCode = (code) => {
   }
   return '';
 };
+
 const updateAddress = async () => {
   try {
     const data = {
@@ -340,7 +343,6 @@ const updateAddress = async () => {
       throw new Error('Cập nhật địa chỉ thất bại');
     }
 
-
     await fetchAddressList();
     closeUpdateAddressOverlay();
   } catch (err) {
@@ -348,6 +350,7 @@ const updateAddress = async () => {
 
   }
 };
+
 const fetchAddressList = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/address/showById/${customerId}`);
@@ -362,12 +365,6 @@ const fetchAddressList = async () => {
   }
 };
 
-
-
-// Hàm tính toán tổng tiền hàng (subtotal)
-
-
-
 const findCustomerByAccountId = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/customer/findByAccountId/${customerId}`);
@@ -377,7 +374,6 @@ const findCustomerByAccountId = async () => {
     console.error("Lỗi tìm kiếm khách hàng:", err);
   }
 };
-
 
 const selectedPaymentMethod = ref("CASH"); // Mặc định là CASH
 function base64EncodeUnicode(obj) {
@@ -416,7 +412,6 @@ const paymentMethodMapping = {
   QR: 3
 };
 
-
 const getValidPromotion = () => {
   const today = new Date().toISOString().split("T")[0];
 
@@ -445,6 +440,7 @@ const generateBillPayload = () => {
     estimated.setDate(estimated.getDate() + daysToAdd);
     return estimated.toISOString().split("T")[0];
   };
+
   const billDetails = checkoutItems.value.map(item => ({
     productDetailId: item.productDetailId,
     quantity: item.quantity,
@@ -455,10 +451,12 @@ const generateBillPayload = () => {
     size: item.size,
     productName: item.productName
   }))
-    // ✅ Thêm phần này để server callback có thể xóa cart
+
+  // ✅ Thêm phần này để server callback có thể xóa cart
   const cartItems = checkoutItems.value.map(item => ({
     cartDetailId: item.cartDetailId
   }));
+
   return {
     customerId: customerId,
     employeeId: null,
@@ -488,11 +486,11 @@ const generateBillPayload = () => {
     cartItems: cartItems
   }
 }
+
 const qrJustCreated = ref(false);
 
-
 const createBill = async () => {
-    // ✅ Hiển thị popup loading bằng Swal
+  // ✅ Hiển thị popup loading bằng Swal
   Swal.fire({
     title: 'Đang xử lý thanh toán...',
     html: 'Vui lòng chờ trong giây lát...',
@@ -515,7 +513,7 @@ const createBill = async () => {
   if (selectedPaymentMethod.value === 'MOMO') {
     await new Promise(resolve => setTimeout(resolve, 5000));
     await createMoMoPayment(); // 🚀 Gọi MoMo
-    Swal.close(); 
+    Swal.close();
     return; // Không gọi sendBill vì sẽ xử lý ở callback
   }
   // Gửi đơn hàng như bình thường
@@ -529,17 +527,16 @@ const sendBill = async () => {
     const response = await axios.post("http://localhost:8080/bill/add", payload);
     const savedBill = response.data;
 
-      // ✅ Trừ kho dựa vào billDetails
-      if (Array.isArray(savedBill.billDetails)) {
-        for (const detail of savedBill.billDetails) {
-          if (detail.productDetailId && detail.quantity) {
-            await axios.put(`http://localhost:8080/inventory/updateQuantityByPayMent/${detail.productDetailId}`, {
-              quantity: detail.quantity
-            });
-          }
+    // ✅ Trừ kho dựa vào billDetails
+    if (Array.isArray(savedBill.billDetails)) {
+      for (const detail of savedBill.billDetails) {
+        if (detail.productDetailId && detail.quantity) {
+          await axios.put(`http://localhost:8080/inventory/updateQuantityByPayMent/${detail.productDetailId}`, {
+            quantity: detail.quantity
+          });
         }
       }
-
+    }
 
     // Xoá cart
     for (const item of checkoutItems.value) {
@@ -553,6 +550,7 @@ const sendBill = async () => {
     console.error("Lỗi tạo đơn hàng:", err);
   }
 };
+
 const handleCloseQR = async () => {
   qrImage.value = null;
 
@@ -660,8 +658,6 @@ const formatCurrency = (value) => {
 };
 const deleteAddress = async (id) => {
   const addressToDelete = addressList.value.find(addr => addr.id === id)
-
-
 
   // Nếu là mặc định thì không cho xóa
   if (addressToDelete.default) {
@@ -1067,22 +1063,14 @@ onUnmounted(() => {
     </div>
   </div>
 
-        <!-- Toast thông báo thêm vào giỏ thành công -->
-  <div
-    v-if="showToast"
-    class="position-fixed top-0 end-0 p-3"
-    style="z-index: 1055;"
-  >
+  <!-- Toast thông báo thêm vào giỏ thành công -->
+  <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     <div class="toast align-items-center show bg-success text-white border-0">
       <div class="d-flex">
         <div class="toast-body">
           ✅ Đã thêm vào mục yêu thích!
         </div>
-        <button
-          type="button"
-          class="btn-close btn-close-white me-2 m-auto"
-          @click="showToast = false"
-        ></button>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showToast = false"></button>
       </div>
     </div>
   </div>

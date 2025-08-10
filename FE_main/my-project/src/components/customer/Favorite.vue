@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute,useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+
 const store = useCartFavoriteStore()
 const favoriteList = ref([])
 
@@ -11,6 +12,7 @@ const showRemoveToast = ref(false);
 const userJson = localStorage.getItem("user");
 const router = useRouter()
 let customerId = null;
+
 if (userJson) {
   try {
     const user = JSON.parse(userJson);
@@ -22,9 +24,11 @@ if (userJson) {
 } else {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
+
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
 }
+
 const fetchFavorite = async () => {
   try {
     const res = await axios.get(`http://localhost:8080/favorite/show/${customerId}`);
@@ -38,56 +42,41 @@ const fetchFavorite = async () => {
 const deleteFavorite = async (favoriteId) => {
   try {
     await axios.delete(`http://localhost:8080/favorite/delete/${favoriteId}`);
-        await fetchFavorite() // Gọi lại danh sách yêu thích
+    await fetchFavorite() // Gọi lại danh sách yêu thích
     await store.fetchFavoriteItems(customerId);
     showRemoveToast.value = true
     setTimeout(() => {
-    showRemoveToast.value = false
+      showRemoveToast.value = false
     }, 3000)
   } catch (err) {
     console.error("Lỗi khi lấy cart", err);
   }
 };
+
 onMounted(() => {
   fetchFavorite()
-})  
+}) 
 </script>
 
 <template>
-  <Banner
-    title=""
-    breadcrumb=""
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"
-  />
+  <Banner title="" breadcrumb="" backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
 
   <div class="container mt-4">
     <h3 class="text-center mb-4 fw-bold text-black">Danh sách yêu thích của tôi</h3>
 
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
       <div v-for="favorite in favoriteList" :key="favorite.favoriteId" class="col">
-        <div
-          class="card h-100 shadow-sm position-relative"
-          @click="goToDetail(favorite.productId)"
-          style="cursor: pointer;"
-        >
+        <div class="card h-100 shadow-sm position-relative" @click="goToDetail(favorite.productId)"
+          style="cursor: pointer;">
           <!-- Icon yêu thích -->
-          <i
-            class="fas fa-heart favorite-icon text-danger"
+          <i class="fas fa-heart favorite-icon text-danger"
             :class="{ 'scale-up': favorite.favoriteId === recentlyRemovedId }"
-            @click.stop="deleteFavorite(favorite.favoriteId)"
-          ></i>
+            @click.stop="deleteFavorite(favorite.favoriteId)"></i>
 
           <div class="image-container position-relative">
-            <img
-              :src="favorite.image1"
-              class="product-image image-front"
-              :alt="favorite.productName"
-            />
-            <img
-              :src="favorite.image2"
-              class="product-image image-hover position-absolute top-0 start-0"
-              :alt="favorite.productName"
-            />
+            <img :src="favorite.image1" class="product-image image-front" :alt="favorite.productName" />
+            <img :src="favorite.image2" class="product-image image-hover position-absolute top-0 start-0"
+              :alt="favorite.productName" />
           </div>
 
           <div class="card-body d-flex flex-column">
@@ -105,34 +94,26 @@ onMounted(() => {
       </div>
     </div>
 
-            <!-- Phân trang -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-              <a class="page-link" href="#"><span>&laquo;</span></a>
-            </li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#"><span>&raquo;</span></a>
-            </li>
-          </ul>
-        </nav>
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link" href="#"><span>&laquo;</span></a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+          <a class="page-link" href="#"><span>&raquo;</span></a>
+        </li>
+      </ul>
+    </nav>
     <!-- Toast xóa -->
-    <div
-      v-if="showRemoveToast"
-      class="position-fixed top-0 end-0 p-3"
-      style="z-index: 1055;"
-    >
+    <div v-if="showRemoveToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
       <div class="toast align-items-center show bg-danger text-white border-0">
         <div class="d-flex">
           <div class="toast-body">❌ Đã xóa sản phẩm khỏi mục yêu thích!</div>
-          <button
-            type="button"
-            class="btn-close btn-close-white me-2 m-auto"
-            @click="showRemoveToast = false"
-          ></button>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showRemoveToast = false"></button>
         </div>
       </div>
     </div>
@@ -144,7 +125,8 @@ onMounted(() => {
 .card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: 10px;
-  height: 100%; /* Giữ thẻ card không cao quá */
+  height: 100%;
+  /* Giữ thẻ card không cao quá */
   padding: 0.5rem;
 }
 
@@ -166,6 +148,7 @@ onMounted(() => {
   font-size: 0.85rem;
   padding: 6px 12px;
 }
+
 .image-container {
   position: relative;
   width: 100%;
@@ -232,16 +215,19 @@ onMounted(() => {
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0%);
     opacity: 1;
   }
 }
+
 @keyframes fadeOut {
   to {
     opacity: 0;

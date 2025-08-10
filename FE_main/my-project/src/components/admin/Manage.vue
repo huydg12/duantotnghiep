@@ -369,7 +369,6 @@ function isCollapseOpen(id) {
 .slide-enter-to,
 .slide-leave-from {
   max-height: 500px;
-  /* đủ lớn để chứa menu con */
   opacity: 1;
 }
 </style>

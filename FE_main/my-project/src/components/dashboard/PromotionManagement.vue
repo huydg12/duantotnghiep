@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { Modal } from "bootstrap";
 import axios from "axios";
 
 // Khuyến mãi
@@ -50,7 +49,6 @@ const savePromotion = async () => {
   }
 };
 
-
 const editPromotion = (promo) => {
   form.value = {
     ...promo,
@@ -86,25 +84,9 @@ const resetForm = () => {
   };
 };
 
-// Khuyến mãi chi tiết
-const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString();
-
-
-
-const products = ref([]); // Toàn bộ sản phẩm
-const selectedProducts = ref([]); // ID sản phẩm được chọn trong promotion
-const promotionDetails = ref({}); // Lưu theo promotion ID
-
-const searchKeyword = ref("");
-const pageSize = 5;
-const currentPage = ref(1);
-
-
-
 onMounted(async () => {
-  await fetchPromotions();     
+  await fetchPromotions();
 });
-
 </script>
 
 <template>

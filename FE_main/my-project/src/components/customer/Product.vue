@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref,watch,computed } from 'vue'
-import { useRouter,useRoute } from 'vue-router'
+import { onMounted, ref, watch, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import Banner from "../common/Banner.vue";
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
@@ -129,8 +129,6 @@ const fetchFavorites = async () => {
   }
 }
 
-
-
 const toggleFavorite = async (productId) => {
   if (!customerId) {
     alert("Bạn cần đăng nhập để sử dụng tính năng này")
@@ -147,8 +145,8 @@ const toggleFavorite = async (productId) => {
       await store.fetchFavoriteItems(customerId);
       showRemoveToast.value = true
       setTimeout(() => {
-      showRemoveToast.value = false
-    }, 3000)
+        showRemoveToast.value = false
+      }, 3000)
     } else {
       const res = await axios.post(`http://localhost:8080/favorite/add`, {
         customerId, productId
@@ -159,14 +157,15 @@ const toggleFavorite = async (productId) => {
       await store.fetchFavoriteItems(customerId);
       showToast.value = true
       setTimeout(() => {
-      showToast.value = false
-    }, 3000)
+        showToast.value = false
+      }, 3000)
     }
     await fetchFavorites()
   } catch (err) {
     console.error("Lỗi toggle yêu thích", err)
   }
 }
+
 watch(
   () => [filters.value.search, filters.value.brands, filters.value.sort, filters.value.prices],
   () => {
@@ -174,6 +173,7 @@ watch(
     fetchProducts()
   }
 )
+
 // Theo dõi khi route thay đổi query
 watch(() => router.currentRoute.value.query.brand, (newBrand) => {
   if (newBrand) {
@@ -183,25 +183,6 @@ watch(() => router.currentRoute.value.query.brand, (newBrand) => {
   }
   fetchProducts()
 })
-onMounted(() => {
-  const selectedBrand = router.options.history.state?.brandFromHeader || ''
-  if (selectedBrand) {
-    filters.value.brands = selectedBrand
-    fetchProducts() // => Gọi luôn để hiển thị sản phẩm theo brand
-    // Xóa brandFromHeader khỏi state để khi quay lại không còn giữ nữa
-    history.replaceState({ ...history.state, brandFromHeader: null }, '')
-  }
-filters.value.search = route.query.keyword || ''
-  fetchBrands()
-  fetchFavorites()
-
-  if (!selectedBrand) {
-    fetchProducts()
-  }
-
-
-})
-
 
 // Filter sections config
 const filterSections = computed(() => [
@@ -224,7 +205,7 @@ const filterSections = computed(() => [
     type: 'radio',
     options: brandOptions.value
   },
-    {
+  {
     title: 'Khoảng giá',
     model: 'prices',
     type: 'radio',
@@ -235,6 +216,7 @@ const filterSections = computed(() => [
     ]
   },
 ])
+
 const handleRadioClick = (model, value) => {
   if (filters.value[model] === value) {
     filters.value[model] = '' // Bỏ chọn nếu chọn lại
@@ -242,22 +224,40 @@ const handleRadioClick = (model, value) => {
     filters.value[model] = value
   }
 
-    if (model === 'brands') {
-      router.replace({ path: '/product' }) // Xóa ?brand khỏi URL
-    }
-  
+  if (model === 'brands') {
+    router.replace({ path: '/product' }) // Xóa ?brand khỏi URL
+  }
 
   fetchProducts()
 }
+
+onMounted(() => {
+  const selectedBrand = router.options.history.state?.brandFromHeader || ''
+  if (selectedBrand) {
+    filters.value.brands = selectedBrand
+    fetchProducts() // => Gọi luôn để hiển thị sản phẩm theo brand
+    // Xóa brandFromHeader khỏi state để khi quay lại không còn giữ nữa
+    history.replaceState({ ...history.state, brandFromHeader: null }, '')
+  }
+  filters.value.search = route.query.keyword || ''
+  fetchBrands()
+  fetchFavorites()
+
+  if (!selectedBrand) {
+    fetchProducts()
+  }
+
+})
 </script>
 
 <template>
-  <Banner title="Sản phẩm" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+  <Banner title="Sản phẩm" breadcrumb=''
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
 
-<div v-if="hasSearch" class="mb-4 search-result-header">
-  <br />
-  <h3 class="fw-semibold mb-1">Kết quả tìm kiếm cho: {{ searchQuery }} ({{ products.length }})</h3>
-</div>
+  <div v-if="hasSearch" class="mb-4 search-result-header">
+    <br />
+    <h3 class="fw-semibold mb-1">Kết quả tìm kiếm cho: {{ searchQuery }} ({{ products.length }})</h3>
+  </div>
   <div class="container-fluid p-4 p-md-5">
     <div class="row g-4">
       <!-- Bộ lọc -->
@@ -276,15 +276,8 @@ const handleRadioClick = (model, value) => {
                 <div class="accordion-body">
                   <div v-if="section.type === 'radio'">
                     <div v-for="opt in section.options" :key="opt.id" class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="radio"
-                      :id="opt.id"
-                      :name="section.name"
-                      :value="opt.value"
-                      v-model="filters[section.model]"
-                      @click="handleRadioClick(section.model, opt.value)"
-                    />
+                      <input class="form-check-input" type="radio" :id="opt.id" :name="section.name" :value="opt.value"
+                        v-model="filters[section.model]" @click="handleRadioClick(section.model, opt.value)" />
                       <label class="form-check-label" :for="opt.id">{{ opt.label }}</label>
                     </div>
                   </div>
@@ -301,119 +294,88 @@ const handleRadioClick = (model, value) => {
           </div>
         </div>
       </div>
-      
+
 
       <!-- Danh sách sản phẩm -->
       <div class="col-lg-9">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
-      <div v-for="product in paginatedProducts" :key="product.id" class="col">
-        <div class="card h-100 shadow-sm" @click="goToDetail(product.productId)" style="cursor: pointer;">
-          <!-- Icon yêu thích -->
-          <i
-            class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition"
-            :class="{
-              'fas text-danger scale-up': favoriteMap.has(product.productId),
-              'far text-secondary': !favoriteMap.has(product.productId)
-            }"
-            @click.stop="toggleFavorite(product.productId)"
-          ></i>
-            <div class="image-container position-relative">
-              <img
-                :src="product.image1"
-                class="product-image image-front"
-                :alt="product.productName"
-              />
-              <img
-                :src="product.image2"
-                class="product-image image-hover position-absolute top-0 start-0"
-                :alt="product.productName"
-              />
-            </div>
-          
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">{{ product.productName }}</h5>
-            <p class="card-text text-muted">{{ product.brandName }}</p>
-            <p class="card-text fw-bold text-danger">{{ product.price }}₫</p>
-            <!-- <button class="btn btn-outline-primary mt-auto" @click="goToDetail(product.productId)">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
+          <div v-for="product in paginatedProducts" :key="product.id" class="col">
+            <div class="card h-100 shadow-sm" @click="goToDetail(product.productId)" style="cursor: pointer;">
+              <!-- Icon yêu thích -->
+              <i class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition" :class="{
+                'fas text-danger scale-up': favoriteMap.has(product.productId),
+                'far text-secondary': !favoriteMap.has(product.productId)
+              }" @click.stop="toggleFavorite(product.productId)"></i>
+              <div class="image-container position-relative">
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+                <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
+                  :alt="product.productName" />
+              </div>
+
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ product.productName }}</h5>
+                <p class="card-text text-muted">{{ product.brandName }}</p>
+                <p class="card-text fw-bold text-danger">{{ product.price }}₫</p>
+                <!-- <button class="btn btn-outline-primary mt-auto" @click="goToDetail(product.productId)">
               Xem chi tiết
             </button> -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-      <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <a class="page-link" href="#" @click.prevent="setPage(currentPage - 1)">
-              &laquo;
-            </a>
-          </li>
-
-          <li class="page-item"
-              v-for="page in totalPages"
-              :key="page"
-              :class="{ active: page === currentPage }">
-            <a class="page-link" href="#" @click.prevent="setPage(page)">
-              {{ page }}
-            </a>
-          </li>
-
-          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-            <a class="page-link" href="#" @click.prevent="setPage(currentPage + 1)">
-              &raquo;
-            </a>
-          </li>
-        </ul>
-      </nav>
-            </div>
-          </div>
-        </div>
-          <!-- Toast thông báo thêm vào giỏ thành công -->
-        <div
-          v-if="showToast"
-          class="position-fixed top-0 end-0 p-3"
-          style="z-index: 1055;"
-        >
-          <div class="toast align-items-center show bg-success text-white border-0">
-            <div class="d-flex">
-              <div class="toast-body">
-                ✅ Đã thêm vào mục yêu thích!
               </div>
-              <button
-                type="button"
-                class="btn-close btn-close-white me-2 m-auto"
-                @click="showToast = false"
-              ></button>
             </div>
           </div>
         </div>
 
-  <!-- Toast xóa khỏi yêu thích -->
-<div
-  v-if="showRemoveToast"
-  class="position-fixed top-0 end-0 p-3"
-  style="z-index: 1055;"
->
-  <div class="toast align-items-center show bg-danger text-white border-0">
-    <div class="d-flex">
-      <div class="toast-body">
-        ❌ Đã xóa khỏi mục yêu thích!
+        <nav aria-label="Page navigation" class="mt-4">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <a class="page-link" href="#" @click.prevent="setPage(currentPage - 1)">
+                &laquo;
+              </a>
+            </li>
+
+            <li class="page-item" v-for="page in totalPages" :key="page" :class="{ active: page === currentPage }">
+              <a class="page-link" href="#" @click.prevent="setPage(page)">
+                {{ page }}
+              </a>
+            </li>
+
+            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+              <a class="page-link" href="#" @click.prevent="setPage(currentPage + 1)">
+                &raquo;
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
-      <button
-        type="button"
-        class="btn-close btn-close-white me-2 m-auto"
-        @click="showRemoveToast = false"
-      ></button>
     </div>
   </div>
-</div>
+  <!-- Toast thông báo thêm vào giỏ thành công -->
+  <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <div class="toast align-items-center show bg-success text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Đã thêm vào mục yêu thích!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showToast = false"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast xóa khỏi yêu thích -->
+  <div v-if="showRemoveToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <div class="toast align-items-center show bg-danger text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ❌ Đã xóa khỏi mục yêu thích!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showRemoveToast = false"></button>
+      </div>
+    </div>
+  </div>
 </template>
 
 
 
 <style scoped>
-
 .image-container {
   position: relative;
   width: 100%;
@@ -454,6 +416,7 @@ const handleRadioClick = (model, value) => {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
   z-index: 2;
 }
+
 .favorite-icon {
   position: absolute;
   top: 10px;
@@ -472,9 +435,11 @@ const handleRadioClick = (model, value) => {
 .favorite-icon:hover {
   color: red;
 }
+
 .scale-up {
   transform: scale(1.2);
 }
+
 .toast {
   animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
   min-width: 250px;
@@ -482,11 +447,13 @@ const handleRadioClick = (model, value) => {
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0%);
     opacity: 1;
@@ -499,13 +466,16 @@ const handleRadioClick = (model, value) => {
     transform: translateX(100%);
   }
 }
+
 .search-result-header {
-  padding-left: 1.5rem; /* Cách lề trái 24px */
+  padding-left: 1.5rem;
+  /* Cách lề trái 24px */
 }
 
 @media (min-width: 768px) {
   .search-result-header {
-    padding-left: 5rem; /* Cách lề trái 48px khi màn hình lớn */
+    padding-left: 5rem;
+    /* Cách lề trái 48px khi màn hình lớn */
   }
 }
 </style>

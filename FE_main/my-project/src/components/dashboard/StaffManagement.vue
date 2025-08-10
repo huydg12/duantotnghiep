@@ -14,10 +14,6 @@ const fetchEmployee = async () => {
     }
 };
 
-onMounted(() => {
-    fetchEmployee();
-});
-
 async function saveEmployee() {
     try{
         if(isEditing.value){
@@ -117,6 +113,10 @@ function goToPage(page) {
         currentPage.value = page;
     }
 }
+
+onMounted(() => {
+    fetchEmployee();
+});
 </script>
 
 <template>

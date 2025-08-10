@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+
 const store = useCartFavoriteStore()
 const route = useRoute()
 const router = useRouter()
@@ -42,6 +43,7 @@ const findCartIdByCustomerId = async () => {
     console.error("❌ Lỗi khi lấy cartId:", error)
   }
 }
+
 function validateQuantity() {
   const max = selectedProduct.value.quantity || 0
 
@@ -53,11 +55,10 @@ function validateQuantity() {
 }
 
 function blockMinus(e) {
-  if (e.key === '-' || e.key === 'e'|| e.key === '+') {
+  if (e.key === '-' || e.key === 'e' || e.key === '+') {
     e.preventDefault()
   }
 }
-
 
 const addToCart = async () => {
   if (!customerId) {
@@ -88,7 +89,6 @@ const addToCart = async () => {
     const checkUrl = `http://localhost:8080/cartDetail/exists?cartId=${payload.cartId}&productDetailId=${payload.productDetailId}`
     const checkResponse = await axios.get(checkUrl)
 
-
     if (checkResponse.data === true) {
       // Đã tồn tại → cập nhật số lượng mới
       console.log("🔍 checkResponse.data:", checkResponse.data)
@@ -107,8 +107,6 @@ const addToCart = async () => {
       console.log("✅ Đã thêm mới vào giỏ hàng")
       await fetchProductDetail();
       await store.fetchCartItems(customerId);
-
-
     }
     showToast.value = true
     setTimeout(() => {
@@ -244,14 +242,10 @@ onMounted(() => {
 
   <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
-<div class="col-md-6 position-relative">
-      <!-- Ảnh chính -->
-      <img
-        :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage"
-        alt="Sản phẩm"
-        class="w-100 rounded shadow-sm border border-light"
-        style="max-height: 400px; object-fit: contain;"
-      />
+      <div class="col-md-6 position-relative">
+        <!-- Ảnh chính -->
+        <img :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage" alt="Sản phẩm"
+          class="w-100 rounded shadow-sm border border-light" style="max-height: 400px; object-fit: contain;" />
 
         <!-- Danh sách ảnh phụ -->
         <div class="d-flex gap-2 mt-3 overflow-auto">
@@ -288,53 +282,39 @@ onMounted(() => {
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
-          <input
-            type="number"
-            v-model.number="quantity"
-            min="1"
-            :max="selectedProduct.quantity"
-            class="form-control"
-            @blur="validateQuantity"
-            @change="validateQuantity"
-            @keydown="blockMinus"
-          />
-            <small class="text-muted mt-1 d-block">
-             {{ selectedProduct.quantity }} sản phẩm có sẵn
+          <input type="number" v-model.number="quantity" min="1" :max="selectedProduct.quantity" class="form-control"
+            @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" />
+          <small class="text-muted mt-1 d-block">
+            {{ selectedProduct.quantity }} sản phẩm có sẵn
           </small>
         </div>
 
 
-      <!-- Thông báo khi không thể mua -->
-      <div v-if="selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
-        Sản phẩm hiện đã hết hàng
-      </div>
+        <!-- Thông báo khi không thể mua -->
+        <div v-if="selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
+          Sản phẩm hiện đã hết hàng
+        </div>
 
-      <!-- Luôn hiển thị 2 nút nhưng disable nếu không thể mua -->
-      <div class="d-flex gap-3 mb-4">
-        <button
-          class="btn btn-primary product-button fw-semibold"
-          @click="addToCart()"
-          :disabled="quantity > selectedProduct.quantity ||selectedProduct.quantity === 0"
-        >
-          Thêm vào giỏ
-        </button>
+        <!-- Luôn hiển thị 2 nút nhưng disable nếu không thể mua -->
+        <div class="d-flex gap-3 mb-4">
+          <button class="btn btn-primary product-button fw-semibold" @click="addToCart()"
+            :disabled="quantity > selectedProduct.quantity || selectedProduct.quantity === 0">
+            Thêm vào giỏ
+          </button>
 
-        <button
-          class="btn btn-danger product-button fw-semibold"
-          @click="buyNow()"
-          :disabled=" quantity > selectedProduct.quantity ||selectedProduct.quantity === 0"
-        >
-          Mua ngay
-        </button>
-      </div>
+          <button class="btn btn-danger product-button fw-semibold" @click="buyNow()"
+            :disabled="quantity > selectedProduct.quantity || selectedProduct.quantity === 0">
+            Mua ngay
+          </button>
+        </div>
 
         <hr />
         <p class="text-muted">{{ selectedProduct.description }}</p>
       </div>
 
 
-      </div>
     </div>
+  </div>
   <!-- Toast thông báo thêm vào giỏ thành công -->
   <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     <div class="toast align-items-center show bg-success text-white border-0">

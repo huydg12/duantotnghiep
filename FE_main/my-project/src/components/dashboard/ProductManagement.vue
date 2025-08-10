@@ -82,7 +82,6 @@ const editImage = async (detailId, imageIndex) => {
     newFileInput.click();
 };
 
-
 function handleMultipleImageChange(event) {
     const files = Array.from(event.target.files)
     if (!files.length) return
@@ -111,7 +110,6 @@ async function uploadImages(detailId) {
         alert('Không thể upload ảnh');
     }
 }
-
 
 const fetchBrands = async () => {
     try {
@@ -421,8 +419,6 @@ async function saveProductDetails() {
     }
 }
 
-
-
 function editDetail(detail) {
     selectedSizes.value = [detail.size?.id ?? getIdByName(sizes.value, detail.size)]
     selectedColors.value = [detail.color?.id ?? getIdByName(colors.value, detail.color)]
@@ -457,7 +453,7 @@ async function setMainImage(img) {
         selectedDetailImages.value = response.data;
 
         // Cập nhật ảnh chính (main)
-        const mainIndex = selectedDetailImages.value.findIndex(i => i.main  === true);
+        const mainIndex = selectedDetailImages.value.findIndex(i => i.main === true);
         mainImageIndexViewer.value = mainIndex !== -1 ? mainIndex : 0;
 
         alert("Đã đặt ảnh chính thành công.");
@@ -488,8 +484,6 @@ async function deleteImage(imageId, productDetailId) {
     }
 }
 
-
-// Fetch on mounted
 onMounted(() => {
     fetchproduct()
     fetchBrands()
@@ -660,8 +654,7 @@ onMounted(() => {
                             <div class="col-md-6">
                                 <label>Ảnh sản phẩm (có thể chọn nhiều)</label>
                                 <input type="file" multiple accept="image/*" class="form-control"
-                                    @change="handleMultipleImageChange" 
-                                    />
+                                    @change="handleMultipleImageChange" />
 
                                 <div class="mt-3 d-flex flex-wrap gap-2 justify-content-start"
                                     v-if="previewUrls.length">

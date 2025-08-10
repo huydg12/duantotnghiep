@@ -1,17 +1,16 @@
 <script setup>
 import Banner from "../common/Banner.vue";
-import { onMounted } from 'vue';
 </script>
 <template>
-  <Banner title="Thông tin liên hệ" breadcrumb='Thông tin liên hệ' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+  <Banner title="Thông tin liên hệ" breadcrumb='Thông tin liên hệ'
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <main class="container-xl py-5">
     <div class="row g-5 align-items-start">
       <!-- Google Map -->
       <div class="col-lg-6 map-container">
         <iframe
           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3729.214795239776!2d106.64883387488325!3d20.8230310807753!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a70bd730b201d%3A0xab7b4b5c986bd11!2zODY3IMSQLiBUcsaw4budbmcgQ2hpbmgsIEzDo20gSMOgLCBLaeG6v24gQW4sIEjhuqNpIFBow7JuZywgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1750154235243!5m2!1svi!2s"
-          style="border: 0" allowfullscreen="" loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"></iframe>
+          style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
 
       <!-- Contact Form -->
@@ -93,7 +92,7 @@ body {
 
 .map-container iframe {
   width: 100%;
-  height: 450px; 
+  height: 450px;
   border-radius: 0.5rem;
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }

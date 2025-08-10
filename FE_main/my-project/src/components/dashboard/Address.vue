@@ -186,12 +186,7 @@ onMounted(() => {
         <li class="page-item" :class="{ disabled: currentPage === 1 }">
           <button class="page-link" @click="goToPage(currentPage - 1)">«</button>
         </li>
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: page === currentPage }"
-        >
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
           <button class="page-link" @click="goToPage(page)">{{ page }}</button>
         </li>
         <li class="page-item" :class="{ disabled: currentPage === totalPages }">

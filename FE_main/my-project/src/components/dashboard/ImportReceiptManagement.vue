@@ -6,13 +6,12 @@ import axios from "axios";
 
 const showModal = ref(false);
 const isEdit = ref(false);
-const isViewOnly = ref(false); // 👈 mới
+const isViewOnly = ref(false);
 const products = ref([]);
 
 const receipts = ref([]);
 
-const employeeId = ref(null); // dùng ref để reactive
-
+const employeeId = ref(null);
 
 const fetchProductDetail = async () => {
   try {
@@ -38,23 +37,21 @@ const fetchReceipts = async () => {
   }
 };
 
-
-
-
-
 const form = reactive({
   id: null,
-  employeeId: null, // ✅ khai báo sẵn
+  employeeId: null,
   importReceiptCode: "",
   importDate: "",
   note: "",
   status: 0,
   details: [],
 });
+
 function generateImportReceiptCode() {
   const randomNumber = Math.floor(Math.random() * 100000000); // 8 số
   return "PN" + String(randomNumber).padStart(8, "0");
 }
+
 function openCreate() {
   isEdit.value = false;
   Object.assign(form, {
@@ -143,7 +140,7 @@ async function saveReceipt() {
         importDate: form.importDate,
         note: form.note,
         totalAmount: form.totalAmount
-        
+
       });
 
     } else {
@@ -205,6 +202,7 @@ async function confirm(receipt) {
     alert("Đã xảy ra lỗi khi xác nhận phiếu!");
   }
 }
+
 async function complete(receipt) {
   try {
     // 1. Lấy chi tiết phiếu nhập
@@ -213,10 +211,10 @@ async function complete(receipt) {
     console.log("danh sách phiếu nhập: ", details);
     for (const detail of details) {
       // 2. Kiểm tra xem sản phẩm đã tồn tại trong kho chưa
-        console.log("📦 Kiểm tra tồn kho cho ProductDetail ID:", detail.productDetailId);
+      console.log("📦 Kiểm tra tồn kho cho ProductDetail ID:", detail.productDetailId);
       const checkRes = await axios.get(`http://localhost:8080/inventory/check/${detail.productDetailId}`);
 
-        console.log("✅ Kết quả check:", checkRes.data);
+      console.log("✅ Kết quả check:", checkRes.data);
 
       if (checkRes.data.exists) {
         // 3a. Nếu có → cập nhật số lượng
@@ -246,6 +244,7 @@ async function complete(receipt) {
     alert("❌ Ghi nhận kho thất bại!");
   }
 }
+
 async function cancel(receipt) {
   try {
     // Cập nhật trạng thái trong form hiện tại
@@ -269,30 +268,34 @@ async function cancel(receipt) {
 function formatDate(d) {
   return new Date(d).toLocaleString();
 }
+
 function formatCurrency(val) {
   return Number(val).toLocaleString() + " đ";
 }
+
 function statusText(s) {
   return ["Đang tạo", "Đã xác nhận", "Đã nhập kho", "Đã huỷ"][s];
 }
+
 function statusClass(s) {
   return ["bg-secondary", "bg-warning text-dark", "bg-success", "bg-danger"][s];
 }
+
 onMounted(() => {
   const userJson = localStorage.getItem("user");
-if (userJson) {
-  try {
-    const user = JSON.parse(userJson);
-    employeeId.value = user.employeeId;
-    form.employeeId = employeeId.value; // ✅ gán đúng vào form
-    console.log("✅ Employee ID:", employeeId.value);
-    console.log("🎯 form.employeeId khi khởi tạo:", form.employeeId);
-  } catch (error) {
-    console.error("❌ Lỗi khi parse userJson:", error);
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      employeeId.value = user.employeeId;
+      form.employeeId = employeeId.value; // ✅ gán đúng vào form
+      console.log("✅ Employee ID:", employeeId.value);
+      console.log("🎯 form.employeeId khi khởi tạo:", form.employeeId);
+    } catch (error) {
+      console.error("❌ Lỗi khi parse userJson:", error);
+    }
+  } else {
+    console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
   }
-} else {
-  console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
-}
   fetchReceipts();
   fetchProductDetail();
 });
@@ -359,22 +362,17 @@ if (userJson) {
           <div class="modal-body">
             <div class="mb-3">
               <label>Mã phiếu</label>
-              <input v-model="form.importReceiptCode" class="form-control bg-light" readonly  />
+              <input v-model="form.importReceiptCode" class="form-control bg-light" readonly />
             </div>
             <div class="mb-3">
               <label>Ngày nhập</label>
-              <input v-model="form.importDate" type="datetime-local"
-              class="form-control"
-              :readonly="isViewOnly"
-              :disabled="isViewOnly"
-            />
+              <input v-model="form.importDate" type="datetime-local" class="form-control" :readonly="isViewOnly"
+                :disabled="isViewOnly" />
             </div>
             <div class="mb-3">
               <label>Ghi chú</label>
-              <textarea v-model="form.note" class="form-control"
-                :readonly="isViewOnly"
-                :disabled="isViewOnly"
-              ></textarea>
+              <textarea v-model="form.note" class="form-control" :readonly="isViewOnly"
+                :disabled="isViewOnly"></textarea>
             </div>
 
             <!-- Chi tiết sản phẩm -->
@@ -393,47 +391,28 @@ if (userJson) {
                 <tr v-for="(item, idx) in form.details" :key="idx">
                   <td style="min-width: 250px;">
                     <div class="form-control p-0">
-                      <v-select
-                        v-model="item.productDetailId"
-                        :options="products"
-                        label="name"
-                        :reduce="p => p.id"
-                        class="w-100"
-                        placeholder="Chọn sản phẩm"
-                        :disabled="isViewOnly"
-                      />
+                      <v-select v-model="item.productDetailId" :options="products" label="name" :reduce="p => p.id"
+                        class="w-100" placeholder="Chọn sản phẩm" :disabled="isViewOnly" />
                     </div>
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      v-model.number="item.quantity"
-                      class="form-control form-control-sm"
-                      :readonly="isViewOnly"
-                    />
+                    <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
+                      :readonly="isViewOnly" />
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      v-model.number="item.unitPrice"
-                      class="form-control form-control-sm"
-                      :readonly="isViewOnly"
-                    />
+                    <input type="number" v-model.number="item.unitPrice" class="form-control form-control-sm"
+                      :readonly="isViewOnly" />
                   </td>
                   <td>{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
                   <td>
-                  <button
-                    class="btn btn-sm btn-danger"
-                    @click="removeDetail(idx)"
-                    v-if="!isViewOnly"
-                  >
-                    Xoá
-                  </button>
+                    <button class="btn btn-sm btn-danger" @click="removeDetail(idx)" v-if="!isViewOnly">
+                      Xoá
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <button class="btn btn-sm btn-outline-primary" @click="addDetail"v-if="!isViewOnly">
+            <button class="btn btn-sm btn-outline-primary" @click="addDetail" v-if="!isViewOnly">
               + Thêm dòng
             </button>
           </div>

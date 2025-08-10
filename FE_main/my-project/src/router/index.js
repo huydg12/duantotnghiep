@@ -128,7 +128,7 @@ router.beforeEach((to, from, next) => {
   // Nếu chưa đăng nhập
   if (!user) {
     if (requiresAuth) {
-      return next('/auth/login');
+      return next("/auth/login");
     }
     return next(); // Vào home, introduce, v.v. được
   }
@@ -137,18 +137,21 @@ router.beforeEach((to, from, next) => {
   const role = user.role || user.roleName || user.roleId;
 
   // Ngăn không cho quay lại trang login
-  if (to.path.startsWith('/auth')) {
-    return next(role === 'CUSTOMER' || role === 2 ? '/home' : '/manage');
+  if (to.path.startsWith("/auth")) {
+    return next(role === "CUSTOMER" || role === 2 ? "/home" : "/manage");
   }
 
   // Nếu là ADMIN hoặc EMPLOYEE mà vào /home thì chuyển về /manage
-  if ((role === 'ADMIN' || role === 'EMPLOYEE' || role === 1 || role === 3) && to.path === '/home') {
-    return next('/manage');
+  if (
+    (role === "ADMIN" || role === "EMPLOYEE" || role === 1 || role === 3) &&
+    to.path === "/home"
+  ) {
+    return next("/manage");
   }
 
   // Nếu là CUSTOMER mà cố vào /manage thì chuyển về /home
-  if ((role === 'CUSTOMER' || role === 2) && to.path.startsWith('/manage')) {
-    return next('/home');
+  if ((role === "CUSTOMER" || role === 2) && to.path.startsWith("/manage")) {
+    return next("/home");
   }
 
   // Mặc định cho đi tiếp

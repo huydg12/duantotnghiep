@@ -28,7 +28,8 @@ const bannerStyle = computed(() => ({
             <h1>{{ title }}</h1>
 
             <div class="breadcrumb">
-                <RouterLink to="/home" class="home-link">Trang chủ</RouterLink> / <span class="current-page">{{ breadcrumb }}</span>
+                <RouterLink to="/home" class="home-link">Trang chủ</RouterLink> / <span class="current-page">{{
+                    breadcrumb }}</span>
             </div>
         </div>
     </div>

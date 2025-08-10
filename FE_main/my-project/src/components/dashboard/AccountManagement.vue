@@ -14,10 +14,6 @@ const fetchAccount = async () => {
     }
 }
 
-onMounted(() => {
-    fetchAccount();
-})
-
 async function saveAccount() {
     try {
         if (isEditing.value) {
@@ -110,6 +106,11 @@ function getVietnamDateTimeLocalFormat() {
 
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
+
+onMounted(() => {
+    fetchAccount();
+})
+
 </script>
 <template>
     <div class="container py-4">

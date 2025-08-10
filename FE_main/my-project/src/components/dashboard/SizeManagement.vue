@@ -16,11 +16,6 @@ const fetchSize = async () => {
   }
 }
 
-// Khi component được mount
-onMounted(() => {
-  fetchSize()
-})
-
 // Form size
 const form = ref({ id: null, eu: '', description: '' })
 const isEditing = ref(false)
@@ -78,6 +73,10 @@ async function deleteSize(id) {
     console.error('Lỗi khi xóa size:', error)
   }
 }
+
+onMounted(() => {
+  fetchSize()
+})
 </script>
 
 <template>
@@ -134,12 +133,7 @@ async function deleteSize(id) {
           <button class="page-link" @click="goToPage(currentPage - 1)">«</button>
         </li>
 
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: page === currentPage }"
-        >
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
           <button class="page-link" @click="goToPage(page)">{{ page }}</button>
         </li>
 

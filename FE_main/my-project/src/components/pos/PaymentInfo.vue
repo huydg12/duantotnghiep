@@ -34,25 +34,15 @@ const applyPromo = () => {
       <div class="mb-3">
         <label class="form-label fw-medium">Mã khuyến mãi</label>
         <div class="input-group">
-          <input
-            type="text"
-            class="form-control"
-            v-model="promoCode"
-            placeholder="Nhập mã giảm giá"
-          />
+          <input type="text" class="form-control" v-model="promoCode" placeholder="Nhập mã giảm giá" />
           <button class="btn btn-outline-primary" @click="applyPromo">Áp dụng</button>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label fw-medium">Khách đưa</label>
-        <input
-          type="number"
-          class="form-control"
-          :value="modelValue"
-          @input="updatePaid"
-          placeholder="Nhập số tiền khách đưa"
-        />
+        <input type="number" class="form-control" :value="modelValue" @input="updatePaid"
+          placeholder="Nhập số tiền khách đưa" />
       </div>
 
       <div class="mb-3 d-flex justify-content-between">

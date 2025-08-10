@@ -1,11 +1,11 @@
 <script setup>
-import { ref, reactive } from 'vue';
-import  axios  from 'axios';
+import { reactive } from 'vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-const form = reactive ({
+const form = reactive({
     fullname: '',
     phone: '',
     email: '',
@@ -21,9 +21,9 @@ const handleRegister = async () => {
         console.log("customerId: " + customerId)
         // Tạo giỏ hàng cho customer mới
         await axios.post("http://localhost:8080/cart/add", {
-        customerId: customerId
+            customerId: customerId
         });
-        alert("Đăng ký thành công") 
+        alert("Đăng ký thành công")
         router.push("/auth/login")
     } catch (error) {
         alert("Đăng ký không thành công")

@@ -64,6 +64,7 @@ const fetchBillDetails = async (billId) => {
     console.log("Lỗi lấy chi tiết hoá đơn", error);
   }
 };
+
 const updateBillStatus = async (bill) => {
   try {
     // Gọi API cập nhật trạng thái
@@ -84,7 +85,6 @@ const updateBillStatus = async (bill) => {
           quantity: detail.quantity
         });
       }
-
       alert("Đơn hàng đã hủy và số lượng tồn kho đã được khôi phục.");
     } else {
       alert("Cập nhật trạng thái thành công");
@@ -95,6 +95,7 @@ const updateBillStatus = async (bill) => {
     alert("Cập nhật trạng thái thất bại");
   }
 };
+
 const openModal = async (bill) => {
   selectedBill.value = { ...bill };
   await fetchBillDetails(bill.ID);
@@ -136,7 +137,6 @@ const saveChanges = async () => {
   }
 };
 
-
 const deleteBill = async (id) => {
   if (confirm("Bạn có chắc muốn xoá hay không?")) {
     try {
@@ -172,7 +172,6 @@ const removeDetail = async (index) => {
     }
   }
 };
-
 
 const formatCurrency = (value) => {
   const num = parseFloat(value) || 0;
@@ -214,6 +213,7 @@ function blockMinus(e) {
 const cacheOldQuantity = (detail) => {
   detail.oldQuantity = detail.QUANTITY;
 };
+
 const handleQuantityChange = async (detail) => {
   try {
     // ✅ Lấy tồn kho hiện tại
@@ -239,14 +239,14 @@ const handleQuantityChange = async (detail) => {
     }
 
     // ✅ Cập nhật BILL_DETAIL
-    await axios.put(`http://localhost:8080/billDetail/updateQuantity/${detail.ID}`, 
-      { quantity: detail.QUANTITY }, 
+    await axios.put(`http://localhost:8080/billDetail/updateQuantity/${detail.ID}`,
+      { quantity: detail.QUANTITY },
       { headers: { "Content-Type": "application/json" } }
     );
 
     // ✅ Gửi chênh lệch để cập nhật kho
-    await axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${detail.PRODUCT_DETAIL_ID}`, 
-      { 
+    await axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${detail.PRODUCT_DETAIL_ID}`,
+      {
         quantity: detail.QUANTITY,
         oldQuantity: oldQuantity
       },
@@ -255,12 +255,11 @@ const handleQuantityChange = async (detail) => {
 
     // ✅ Lưu lại oldQuantity mới nhất
     detail.oldQuantity = detail.QUANTITY;
-            console.log("Old:", oldQuantity, "New:", detail.QUANTITY, "Chênh lệch:", detail.QUANTITY - oldQuantity);
+    console.log("Old:", oldQuantity, "New:", detail.QUANTITY, "Chênh lệch:", detail.QUANTITY - oldQuantity);
   } catch (error) {
     console.error("❌ Lỗi khi cập nhật số lượng:", error);
   }
 };
-
 
 function statusClass(s) {
   return [
@@ -295,17 +294,19 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="bill in bills.slice().sort((a, b) => new Date(b.CREATED_DATE) - new Date(a.CREATED_DATE))" :key="bill.ID">
+        <tr v-for="bill in bills.slice().sort((a, b) => new Date(b.CREATED_DATE) - new Date(a.CREATED_DATE))"
+          :key="bill.ID">
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
           <td>
-            <select v-model="bill.STATUS" @change="updateBillStatus(bill)" class="form-select form-select-sm" :class="statusClass(bill.STATUS)">
-            <option value="1" :disabled="bill.STATUS > 1">Chờ xác nhận</option>
-            <option value="2" :disabled="bill.STATUS > 2">Đã xác nhận</option>
-            <option value="3" :disabled="bill.STATUS > 3">Đang giao</option>
-            <option value="4" :disabled="bill.STATUS > 4">Hoàn tất</option>
-            <option value="5" :disabled="bill.STATUS === 5">Đã hủy</option>
+            <select v-model="bill.STATUS" @change="updateBillStatus(bill)" class="form-select form-select-sm"
+              :class="statusClass(bill.STATUS)">
+              <option value="1" :disabled="bill.STATUS > 1">Chờ xác nhận</option>
+              <option value="2" :disabled="bill.STATUS > 2">Đã xác nhận</option>
+              <option value="3" :disabled="bill.STATUS > 3">Đang giao</option>
+              <option value="4" :disabled="bill.STATUS > 4">Hoàn tất</option>
+              <option value="5" :disabled="bill.STATUS === 5">Đã hủy</option>
             </select>
           </td>
           <td>{{ bill.STATUS_PAYMENT }}</td>
@@ -319,7 +320,8 @@ onMounted(() => {
     </table>
 
     <!-- Modal -->
-    <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true" ref="modal">
+    <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true"
+      ref="modal">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -377,17 +379,10 @@ onMounted(() => {
                   <td>{{ detail.SIZE }}</td>
                   <!-- ✅ Số lượng có nút tăng/giảm -->
                   <td>
-                    <input
-                      type="number"
-                      v-model="detail.QUANTITY"
-                      min="1"
-                      class="form-control form-control-sm text-center"
-                      style="width: 60px;"
-                      @focus="cacheOldQuantity(detail)"
-                      @input="handleQuantityChange(detail)"
-                      @keydown="blockMinus"
-                      :readonly="isPaid"
-                    />
+                    <input type="number" v-model="detail.QUANTITY" min="1"
+                      class="form-control form-control-sm text-center" style="width: 60px;"
+                      @focus="cacheOldQuantity(detail)" @input="handleQuantityChange(detail)" @keydown="blockMinus"
+                      :readonly="isPaid" />
                   </td>
                   <td>{{ formatCurrency(detail.PRICE) }}</td>
                   <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>

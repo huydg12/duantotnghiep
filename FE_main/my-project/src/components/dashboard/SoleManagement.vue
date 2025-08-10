@@ -3,46 +3,42 @@ import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 const soles = ref([])
 
-const fetchSole = async() => {
-    try{
+const fetchSole = async () => {
+    try {
         const response = await axios.get('http://localhost:8080/sole/show')
         soles.value = response.data
         console.log(soles.value)
-    }catch(error){
+    } catch (error) {
         console.log('lỗi hiển thị ', error)
     }
 }
 
-onMounted(() => {
-    fetchSole()
-})
-
 async function saveSole() {
-    try{
-        if(isEditing.value){
+    try {
+        if (isEditing.value) {
             await axios.put(`http://localhost:8080/sole/update/${form.value.id}`, form.value)
-        }else{
+        } else {
             await axios.post('http://localhost:8080/sole/add', form.value)
         }
         await fetchSole()
         resetForm()
-    }catch(error){
+    } catch (error) {
         console.log('lỗi save ', error)
     }
 }
 
-function editSole(sole){
-    form.value = {...sole}
+function editSole(sole) {
+    form.value = { ...sole }
     isEditing.value = true
-} 
+}
 
 async function deleteSole(id) {
-    try{
-        if(confirm ('Bạn có chắc là muốn xóa đế giày không ')){
-        await axios.delete(`http://localhost:8080/sole/delete/${id}`)
-        await fetchSole()
+    try {
+        if (confirm('Bạn có chắc là muốn xóa đế giày không ')) {
+            await axios.delete(`http://localhost:8080/sole/delete/${id}`)
+            await fetchSole()
         }
-    }catch(error){
+    } catch (error) {
         console.log('lỗi xóa ', error)
     }
 }
@@ -71,6 +67,10 @@ function goToPage(page) {
         currentPage.value = page
     }
 }
+
+onMounted(() => {
+    fetchSole()
+})
 
 </script>
 <template>

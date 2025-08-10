@@ -16,11 +16,6 @@ const fetchColor = async () => {
   }
 }
 
-// Khi component được mount
-onMounted(() => {
-  fetchColor()
-})
-
 // Form màu
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -78,6 +73,10 @@ async function deleteColor(id) {
     console.error('Lỗi khi xóa màu:', error)
   }
 }
+
+onMounted(() => {
+  fetchColor()
+})
 </script>
 
 <template>
@@ -134,12 +133,7 @@ async function deleteColor(id) {
           <button class="page-link" @click="goToPage(currentPage - 1)">«</button>
         </li>
 
-        <li
-          v-for="page in totalPages"
-          :key="page"
-          class="page-item"
-          :class="{ active: page === currentPage }"
-        >
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
           <button class="page-link" @click="goToPage(page)">{{ page }}</button>
         </li>
 

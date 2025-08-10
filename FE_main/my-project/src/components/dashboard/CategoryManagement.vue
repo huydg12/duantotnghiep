@@ -4,49 +4,45 @@ import { ref, computed, onMounted } from 'vue'
 
 const categories = ref([])
 
-const fetchCategories  =  async () => {
-    try{
-    const response = await axios.get('http://localhost:8080/style/show')
-    categories.value = response.data
-    console.log(categories)
-    }catch(error){
+const fetchCategories = async () => {
+    try {
+        const response = await axios.get('http://localhost:8080/style/show')
+        categories.value = response.data
+        console.log(categories)
+    } catch (error) {
         console.log('lỗi hiển thị ', error)
     }
 }
 
-onMounted(()=>{
-    fetchCategories()
-})
-
-async function saveCategories(){
-    try{
-        if(isEditing.value){
+async function saveCategories() {
+    try {
+        if (isEditing.value) {
             await axios.put(`http://localhost:8080/style/update/${form.value.id}`, form.value)
-        }else{
+        } else {
             await axios.post('http://localhost:8080/style/add', form.value)
         }
         fetchCategories()
         resetForm()
-    }catch(error){
-        console.log('lỗi save',error)
+    } catch (error) {
+        console.log('lỗi save', error)
     }
 }
 
-function editCategories(category){
-    form.value = {...category}
-    isEditing.value=true
+function editCategories(category) {
+    form.value = { ...category }
+    isEditing.value = true
 }
 
 async function deleteCategories(id) {
-    try{
-        if(confirm('Bạn  có chắc là muốn xóa loại này không')){
-        await axios.delete(`http://localhost:8080/style/delete/${id}`)
-        await fetchCategories()
+    try {
+        if (confirm('Bạn  có chắc là muốn xóa loại này không')) {
+            await axios.delete(`http://localhost:8080/style/delete/${id}`)
+            await fetchCategories()
         }
-    }catch(error){
+    } catch (error) {
         console.log('lỗi khi xóa loại ', error)
     }
-} 
+}
 
 const form = ref({ id: null, name: '', description: '' })
 const isEditing = ref(false)
@@ -72,6 +68,10 @@ function goToPage(page) {
         currentPage.value = page
     }
 }
+
+onMounted(() => {
+    fetchCategories()
+})
 
 </script>
 <template>

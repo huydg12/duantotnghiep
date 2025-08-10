@@ -55,7 +55,7 @@ const doSearchFromModal = () => {
   if (searchText.value.trim()) {
     router.push({ path: "/product", query: { keyword: searchText.value } });
     showSearch.value = false; // ✅ Đóng popup khi nhấn Enter
-      searchText.value = ''; // ✅ Reset
+    searchText.value = ''; // ✅ Reset
   }
 };
 
@@ -132,7 +132,7 @@ function goToProductDetail(productDetailId) {
 }
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`)
-    showSearch.value = false;
+  showSearch.value = false;
   searchText.value = ''; // ✅ Reset
 }
 </script>
@@ -157,10 +157,9 @@ const goToDetail = (id) => {
               </div>
               <ul class="dropdown-menu">
                 <li v-for="brand in brandList" :key="brand.id">
-                <a class="dropdown-item cursor-pointer"
-                  @click="searchByBrand(brand.name)">
-                  {{ brand.name }}
-                </a>
+                  <a class="dropdown-item cursor-pointer" @click="searchByBrand(brand.name)">
+                    {{ brand.name }}
+                  </a>
                 </li>
               </ul>
             </li>
@@ -262,7 +261,7 @@ const goToDetail = (id) => {
             <li v-for="product in suggestedProducts" :key="product.productId"
               class="d-flex align-items-center py-1 px-2 hover-highlight" style="cursor: pointer;"
               @click="goToDetail(product.productId); showSearch = false">
-              <img   :src="fixImageUrl(product.image1)" alt="img" class="me-2"
+              <img :src="fixImageUrl(product.image1)" alt="img" class="me-2"
                 style="width: 40px; height: 40px; object-fit: contain;" />
               <span class="text-white">{{ product.productName }}</span>
             </li>

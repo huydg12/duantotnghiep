@@ -1,12 +1,13 @@
 <script setup>
-import { ref, computed, onMounted  } from "vue";
+import { ref, computed, onMounted } from "vue";
 import Banner from "../common/Banner.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+
 const store = useCartFavoriteStore()
 const showRemoveToast = ref(false)
-const router = useRouter(); 
+const router = useRouter();
 const cartItems = ref([]);
 const selectedItems = ref([]);
 
@@ -26,23 +27,22 @@ if (userJson) {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
 }
 
-
 function hasInvalidQuantity() {
   return cartItems.value.some(item => item.quantity > item.quantityInventory)
 }
+
 const fetchCartDetail = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/cartDetail/showCartDetail/${customerId}`);
-        // Sắp xếp theo modified_date giảm dần (mới nhất lên đầu)
-        cartItems.value = response.data.sort((a, b) => new Date(b.modifiedDate) - new Date(a.modifiedDate)); // Sắp xếp theo modifiedDate mới nhất
-console.log("response.data:", cartItems.value); // <--- check kỹ dòng này
+    // Sắp xếp theo modified_date giảm dần (mới nhất lên đầu)
+    cartItems.value = response.data.sort((a, b) => new Date(b.modifiedDate) - new Date(a.modifiedDate)); // Sắp xếp theo modifiedDate mới nhất
+    console.log("response.data:", cartItems.value); // <--- check kỹ dòng này
     console.log("Modified dates:", response.data.map(i => i.modifiedDate));
     console.log("Đã sắp xếp:", cartItems.value.map(i => i.modifiedDate));
   } catch (error) {
     console.error('Lỗi hiển thị sản phẩm', error);
   }
 }
-
 
 onMounted(() => {
   if (customerId) {
@@ -51,9 +51,6 @@ onMounted(() => {
     console.error("Không tìm thấy customerId trong localStorage");
   }
 });
-
-
-
 
 async function removeItem(cartDetailId) {
   if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
@@ -64,9 +61,9 @@ async function removeItem(cartDetailId) {
     cartItems.value = cartItems.value.filter(
       (item) => item.cartDetailId !== cartDetailId
     );
-      await store.fetchCartItems(customerId);
-      showRemoveToast.value = true
-      setTimeout(() => {
+    await store.fetchCartItems(customerId);
+    showRemoveToast.value = true
+    setTimeout(() => {
       showRemoveToast.value = false
     }, 3000)
   } catch (error) {
@@ -74,6 +71,7 @@ async function removeItem(cartDetailId) {
     alert("Xóa sản phẩm thất bại.");
   }
 }
+
 const validateQuantity = (item) => {
   if (item.quantity < 1) {
     item.quantity = 1;
@@ -118,7 +116,7 @@ function formatCurrency(value) {
 }
 
 function handleCheckout() {
-    if (selectedItems.value.length === 0) {
+  if (selectedItems.value.length === 0) {
     alert("⚠️ Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
     return;
   }
@@ -135,7 +133,7 @@ function handleCheckout() {
       price: item.price,
       quantity: item.quantity,
     }));
-    console.log("Sản phẩm đã chọn để thanh toán:", dataToPay);
+  console.log("Sản phẩm đã chọn để thanh toán:", dataToPay);
 
   // ✅ Lưu vào sessionStorage
   sessionStorage.setItem("checkoutItems", JSON.stringify(dataToPay));
@@ -170,13 +168,8 @@ function goToProductDetail(productDetailId) {
     <h3 class="mb-4 fw-semibold">🛒 Giỏ Hàng Của Bạn</h3>
     <!-- Nút Chọn tất cả -->
     <div class="form-check mb-3">
-      <input
-        type="checkbox"
-        class="form-check-input"
-        id="selectAll"
-        :checked="isAllSelected"
-        @change="toggleSelectAll"
-      />
+      <input type="checkbox" class="form-check-input" id="selectAll" :checked="isAllSelected"
+        @change="toggleSelectAll" />
       <label class="form-check-label" for="selectAll">
         Chọn tất cả
       </label>
@@ -184,23 +177,17 @@ function goToProductDetail(productDetailId) {
     <div v-if="cartItems && cartItems.length > 0">
       <div id="cartItems">
         <div v-for="item in cartItems" :key="item.cartDetailId" class="row align-items-center g-3 mb-4 cart-item">
-                     <!-- ✅ Checkbox -->
+          <!-- ✅ Checkbox -->
           <div class="col-1 text-center">
-            <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input"/>
-          </div> 
+            <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input" />
+          </div>
           <div class="col-2 text-center">
-            <img :src="item.images" 
-            :alt="item.productName" 
-            class="img-fluid rounded clickable" 
-            @click="goToProductDetail(item.productDetailId)"
-            style="max-width: 96px; height: auto" />
+            <img :src="item.images" :alt="item.productName" class="img-fluid rounded clickable"
+              @click="goToProductDetail(item.productDetailId)" style="max-width: 96px; height: auto" />
           </div>
           <div class="col-4">
-              <h6
-              class="mb-1 fw-medium text clickable"
-              @click="goToProductDetail(item.productDetailId)"
-              style="cursor: pointer;"
-            >{{ item.productName }}</h6>
+            <h6 class="mb-1 fw-medium text clickable" @click="goToProductDetail(item.productDetailId)"
+              style="cursor: pointer;">{{ item.productName }}</h6>
             <small class="text-muted">Color: {{ item.color }} | Size: {{ item.size }}</small>
           </div>
           <div class="col-2 text-danger fw-bold">
@@ -209,20 +196,15 @@ function goToProductDetail(productDetailId) {
             </p>
           </div>
           <div class="col-1">
-            <input
-              type="number"
-              v-model="item.quantity"
-              min="1"
-              :max="item.quantityInventory"
+            <input type="number" v-model="item.quantity" min="1" :max="item.quantityInventory"
               class="form-control text-center quantity"
               @change="validateQuantity(item); updateQuantity(item.cartDetailId, item.quantity)"
-              @keydown="blockMinus"
-            />
+              @keydown="blockMinus" />
           </div>
-        <!-- Nút Xóa -->
-        <div class="col-2 d-flex justify-content-end">
-          <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.cartDetailId)">Xóa</button>
-        </div>
+          <!-- Nút Xóa -->
+          <div class="col-2 d-flex justify-content-end">
+            <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.cartDetailId)">Xóa</button>
+          </div>
 
         </div>
       </div>
@@ -235,14 +217,14 @@ function goToProductDetail(productDetailId) {
             {{ formatCurrency(totalPrice) }}
           </span>
         </h5>
-        
+
         <div class="mt-4 d-flex flex-column flex-md-row justify-content-end gap-2">
           <router-link to="/product" class="btn btn-outline-secondary">
             Tiếp tục mua sắm
           </router-link>
-        <button class="btn btn-success text-center" :disabled="hasInvalidQuantity()"  @click="handleCheckout()">
-          🧾 Thanh toán
-        </button>
+          <button class="btn btn-success text-center" :disabled="hasInvalidQuantity()" @click="handleCheckout()">
+            🧾 Thanh toán
+          </button>
         </div>
       </div>
     </div>
@@ -252,25 +234,17 @@ function goToProductDetail(productDetailId) {
       <router-link to="/product" class="btn btn-primary">Bắt đầu mua sắm</router-link>
     </div>
   </div>
-    <!-- Toast xóa khỏi yêu thích -->
-<div
-  v-if="showRemoveToast"
-  class="position-fixed top-0 end-0 p-3"
-  style="z-index: 1055;"
->
-  <div class="toast align-items-center show bg-danger text-white border-0">
-    <div class="d-flex">
-      <div class="toast-body">
-        ❌ Đã xóa sản phẩm khỏi giỏ!
+  <!-- Toast xóa khỏi yêu thích -->
+  <div v-if="showRemoveToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    <div class="toast align-items-center show bg-danger text-white border-0">
+      <div class="d-flex">
+        <div class="toast-body">
+          ❌ Đã xóa sản phẩm khỏi giỏ!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showRemoveToast = false"></button>
       </div>
-      <button
-        type="button"
-        class="btn-close btn-close-white me-2 m-auto"
-        @click="showRemoveToast = false"
-      ></button>
     </div>
   </div>
-</div>
 </template>
 
 <style scoped>
@@ -291,9 +265,11 @@ function goToProductDetail(productDetailId) {
 .cart-item .quantity {
   max-width: 80px;
 }
+
 .cart-item img {
   object-fit: contain;
 }
+
 .cart-item {
   transition: background-color 0.2s ease-in-out;
   border-radius: 6px;
@@ -301,8 +277,10 @@ function goToProductDetail(productDetailId) {
 }
 
 .cart-item:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* hoặc đổi thành màu khác nếu muốn */
+  background-color: rgba(0, 0, 0, 0.03);
+  /* hoặc đổi thành màu khác nếu muốn */
 }
+
 .toast {
   animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
   min-width: 250px;
@@ -310,11 +288,13 @@ function goToProductDetail(productDetailId) {
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0%);
     opacity: 1;

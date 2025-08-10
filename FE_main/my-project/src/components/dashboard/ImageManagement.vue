@@ -50,11 +50,6 @@ const fetchProductDetails = async () => {
   }
 }
 
-onMounted(() => {
-  fetchImages()
-  fetchProductDetails()
-})
-
 function resetForm() {
   form.value = {
     id: null,
@@ -152,6 +147,11 @@ async function deleteImage(id) {
     }
   }
 }
+
+onMounted(() => {
+  fetchImages()
+  fetchProductDetails()
+})
 </script>
 
 <template>

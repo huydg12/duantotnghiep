@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive, onUnmounted } from 'vue';
 import axios from 'axios';
+
 const currentCustomerId = ref(null);
 
 const showAddressOverlay = ref(false);
@@ -32,6 +33,7 @@ const addressBeingEdited = reactive({
   cityCode: '',
   default: false,
 });
+
 // Hàm normalize để so sánh tên không dấu
 const normalize = (str) => {
   return str
@@ -101,7 +103,6 @@ const saveAddress = async () => {
 
     const fullAddress = `${detailAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
 
-
     const newAddress = {
       fullAddress: fullAddress,
       numberPhone: phoneNumber.value,
@@ -130,9 +131,6 @@ const saveAddress = async () => {
     await fetchAddressList(currentCustomerId.value);
     resetAddressForm();
     closeAddAddressOverlay();
-
-    // Nếu cần, load lại danh sách địa chỉ
-    // await fetchAddressList();
 
   } catch (error) {
     console.error(error);
@@ -184,6 +182,7 @@ const resetAddressForm = () => {
   wards.value = [];
   isDefaultAddress.value = false;
 };
+
 const getCityNameByCode = (code) => {
   const city = (provinces.value || []).find(p => p.code === code);
   return city ? city.name : '';
@@ -206,6 +205,7 @@ const getWardNameByCode = (code) => {
   }
   return '';
 };
+
 const updateAddress = async () => {
   try {
     const data = {
@@ -255,9 +255,6 @@ const fetchAddressList = async (id) => {
     console.error('Lỗi khi lấy địa chỉ:', error);
   }
 };
-
-
-// Hàm tính toán tổng tiền hàng (subtotal)
 
 const newAddressForm = ref(null);
 
@@ -337,6 +334,7 @@ const openUpdateAddressOverlay = async (address) => {
   // Hiển thị popup
   showUpdateAddressOverlay.value = true;
 };
+
 // Đóng popup sửa địa chỉ
 const closeUpdateAddressOverlay = () => {
   showUpdateAddressOverlay.value = false;
@@ -368,7 +366,6 @@ const deleteAddress = async (id) => {
 };
 
 onMounted(() => {
-  // fetchAddressList();
   fetchProvinces();
 });
 

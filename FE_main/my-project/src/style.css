@@ -15,15 +15,11 @@ body {
 .header {
   background-color: var(--color-dark);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-
 }
 
 .header .navbar-brand img {
   height: 57px;
-
 }
-
-
 
 .header .navbar-nav .nav-link {
   color: var(--color-light);
@@ -232,6 +228,7 @@ body {
   color: #6c757d;
   /* gray-500 */
 }
+
 /* ==== DROPDOWN MENU TÙY CHỈNH ==== */
 .header .dropdown-menu {
   background-color: #ffffff;
@@ -292,8 +289,8 @@ body {
   display: block;
   transform: translateY(8px);
   transition: all 0.25s ease-in-out;
-  min-width: 110px;      /* nhỏ hơn mặc định */
-  font-size: 12px;        /* chữ nhỏ hơn */
+  min-width: 110px; /* nhỏ hơn mặc định */
+  font-size: 12px; /* chữ nhỏ hơn */
 }
 
 /* Hiển thị dropdown khi hover */
@@ -307,10 +304,10 @@ body {
 
 /* === ITEM BÊN TRONG === */
 .header .dropdown-menu .dropdown-item {
-  padding: 4px 8px;       /* giảm padding */
+  padding: 4px 8px; /* giảm padding */
   line-height: 1.2;
   font-weight: 500;
-  font-size: 12px;        /* chữ nhỏ */
+  font-size: 12px; /* chữ nhỏ */
   color: #000 !important;
   background-color: transparent;
   transition: background-color 0.2s ease, color 0.2s ease;

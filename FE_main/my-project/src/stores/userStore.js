@@ -1,24 +1,24 @@
 // stores/userStore.js
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore("user", {
   state: () => ({
-    user: null
+    user: null,
   }),
   actions: {
     setUser(user) {
-      this.user = user
+      this.user = user;
     },
     loadUserFromLocalStorage() {
-      const u = localStorage.getItem('user')
+      const u = localStorage.getItem("user");
       if (u) {
-        this.user = JSON.parse(u)
+        this.user = JSON.parse(u);
       }
     },
     logout() {
-      this.user = null
-      localStorage.removeItem('user')
-      localStorage.removeItem('accessToken')
-    }
-  }
-})
+      this.user = null;
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+    },
+  },
+});

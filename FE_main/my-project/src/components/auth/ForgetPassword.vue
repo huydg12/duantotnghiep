@@ -24,11 +24,8 @@ const sendRequest = async () => {
 };
 </script>
 <template>
-  <Banner
-    title="Quên mật khẩu"
-    breadcrumb="Quên mật khẩu"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"
-  />
+  <Banner title="Quên mật khẩu" breadcrumb="Quên mật khẩu"
+    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="custom-box">
     <!-- Mũi tên quay lại -->
     <a href="/auth/login" class="back-arrow">&#8592;</a>
@@ -38,14 +35,8 @@ const sendRequest = async () => {
     <form @submit.prevent="sendRequest">
       <div class="mb-3">
         <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ</label>
-        <input
-          v-model="email"
-          type="email"
-          id="emailInput"
-          required
-          placeholder="Nhập địa chỉ email"
-          class="form-control"
-        />
+        <input v-model="email" type="email" id="emailInput" required placeholder="Nhập địa chỉ email"
+          class="form-control" />
       </div>
       <button type="submit" class="btn btn-dark w-100 mt-3 fw-semibold">
         GỬI YÊU CẦU

@@ -25,15 +25,6 @@ const total = computed(() =>
 );
 const change = computed(() => currentInvoice.value.paid - total.value);
 
-onMounted(() => {
-    const saved = localStorage.getItem("invoices");
-    if (saved) {
-        invoices.value = JSON.parse(saved);
-    }
-
-    fetchData();
-});
-
 watch(
     invoices,
     (val) => {
@@ -116,15 +107,15 @@ const handleCheckout = async () => {
     const dto = {
         customerId: invoice.customer.id,
         employeeId: user?.employeeId,
-        ptttId: 1, 
-        promotionId: null, 
+        ptttId: 1,
+        promotionId: null,
         billCode: (`HD${Date.now()}`),
         billType: "OFFLINE",
         status: 4,
         recipientName: invoice.customer.fullName,
         recipientPhoneNumber: invoice.customer.phone,
         addressMethod: "TẠI_CỬA_HÀNG",
-        statusPayment:"ĐÃ_THANH_TOÁN",
+        statusPayment: "ĐÃ_THANH_TOÁN",
         subTotal: total.value,
         discountAmount: 0,
         shippingFee: 0,
@@ -156,6 +147,14 @@ const handleCheckout = async () => {
     }
 };
 
+onMounted(() => {
+    const saved = localStorage.getItem("invoices");
+    if (saved) {
+        invoices.value = JSON.parse(saved);
+    }
+
+    fetchData();
+});
 </script>
 
 <template>

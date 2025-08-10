@@ -5,46 +5,42 @@ import { ref, computed, onMounted } from 'vue'
 const collars = ref([])
 
 const fetchCollar = async () => {
-  try {
-    const response = await axios.get('http://localhost:8080/collar/show')
-    collars.value = response.data
-    console.log(response)
-  } catch (error) {
-    console.log("lỗi hiển thị ", error)
-  }
+    try {
+        const response = await axios.get('http://localhost:8080/collar/show')
+        collars.value = response.data
+        console.log(response)
+    } catch (error) {
+        console.log("lỗi hiển thị ", error)
+    }
 }
 
-onMounted(()=>{
-fetchCollar()
-})
-
 async function saveCollar() {
-    try{
-        if(isEditing.value){
-            await axios.put(`http://localhost:8080/collar/update/${form.value.id}`,form.value)
-        }else{
+    try {
+        if (isEditing.value) {
+            await axios.put(`http://localhost:8080/collar/update/${form.value.id}`, form.value)
+        } else {
             await axios.post('http://localhost:8080/collar/add', form.value)
         }
         fetchCollar()
         resetForm()
-    }catch(error){
+    } catch (error) {
         console.log('lỗi save ', error)
     }
 }
 
 async function editCollar(collar) {
-    form.value = {...collar}
+    form.value = { ...collar }
     isEditing.value = true
 }
 
 async function deleteCollar(id) {
-    try{
-        if(confirm ('bạn có chắc là muốn xóa loại này không')){
-        await axios.delete(`http://localhost:8080/collar/delete/${id}`)
-        await fetchCollar()
+    try {
+        if (confirm('bạn có chắc là muốn xóa loại này không')) {
+            await axios.delete(`http://localhost:8080/collar/delete/${id}`)
+            await fetchCollar()
         }
-    }catch(error){
-        console.log('lỗi xóa',error)
+    } catch (error) {
+        console.log('lỗi xóa', error)
     }
 }
 
@@ -73,6 +69,9 @@ function goToPage(page) {
     }
 }
 
+onMounted(() => {
+    fetchCollar()
+})
 </script>
 <template>
     <div class="container py-4">
