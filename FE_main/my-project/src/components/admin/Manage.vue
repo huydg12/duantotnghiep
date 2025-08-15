@@ -3,6 +3,7 @@ import { ref, shallowRef, defineAsyncComponent, onMounted } from "vue";
 
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import EmployeeManagement from "../dashboard/EmployeeManagement.vue";
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -47,8 +48,8 @@ const componentMap = {
   InvoiceManagement: defineAsyncComponent(() =>
     import("../dashboard/InvoiceManagement.vue")
   ),
-  StaffManagement: defineAsyncComponent(() =>
-    import("../dashboard/StaffManagement.vue")
+  EmployeeManagement: defineAsyncComponent(() =>
+    import("../dashboard/EmployeeManagement.vue")
   ),
   CustomerManagement: defineAsyncComponent(() =>
     import("../dashboard/CustomerManagement.vue")
@@ -118,7 +119,7 @@ const menuItems = [
   {
     id: "staff",
     label: "Nhân viên",
-    target: "StaffManagement",
+    target: "EmployeeManagement",
     icon: "fa-solid fa-user-tie",
   },
   {

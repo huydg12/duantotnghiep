@@ -15,31 +15,31 @@ const fetchEmployee = async () => {
 };
 
 async function saveEmployee() {
-    try{
-        if(isEditing.value){
+    try {
+        if (isEditing.value) {
             await axios.put(`http://localhost:8080/employee/update/${form.value.id}`, form.value)
-        }else{
-            await axios.post('http://localhost:8080/employee/add',form.value)
+        } else {
+            await axios.post('http://localhost:8080/employee/add', form.value)
         }
         await fetchEmployee()
         resetForm()
-    }catch(error){
+    } catch (error) {
         console.log('Lỗi thêm nhân viên', error)
     }
 }
 
-function editEmployee(employee){
-    form.value = {...employee}
+function editEmployee(employee) {
+    form.value = { ...employee }
     isEditing.value = true
 }
 
 async function deleteEmployee(id) {
-    try{
-        if(confirm('Bạn có muốn xóa nhân viên này không?')){
+    try {
+        if (confirm('Bạn có muốn xóa nhân viên này không?')) {
             await axios.delete(`http://localhost:8080/employee/delete/${id}`)
             await fetchEmployee()
         }
-    }catch(error){
+    } catch (error) {
         console.log('Lỗi không xóa được', error)
     }
 }
@@ -71,7 +71,10 @@ function formatDateTime(datetimeStr) {
 const form = ref({
     id: null,
     accountId: null,
-    fullName: "",   
+    username: "",
+    password: "",
+    role: "",
+    fullName: "",
     gender: 1,
     email: "",
     numberPhone: "",
@@ -96,6 +99,9 @@ function resetForm() {
     form.value = {
         id: null,
         accountId: null,
+        username: "",
+        password: "",
+        role: "",
         fullName: "",
         gender: "",
         email: "",
@@ -125,6 +131,31 @@ onMounted(() => {
 
         <!-- Form -->
         <form @submit.prevent="saveEmployee" class="border p-4 rounded bg-light mb-4">
+            <template v-if="!isEditing">
+                <div class="mb-3">
+                    <label class="form-label">Tài khoản</label>
+                    <input v-model="form.username" required class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" v-model="form.password" required class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Vai trò</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="admin" value="Admin" v-model="form.role" />
+                        <label class="form-check-label" for="admin">Admin</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" id="employee" value="Employee"
+                            v-model="form.role" />
+                        <label class="form-check-label" for="employee">Nhân viên</label>
+                    </div>
+                </div>
+            </template>
+
             <div class="mb-3">
                 <label class="form-label">Họ tên</label>
                 <input v-model="form.fullName" required class="form-control" />
@@ -202,7 +233,7 @@ onMounted(() => {
                         <td class="text-center">{{ employee.id }}</td>
                         <td class="text-center">{{ employee.accountId }}</td>
                         <td class="text-center">{{ employee.fullName }}</td>
-                        <td class="text-center">{{ employee.gender === '1' ? 'Nam' : 'Nữ'}}</td>
+                        <td class="text-center">{{ employee.gender === '1' ? 'Nam' : 'Nữ' }}</td>
                         <td class="text-center">{{ employee.email }}</td>
                         <td class="text-center">{{ employee.numberPhone }}</td>
                         <td class="text-center">{{ formatDateTime(employee.birthOfDate) }}</td>

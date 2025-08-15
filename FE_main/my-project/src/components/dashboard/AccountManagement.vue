@@ -116,74 +116,6 @@ onMounted(() => {
     <div class="container py-4">
         <h2 class="text-center mb-4 fw-bold">Quản Lý Tài Khoản</h2>
 
-        <!-- Form -->
-        <form @submit.prevent="saveAccount" class="border p-4 rounded bg-light mb-4">
-            <div class="mb-3">
-                <label class="form-label">Tên đăng nhập</label>
-                <input v-model="form.username" required class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Mật khẩu</label>
-                <input v-model="form.password" type="password" required class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label d-block">Trạng thái</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="active" :value="true" v-model="form.isActive" />
-                    <label class="form-check-label" for="active">Hoạt động</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="inactive" :value="false" v-model="form.isActive" />
-                    <label class="form-check-label" for="inactive">Không hoạt động</label>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label d-block">Vai trò</label>
-
-                <!-- Khi thêm mới: chỉ hiện Admin và Nhân viên -->
-                <template v-if="!isEditing">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="admin" value="1" v-model="form.roleId">
-                        <label class="form-check-label" for="admin">Admin</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="employee" value="3" v-model="form.roleId">
-                        <label class="form-check-label" for="employee">Nhân viên</label>
-                    </div>
-                </template>
-
-                <!-- Khi chỉnh sửa: hiện đủ 3 vai trò nhưng disabled -->
-                <template v-else>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="admin" value="1" v-model="form.roleId"
-                            disabled>
-                        <label class="form-check-label" for="admin">Admin</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="employee" value="3" v-model="form.roleId"
-                            disabled>
-                        <label class="form-check-label" for="employee">Nhân viên</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="customer" value="2" v-model="form.roleId"
-                            disabled>
-                        <label class="form-check-label" for="customer">Khách hàng</label>
-                    </div>
-                </template>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    {{ isEditing ? "Cập nhật" : "Thêm" }}
-                </button>
-                <button type="button" class="btn btn-secondary" @click="resetForm">
-                    Làm mới
-                </button>
-            </div>
-        </form>
-
         <!-- Table -->
         <div class="table-container table-responsive">
             <table class="table table-bordered table-hover align-middle">
@@ -205,21 +137,21 @@ onMounted(() => {
                         <td class="text-center">{{ account.password }}</td>
                         <td class="text-center">{{ formatDateTime(account.createdDate) }}</td>
                         <td class="text-center">
+                            <span v-if="account.isActive" class="badge bg-success">Hoạt động</span>
+                            <span v-else class="badge bg-danger">Không hoạt động</span>
+                        </td>
+                        <td class="text-center">
                             <span v-if="account.roleId === 1">Admin</span>
                             <span v-else-if="account.roleId === 2">Khách hàng</span>
                             <span v-else>Nhân viên</span>
                         </td>
-                        <td class="text-center">
-                            <span v-if="account.isActive" class="badge bg-success">Hoạt động</span>
-                            <span v-else class="badge bg-danger">Không hoạt động</span>
-                        </td>
 
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editAccount(account)">
-                                Sửa
+                                Làm mới
                             </button>
                             <button class="btn btn-danger btn-sm" @click="deleteAccount(account.id)">
-                                Xoá
+                                Trạng Thái
                             </button>
                         </td>
                     </tr>

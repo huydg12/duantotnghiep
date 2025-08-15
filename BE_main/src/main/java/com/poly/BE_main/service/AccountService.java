@@ -27,6 +27,7 @@ public class AccountService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
     @Autowired
     private EmailService emailService;
 
@@ -58,6 +59,9 @@ public class AccountService {
         return customerRepository.save(customer);
     }
 
+    public Employee createEmployee(Employee employee){
+        return employeeRepository.save(employee);
+    }
     public void forgetPassword(String email) {
         if (!customerRepository.existsByEmail(email)) {
             throw new RuntimeException("Email không tồn tại");
@@ -109,7 +113,6 @@ public class AccountService {
     }
 
     // Account
-
     public List<AccountDTO> findAll() {
         return accountRepository.findAll().stream()
                 .map(this::toDTO)

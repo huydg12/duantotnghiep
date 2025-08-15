@@ -1,8 +1,10 @@
 package com.poly.BE_main.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.poly.BE_main.dto.EmployeeCreateDTO;
 import com.poly.BE_main.dto.EmployeeDTO;
+import com.poly.BE_main.model.Account;
+import com.poly.BE_main.model.Employee;
+import com.poly.BE_main.service.AccountService;
 import com.poly.BE_main.service.EmployeeService;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -23,15 +29,54 @@ public class EmployeeController {
     @Autowired
     EmployeeService employeeService;
 
+    @Autowired
+    AccountService accountService;
+
     @GetMapping("/show")
     public List<EmployeeDTO> findAll() {
         return employeeService.findAll();
     }
 
     @PostMapping("/add")
-    public EmployeeDTO add(@RequestBody EmployeeDTO e) {
-        System.out.println("thêm thành công");
-        return employeeService.create(e);
+    @Transactional
+    public EmployeeDTO add(@RequestBody EmployeeCreateDTO dto) {
+        // 1. Tạo account
+        Account account = new Account();
+        account.setUsername(dto.getUsername());
+        account.setPassword(dto.getPassword() != null ? dto.getPassword() : "123456");
+        account.setIsActive(true);
+        account.setRoleId(dto.getRoleId() != null ? dto.getRoleId() : 1);
+        account.setCreatedDate(LocalDateTime.now());
+        account = accountService.createAccount(account);
+
+        // 2. Tạo employee gắn account
+        Employee employee = new Employee();
+        employee.setFullName(dto.getFullName());
+        employee.setGender(dto.getGender());
+        employee.setEmail(dto.getEmail());
+        employee.setNumberPhone(dto.getNumberPhone());
+        employee.setBirthOfDate(dto.getBirthOfDate());
+        employee.setIsActive(dto.getIsActive());
+        employee.setCreatedBy(dto.getCreatedBy());
+        employee.setCreatedDate(LocalDateTime.now());
+        employee.setAccount(account);
+        employee =  accountService.createEmployee(employee);
+
+        // 3. Trả về DTO hiển thị
+        EmployeeDTO response = new EmployeeDTO();
+        response.setId(employee.getId());
+        response.setFullName(employee.getFullName());
+        response.setGender(employee.getGender());
+        response.setEmail(employee.getEmail());
+        response.setNumberPhone(employee.getNumberPhone());
+        response.setBirthOfDate(employee.getBirthOfDate());
+        response.setIsActive(employee.getIsActive());
+        response.setCreatedBy(employee.getCreatedBy());
+        response.setCreatedDate(employee.getCreatedDate());
+        response.setAccountId(account.getId());
+        response.setAccountUsername(account.getUsername());
+
+        return response;
     }
 
     @DeleteMapping("/delete/{id}")
