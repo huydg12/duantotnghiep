@@ -395,9 +395,24 @@ const fetchCustomer = async () => {
 };
 
 function editCustomer(customer) {
-  form.value = { ...customer };
+  console.log("=== DEBUG EDIT ===");
+  console.log("Customer object:", customer);
+  console.log("ID type:", typeof customer.id, "Value:", customer.id);
+  console.log("Gender type:", typeof customer.gender, "Value:", customer.gender);
+  console.log("Status type:", typeof customer.status, "Value:", customer.status);
+  console.log("BirthOfDate type:", typeof customer.birthOfDate, "Value:", customer.birthOfDate);
+
+  form.value = {
+    ...customer,
+    gender: customer.gender != null ? String(customer.gender) : "0", // mặc định Nam
+    status: customer.status != null ? String(customer.status) : "1", // mặc định Hoạt động
+    birthOfDate: customer.birthOfDate
+      ? new Date(customer.birthOfDate).toISOString().split("T")[0]
+      : ""
+  };
   isEditing.value = true;
 }
+
 const resetForm = () => {
   form.value = {
     id: null,
