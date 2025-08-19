@@ -5,6 +5,7 @@ import axios from "axios";
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
 let customerId = null;
+let accountId = null
 const userJson = localStorage.getItem("user");
 const addressList = ref([]);
 const defaultAddress = ref(null);
@@ -37,12 +38,19 @@ if (userJson) {
   try {
     const user = JSON.parse(userJson);
     customerId = user.customerId;
+    accountId = user.id;
     console.log("✅ Customer ID:", customerId);
+    console.log("✅ Account ID:", accountId);
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error);
   }
 } else {
   console.warn("⚠️ Chưa đăng nhập hoặc thiếu thông tin user");
+}
+
+// Hàm đổi tab
+function showTab(tabId) {
+  activeTab.value = tabId;
 }
 
 // Khai báo reactive cho tab đang active
@@ -51,11 +59,44 @@ const activeTab = ref("info");
 // Khai báo userInfo rỗng trước
 const userInfo = reactive({
   fullName: "",
+  gender: "",
   email: "",
   phone: "",
   birthDate: ""
 });
 
+// Hàm fetch dữ liệu từ API
+const fetchUserInfo = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/customer/showInfoCustomer/${customerId}`);
+    const data = response.data;
+
+    userInfo.fullName = data.fullName;
+    userInfo.gender = data.gender;
+    userInfo.email = data.email;
+    userInfo.phone = data.numberPhone; // key phải trùng với DTO
+    userInfo.birthDate = data.birthOfDate?.slice(0, 10); // cắt yyyy-MM-dd
+  } catch (error) {
+    console.error("Lỗi khi fetch thông tin khách hàng:", error);
+  }
+};
+
+const updateUserInfo = async () => {
+  try {
+    const payload = {
+      fullName: userInfo.fullName,
+      gender: userInfo.gender,
+      email: userInfo.email,
+      numberPhone: userInfo.phone,
+      birthOfDate: userInfo.birthDate
+    }
+    await axios.put(`http://localhost:8080/customer/updateInfoCustomer/${customerId}`, payload)
+    alert("Đã cập nhật thông tin!");
+  } catch (error) {
+    console.error("Lỗi khi cập nhật thông tin khách hàng:", error);
+    alert("Cập nhật thất bại!");
+  }
+}
 
 const fetchProvinces = async () => {
   try {
@@ -65,7 +106,6 @@ const fetchProvinces = async () => {
     console.error("❌ Lỗi tải tỉnh/thành:", err);
   }
 };
-
 
 const fetchDistricts = async (cityCode) => {
   try {
@@ -100,20 +140,6 @@ const fetchWards = async (districtCode) => {
     console.error("❌ Lỗi khi tải phường/xã:", err);
     wards.value = [];
     return [];
-  }
-};
-// Hàm fetch dữ liệu từ API
-const fetchUserInfo = async () => {
-  try {
-    const response = await axios.get(`http://localhost:8080/customer/showInfoCustomer/${customerId}`);
-    const data = response.data;
-
-    userInfo.fullName = data.fullName;
-    userInfo.email = data.email;
-    userInfo.phone = data.numberPhone; // key phải trùng với DTO
-    userInfo.birthDate = data.birthOfDate?.slice(0, 10); // cắt yyyy-MM-dd
-  } catch (error) {
-    console.error("Lỗi khi fetch thông tin khách hàng:", error);
   }
 };
 
@@ -400,70 +426,26 @@ const deleteAddress = async (id) => {
 };
 
 const passwordData = reactive({
-  oldPassword: "",
+  currentPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
 
-const orders = ref([
-  {
-    id: "#12345",
-    date: "15/06/2025",
-    address: "867 Trường Chinh, Kiến An",
-    total: "1.200.000đ",
-    status: "Đã thanh toán",
-  },
-  {
-    id: "#12346",
-    date: "18/06/2025",
-    address: "29 Hào Khê, Lê Chân",
-    total: "850.000đ",
-    status: "Đang giao",
-  },
-]);
 
-const addresses = ref([
-  {
-    id: 1,
-    name: "Đào Gia Huy",
-    address: "867 Trường Chinh, Kiến An, Hải Phòng",
-    phone: "0123456789",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    name: "Đào Gia Huy",
-    address: "29 Hào Khê, Lê Chân, Hải Phòng",
-    phone: "0987654321",
-    isDefault: false,
-  },
-]);
-
-const newAddress = reactive({
-  name: "",
-  phone: "",
-  address: "",
-});
-
-// Hàm đổi tab
-function showTab(tabId) {
-  activeTab.value = tabId;
-}
-
-function updateUserInfo() {
-  alert("Đã cập nhật thông tin!");
-}
-
-function changePassword() {
-  if (passwordData.newPassword !== passwordData.confirmPassword) {
-    alert("Mật khẩu mới và xác nhận mật không khớp!");
+const changePassword = async () => {
+  try {
+    const payload = {
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+      confirmPassword: passwordData.confirmPassword,
+    }
+    await axios.put(`http://localhost:8080/account/changePassword/${accountId}`, payload)
+    alert("Đã cập nhật thông tin!");
+  } catch (error) {
+    console.error("Lỗi khi cập nhật thông tin khách hàng:", error);
+    alert("Cập nhật thất bại!");
   }
-  alert("Đổi mật khẩu thành công!");
-  passwordData.oldPassword = "";
-  passwordData.newPassword = "";
-  passwordData.confirmPassword = "";
 }
-
 
 function logout() {
   if (confirm("Bạn có chắc muốn đăng xuất?")) {
@@ -495,16 +477,12 @@ onMounted(() => {
                 @click.prevent="showTab('info')">Thông tin tài khoản</a>
             </li>
             <li class="nav-item mb-1">
-              <a href="#" class="nav-link" :class="{ active: activeTab === 'orders' }"
-                @click.prevent="showTab('orders')">Đơn hàng của bạn</a>
+              <a href="#" class="nav-link" :class="{ active: activeTab === 'address' }"
+                @click.prevent="showTab('address')">Địa chỉ nhận hàng</a>
             </li>
             <li class="nav-item mb-1">
               <a href="#" class="nav-link" :class="{ active: activeTab === 'password' }"
                 @click.prevent="showTab('password')">Đổi mật khẩu</a>
-            </li>
-            <li class="nav-item mb-1">
-              <a href="#" class="nav-link" :class="{ active: activeTab === 'address' }"
-                @click.prevent="showTab('address')">Địa chỉ nhận hàng</a>
             </li>
             <li class="nav-item mb-1">
               <a href="#" class="nav-link text-danger" @click.prevent="logout()">Đăng xuất</a>
@@ -525,6 +503,17 @@ onMounted(() => {
                 <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" />
               </div>
               <div class="col-md-6">
+                <label class="form-label d-block">Giới tính</label>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" value="0" v-model="userInfo.gender" />
+                  <label class="form-check-label">Nam</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="radio" value="1" v-model="userInfo.gender" />
+                  <label class="form-check-label">Nữ</label>
+                </div>
+              </div>
+              <div class="col-md-6">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" id="email" class="form-control" v-model="userInfo.email" />
               </div>
@@ -538,65 +527,6 @@ onMounted(() => {
               </div>
             </div>
             <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>
-          </form>
-        </div>
-
-        <!-- Đơn hàng -->
-        <div v-show="activeTab === 'orders'" class="card p-4 shadow-sm">
-          <h3 class="h5 mb-4">ĐƠN HÀNG CỦA BẠN</h3>
-          <div class="table-responsive">
-            <table class="table table-bordered align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>Đơn hàng</th>
-                  <th>Ngày</th>
-                  <th>Địa chỉ</th>
-                  <th>Giá trị</th>
-                  <th>Trạng thái</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="orders.length === 0">
-                  <td colspan="6" class="text-center p-4">
-                    Bạn chưa có đơn hàng nào
-                  </td>
-                </tr>
-                <tr v-for="order in orders" :key="order.id">
-                  <td>{{ order.id }}</td>
-                  <td>{{ order.date }}</td>
-                  <td>{{ order.address }}</td>
-                  <td>{{ order.total }}</td>
-                  <td>{{ order.status }}</td>
-                  <td>
-                    <a href="#" class="btn btn-link p-0 d-block text-start">Chi tiết</a>
-                    <a href="#" class="btn btn-link p-0 d-block text-start text-warning" data-bs-toggle="modal"
-                      data-bs-target="#trackingModal">Theo dõi</a>
-                    <a href="#" class="btn btn-link p-0 d-block text-start text-success">Mua lại</a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Đổi mật khẩu -->
-        <div v-show="activeTab === 'password'" class="card p-4 shadow-sm">
-          <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
-          <form @submit.prevent="changePassword">
-            <div class="mb-3">
-              <input type="password" id="oldPassword" placeholder="Mật khẩu cũ" class="form-control"
-                v-model="passwordData.oldPassword" required />
-            </div>
-            <div class="mb-3">
-              <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
-                v-model="passwordData.newPassword" required />
-            </div>
-            <div class="mb-3">
-              <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
-                v-model="passwordData.confirmPassword" required />
-            </div>
-            <button type="submit" class="btn btn-dark">Đặt lại mật khẩu</button>
           </form>
         </div>
 
@@ -642,7 +572,6 @@ onMounted(() => {
               </div>
             </form>
           </div>
-
 
           <!-- Popup thêm địa chỉ -->
           <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
@@ -803,64 +732,31 @@ onMounted(() => {
               </form>
             </div>
           </div>
-
-
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Theo dõi đơn hàng -->
-  <div class="modal fade" id="trackingModal" tabindex="-1" aria-labelledby="trackingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title" id="trackingModalLabel">
-            Theo dõi đơn hàng #DH123456
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="tracking-progress-bar mb-5">
-            <div class="tracking-step">
-              <div class="tracking-icon completed">
-                <i class="fas fa-check"></i>
-              </div>
-              <div class="tracking-label completed">Đã đặt</div>
-              <div class="tracking-connector completed"></div>
+        <!-- Đổi mật khẩu -->
+        <div v-show="activeTab === 'password'" class="card p-4 shadow-sm">
+          <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
+          <form @submit.prevent="changePassword">
+            <div class="mb-3">
+              <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
+                v-model="passwordData.currentPassword" required />
             </div>
-            <div class="tracking-step">
-              <div class="tracking-icon completed">
-                <i class="fas fa-box"></i>
-              </div>
-              <div class="tracking-label completed">Chuẩn bị</div>
-              <div class="tracking-connector completed"></div>
+            <div class="mb-3">
+              <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
+                v-model="passwordData.newPassword" required />
             </div>
-            <div class="tracking-step">
-              <div class="tracking-icon completed">
-                <i class="fas fa-shipping-fast"></i>
-              </div>
-              <div class="tracking-label completed">Đang giao</div>
-              <div class="tracking-connector"></div>
+            <div class="mb-3">
+              <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
+                v-model="passwordData.confirmPassword" required />
             </div>
-            <div class="tracking-step">
-              <div class="tracking-icon">
-                <i class="fas fa-check-double"></i>
-              </div>
-              <div class="tracking-label">Hoàn tất</div>
-            </div>
-          </div>
-          <p><strong>Ngày đặt:</strong> 12/06/2025</p>
-          <p>
-            <strong>Trạng thái:</strong><span class="text-success fw-bold"> Đang giao</span>
-          </p>
-          <p><strong>Người nhận:</strong> Đào Gia Huy</p>
-          <p><strong>Địa chỉ:</strong> 867 Trường Chinh, Kiến An, Hải Phòng</p>
+            <button type="submit" class="btn btn-dark">Đặt lại mật khẩu</button>
+          </form>
         </div>
       </div>
     </div>
   </div>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />

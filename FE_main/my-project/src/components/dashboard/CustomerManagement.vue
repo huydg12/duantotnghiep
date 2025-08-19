@@ -398,6 +398,7 @@ function editCustomer(customer) {
   form.value = { ...customer };
   isEditing.value = true;
 }
+
 const resetForm = () => {
   form.value = {
     id: null,

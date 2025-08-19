@@ -1,6 +1,6 @@
 package com.poly.BE_main.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InformationCustomerDTO {
     private String fullName;
+    private String gender;
     private String email;
     private String numberPhone;
-    private Date birthOfDate;
+    private LocalDate birthOfDate;
 }

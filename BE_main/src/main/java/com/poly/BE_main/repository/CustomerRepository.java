@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,6 +25,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     @Query(value = """
                 SELECT
                     c.FULL_NAME AS fullName,
+                    c.GENDER as gender,
                     c.EMAIL AS email,
                     c.NUMBER_PHONE AS numberPhone,
                     c.BIRTH_OF_DATE AS birthOfDate
@@ -32,6 +34,25 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
                 WHERE c.ID = :customerId
             """, nativeQuery = true)
     Object findInformationCustomerByCustomerId(@Param("customerId") Integer customerId);
+
+    @Modifying
+    @Query(value = """
+                UPDATE CUSTOMER
+                SET
+                    FULL_NAME = :fullName,
+                    GENDER = :gender,
+                    EMAIL = :email,
+                    NUMBER_PHONE = :numberPhone,
+                    BIRTH_OF_DATE = :birthOfDate
+                WHERE ID = :customerId
+            """, nativeQuery = true)
+    int updateInformationCustomerByCustomerId(
+            @Param("customerId") Integer customerId,
+            @Param("fullName") String fullName,
+            @Param("gender") String gender,
+            @Param("email") String email,
+            @Param("numberPhone") String numberPhone,
+            @Param("birthOfDate") java.sql.Date birthOfDate);
 
     Optional<Customer> findByEmail(String email);
 

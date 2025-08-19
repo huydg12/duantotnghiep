@@ -8,8 +8,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.poly.BE_main.dto.AccountDTO;
+import com.poly.BE_main.dto.ChangePasswordDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.model.Employee;
@@ -59,9 +61,10 @@ public class AccountService {
         return customerRepository.save(customer);
     }
 
-    public Employee createEmployee(Employee employee){
+    public Employee createEmployee(Employee employee) {
         return employeeRepository.save(employee);
     }
+
     public void forgetPassword(String email) {
         if (!customerRepository.existsByEmail(email)) {
             throw new RuntimeException("Email không tồn tại");
@@ -113,6 +116,26 @@ public class AccountService {
     }
 
     // Account
+    private AccountDTO toDTO(Account account) {
+        AccountDTO dto = new AccountDTO();
+        dto.setId(account.getId());
+        dto.setUsername(account.getUsername());
+        dto.setPassword(account.getPassword());
+        dto.setRoleId(account.getRoleId());
+        dto.setIsActive(account.getIsActive());
+        dto.setCreatedDate(account.getCreatedDate());
+        return dto;
+    }
+
+    private Account toEntity(AccountDTO dto) {
+        Account account = new Account();
+        account.setUsername(dto.getUsername());
+        account.setPassword(dto.getPassword());
+        account.setRoleId(dto.getRoleId());
+        account.setIsActive(dto.getIsActive());
+        return account;
+    }
+
     public List<AccountDTO> findAll() {
         return accountRepository.findAll().stream()
                 .map(this::toDTO)
@@ -137,23 +160,24 @@ public class AccountService {
         accountRepository.deleteById(id);
     }
 
-    private AccountDTO toDTO(Account account) {
-        AccountDTO dto = new AccountDTO();
-        dto.setId(account.getId());
-        dto.setUsername(account.getUsername());
-        dto.setPassword(account.getPassword());
-        dto.setRoleId(account.getRoleId());
-        dto.setIsActive(account.getIsActive());
-        dto.setCreatedDate(account.getCreatedDate());
-        return dto;
+    @Transactional
+    public boolean changePassword(Integer id, ChangePasswordDTO dto) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Account không tồn tại"));
+
+        // kiểm tra mật khẩu hiện tại
+        if (!dto.getCurrentPassword().equals(account.getPassword())) {
+            return false;
+        }
+
+        // kiểm tra confirmPassword
+        if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            return false;
+        }
+
+        // update password (chưa hash)
+        accountRepository.updatePasswordById(id, dto.getNewPassword());
+        return true;
     }
 
-    private Account toEntity(AccountDTO dto) {
-        Account account = new Account();
-        account.setUsername(dto.getUsername());
-        account.setPassword(dto.getPassword());
-        account.setRoleId(dto.getRoleId());
-        account.setIsActive(dto.getIsActive());
-        return account;
-    }
 }

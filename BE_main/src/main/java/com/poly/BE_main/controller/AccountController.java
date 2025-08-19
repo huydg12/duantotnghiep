@@ -3,12 +3,14 @@ package com.poly.BE_main.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.AccountDTO;
+import com.poly.BE_main.dto.ChangePasswordDTO;
 import com.poly.BE_main.service.AccountService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +44,22 @@ public class AccountController {
     @PutMapping("/update/{id}")
     public AccountDTO update(@PathVariable Integer id, @RequestBody AccountDTO accountDTO) {
         return accountService.update(id, accountDTO);
+    }
+
+    @PutMapping("/changePassword/{id}")
+    public ResponseEntity<?> changePassword(
+            @PathVariable Integer id,
+            @RequestBody ChangePasswordDTO dto) {
+        boolean success = accountService.changePassword(id, dto);
+
+        if (!success) {
+            if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+                return ResponseEntity.badRequest().body("Mật khẩu mới không trùng với confirm password");
+            }
+            return ResponseEntity.badRequest().body("Mật khẩu hiện tại không đúng");
+        }
+
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 
 }

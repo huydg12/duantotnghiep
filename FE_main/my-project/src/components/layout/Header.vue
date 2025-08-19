@@ -218,11 +218,9 @@ const goToDetail = (id) => {
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li class="dropdown-item fw-semibold text-uppercase">{{ userStore.user.name }}</li>
-              <li><router-link class="dropdown-item" to="/informationcustomer">Thông tin cá
-                  nhân</router-link></li>
-
-              <li><a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">Đăng
-                  xuất</a></li>
+              <li><router-link class="dropdown-item" to="/informationcustomer">Thông tin cá nhân</router-link></li>
+              <li><router-link class="dropdown-item" to="/">Đơn hàng của bạn</router-link></li>
+              <li><a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">Đăng xuất</a></li>
             </ul>
           </div>
 
