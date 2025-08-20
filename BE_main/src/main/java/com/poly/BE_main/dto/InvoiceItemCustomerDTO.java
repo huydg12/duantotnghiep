@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InvoiceItemCustomerDTO {
+    int productDetailId;
     String name;
     String color;
     String size;
@@ -17,5 +18,4 @@ public class InvoiceItemCustomerDTO {
     BigDecimal price;
     String image;
 
-    
 }

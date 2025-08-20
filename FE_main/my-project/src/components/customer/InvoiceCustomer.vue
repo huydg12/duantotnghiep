@@ -1,76 +1,106 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import axios from 'axios';
+import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+
+const store = useCartFavoriteStore()
 
 const tabs = [
   { label: "Tất cả", value: "all" },
   { label: "Chờ xác nhận", value: "Chờ xác nhận" },
   { label: "Đã xác nhận", value: "Đã xác nhận" },
   { label: "Đang giao", value: "Đang giao" },
-  { label: "Hoàn thành", value: "Giao hàng thành công" },
+  { label: "Hoàn thành", value: "Hoàn Thành" },
   { label: "Đã hủy", value: "Đã hủy" },
   // { label: "Trả hàng/Hoàn tiền", value: "Trả hàng/Hoàn tiền" }
 ];
 
 const currentTab = ref("all");
 const searchQuery = ref("");
+const orders = ref([]);
+const isLoading = ref(false);
+const errorMsg = ref("");
 
-const orders = ref([])
-
+let customerId = ref(null);
+let cartId = ref(null);
 
 // Lấy customerID từ localStorage
 const getCustomerID = () => {
   const userJson = localStorage.getItem("user");
   if (!userJson) return null;
-
   try {
     const user = JSON.parse(userJson);
-
-    return user.customerId; // trả về customerID
+    return user?.customerId ?? null;
   } catch (error) {
-    console.error("❌ Lỗi khi parse userJson:", error);
+    console.error("❌ Lỗi parse userJson:", error);
     return null;
   }
 };
 
-const fetchOrder = async () => {
-  const customerID = getCustomerID();
-  if (!customerID) {
-    console.error("Không tìm thấy customerID hoặc role không phù hợp");
-    return;
-  }
-
+// Lấy cartID từ localStorage
+const getCartId = () => {
+  const cartId = localStorage.getItem("cartId");
+  if (!cartId) return null;  // Nếu không có giá trị, trả về null
   try {
-    const response = await axios.get(`http://localhost:8080/bill/invoicecustomer/${customerID}`);
-    if (response?.data) {
-      orders.value = response.data
-      console.log("✅ Dữ liệu hóa đơn của khách hàng:", response.data);
-    }
+    // Nếu cartId là kiểu chuỗi, bạn có thể chuyển nó thành số hoặc giữ nguyên tùy theo dữ liệu
+    return cartId;  // Trả về cartId
   } catch (error) {
-    console.error("❌ Lỗi khi lấy dữ liệu hóa đơn:", error);
+    console.error("❌ Lỗi khi lấy cartId từ localStorage:", error);
+    return null;  // Trả về null nếu có lỗi
   }
 };
 
-// Lọc đơn theo tab + search
+// API
+const fetchOrder = async () => {
+  customerId = getCustomerID();
+  if (!customerId) {
+    errorMsg.value = "Không tìm thấy customerID.";
+    return;
+  }
+  isLoading.value = true;
+  errorMsg.value = "";
+  try {
+    const { data } = await axios.get(
+      `http://localhost:8080/bill/invoicecustomer/${customerId}`,
+      { withCredentials: true }
+    );
+    orders.value = Array.isArray(data) ? data : [];
+    console.log(orders.value)
+    // Option: sort mới nhất trước
+    orders.value.sort((a, b) => new Date(b?.date || 0) - new Date(a?.date || 0));
+  } catch (err) {
+    console.error("❌ Lỗi khi lấy dữ liệu hóa đơn:", err);
+    errorMsg.value = "Không thể tải danh sách đơn hàng. Vui lòng thử lại.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Lọc theo tab + search
 const filteredOrders = computed(() => {
-  return orders.value.filter((order) => {
-    const matchTab =
-      currentTab.value === "all" || order.status === currentTab.value;
+  const q = (searchQuery.value || "").trim().toLowerCase();
+  return (orders.value || []).filter((order) => {
+    const status = order?.status || "";
+    const matchTab = currentTab.value === "all" || status === currentTab.value;
+
+    const code = String(order?.code ?? "").toLowerCase();
+    const items = Array.isArray(order?.items) ? order.items : [];
     const matchSearch =
-      order.code.includes(searchQuery.value) ||
-      order.items.some((i) =>
-        i.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      !q ||
+      code.includes(q) ||
+      items.some((i) =>
+        String(i?.name ?? "").toLowerCase().includes(q)
       );
     return matchTab && matchSearch;
   });
 });
 
-// Phân trang
+// Phân trang + bảo toàn currentPage hợp lệ
 const currentPage = ref(1);
-const pageSize = 2;
+const pageSize = 4;
 
 const totalPages = computed(() =>
-  Math.ceil(filteredOrders.value.length / pageSize)
+  Math.max(1, Math.ceil(filteredOrders.value.length / pageSize))
 );
 
 const paginatedOrders = computed(() => {
@@ -78,12 +108,117 @@ const paginatedOrders = computed(() => {
   return filteredOrders.value.slice(start, start + pageSize);
 });
 
-const formatCurrency = (v) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
-    v || 0);
+// Reset trang khi thay đổi filter/search
+watch([currentTab, searchQuery, filteredOrders], () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1;
+  }
+});
 
-fetchOrder();
+// Debounce input search để mượt
+let searchTimer;
+watch(
+  () => searchQuery.value,
+  () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage.value = 1;
+    }, 200);
+  }
+);
+
+// Format
+const formatCurrency = (v) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(v || 0);
+
+const formatDateTime = (v) => {
+  if (!v) return "";
+  try {
+    const d = new Date(v);
+    return d.toLocaleDateString("vi-VN"); // Chỉ lấy ngày
+  } catch {
+    return v;
+  }
+};
+
+// Hàm Mua lại sản phẩm
+const addToCart = async (order) => {
+  const cartId = getCartId();
+
+  try {
+    if (!cartId || typeof cartId !== 'string') {
+      console.error("❌ cartId không hợp lệ:", cartId);
+      alert("Giỏ hàng không hợp lệ.");
+      return;
+    }
+
+    // Kiểm tra đơn hàng có sản phẩm không
+    if (!order || !order.items || order.items.length === 0) {
+      alert("Đơn hàng không có sản phẩm để mua lại.");
+      return;
+    }
+
+    // Log thông tin về sản phẩm đã chọn khi ấn "Mua lại"
+    console.log("🛒 Sản phẩm trong đơn hàng:", order.items);
+    order.items.forEach((item, index) => {
+      console.log(`🔍 Sản phẩm ${index + 1}:`, item);
+      console.log("🆔 productDetailId:", item.productDetailId);
+      console.log("🔢 quantity:", item.quantity);
+    });
+
+    // Duyệt qua tất cả sản phẩm trong đơn hàng để tạo payload cho giỏ hàng
+    const payloads = order.items.map(item => ({
+      cartId: cartId, // Sử dụng cartId đã lấy
+      productDetailId: item.productDetailId,
+      quantity: item.quantity
+    }));
+
+    console.log("📦 Payload gửi lên /cartDetail/add:", payloads);
+
+    // Kiểm tra từng phần tử riêng biệt
+    payloads.forEach(payload => {
+      // Kiểm tra có dữ liệu nào là undefined/null không
+      if (!payload.cartId || !payload.productDetailId || !payload.quantity || payload.quantity <= 0) {
+        alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+        return;
+      }
+    });
+
+    // // Tiếp tục các bước xử lý khác (gọi API, thêm vào giỏ hàng...)
+    for (let payload of payloads) {
+      // Gọi API kiểm tra xem productDetail đã có trong giỏ chưa
+      const checkUrl = `http://localhost:8080/cartDetail/exists?cartId=${encodeURIComponent(payload.cartId)}&productDetailId=${payload.productDetailId}`;
+      const checkResponse = await axios.get(checkUrl);
+
+      if (checkResponse.data === true) {
+        // Đã tồn tại → cập nhật số lượng mới
+        console.log("🔍 checkResponse.data:", checkResponse.data);
+        const updatePayload = {
+          cartId: payload.cartId,
+          productDetailId: payload.productDetailId,
+          quantity: payload.quantity 
+        };
+        await axios.put('http://localhost:8080/cartDetail/updateQuantity', updatePayload);
+        console.log("✅ Đã cập nhật số lượng trong giỏ");
+      } else {
+        // Chưa tồn tại → thêm mới
+        await axios.post('http://localhost:8080/cartDetail/add', payload);
+        console.log("✅ Đã thêm mới vào giỏ hàng");
+      }
+    }
+    await store.fetchCartItems(customerId);
+  } catch (error) {
+    console.error("❌ Lỗi khi mua lại sản phẩm:", error);
+    alert("Mua lại sản phẩm thất bại.");
+  }
+};
+
+onMounted(fetchOrder);
 </script>
+
 <template>
   <div class="orders">
     <!-- Tabs trạng thái -->
@@ -99,13 +234,26 @@ fetchOrder();
       <input type="text" v-model="searchQuery" placeholder="Tìm theo ID đơn hàng hoặc tên sản phẩm" />
     </div>
 
+    <!-- Trạng thái tải/lỗi -->
+    <div v-if="isLoading" class="order-card" style="padding:12px 14px;">
+      Đang tải danh sách đơn hàng…
+    </div>
+    <div v-else-if="errorMsg" class="order-card" style="padding:12px 14px;color:#d0011b;">
+      {{ errorMsg }}
+    </div>
+
+    <!-- Rỗng -->
+    <div v-else-if="!paginatedOrders.length" class="order-card" style="padding:12px 14px;">
+      Bạn chưa có đơn hàng nào !!!
+    </div>
+
     <!-- Danh sách đơn hàng -->
     <div v-for="(order, idx) in paginatedOrders" :key="idx" class="order-card">
       <!-- Header -->
       <div class="order-header">
         <div class="order-meta">
           <span class="order-code">Mã đơn: #{{ order.code }}</span>
-          <span class="order-date">• {{ order.date }}</span>
+          <span class="order-date">• {{ formatDateTime(order.date) }}</span>
         </div>
         <div class="order-status">{{ order.status }}</div>
       </div>
@@ -133,7 +281,9 @@ fetchOrder();
           <div class="total">
             Thành tiền: <span class="total-number">{{ formatCurrency(order.total) }}</span>
           </div>
-          <button class="btn btn-primary">Mua lại</button>
+          <button v-if="order.status === 'Hoàn Thành'" type="button" class="btn btn-primary" @click="addToCart(order)">
+            Mua lại
+          </button>
           <button class="btn btn-outline">Xem chi tiết</button>
         </div>
       </div>
@@ -156,6 +306,7 @@ fetchOrder();
     </div>
   </div>
 </template>
+
 <style scoped>
 .orders {
   max-width: 990px;
