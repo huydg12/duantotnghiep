@@ -1,8 +1,10 @@
 package com.poly.BE_main.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +53,19 @@ public class CustomerController {
     public CustomerDTO update(@PathVariable int id, @RequestBody CustomerDTO c) {
         System.out.println("Received: " + c);
         return customerService.update(id, c);
+    }
+
+    @PutMapping("/updateInfoCustomer/{id}")
+    public ResponseEntity<?> updateCustomer(@PathVariable Integer id, @RequestBody InformationCustomerDTO dto) {
+        LocalDate birthDate = dto.getBirthOfDate();
+        customerService.updateCustomerInfo(
+                id,
+                dto.getFullName(),
+                dto.getGender(),
+                dto.getEmail(),
+                dto.getNumberPhone(),
+                birthDate);
+        return ResponseEntity.ok("Updated successfully");
     }
 
     @GetMapping("/findByAccountId/{accountId}")

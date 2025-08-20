@@ -84,6 +84,8 @@ public class AuthController {
         customer.setFullName(registerDTO.getFullname());
         customer.setNumberPhone(registerDTO.getPhone());
         customer.setEmail(registerDTO.getEmail());
+        customer.setGender("Nam");
+        customer.setStatus(1);
         customer.setAccount(account);
 
         customer = accountService.createCustomer(customer); // Gán lại để lấy ID

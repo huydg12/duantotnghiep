@@ -1,11 +1,13 @@
 package com.poly.BE_main.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.poly.BE_main.dto.CustomerDTO;
 import com.poly.BE_main.dto.CustomerInfoDTO;
@@ -108,12 +110,17 @@ public class CustomerService {
     // Truy vấn thông tin theo customerId
     public InformationCustomerDTO findInformationCustomerByCustomerId(Integer customerId) {
         Object[] data = (Object[]) customerRepository.findInformationCustomerByCustomerId(customerId);
+
+        LocalDate birthOfDate = null;
+        if (data[4] != null) {
+            birthOfDate = ((java.sql.Date) data[4]).toLocalDate();
+        }
         return new InformationCustomerDTO(
                 (String) data[0], // fullName
-                (String) data[1], // email
-                (String) data[2], // numberPhone
-                new java.util.Date(((java.util.Date) data[3]).getTime()) // createdDate
-        );
+                (String) data[1], // gender
+                (String) data[2], // email
+                (String) data[3], // numberPhone
+                birthOfDate);
     }
 
     // Truy vấn theo accountId
@@ -124,6 +131,24 @@ public class CustomerService {
             String phoneNumber = (String) obj[1];
             return new CustomerInfoDTO(fullName, phoneNumber);
         }).collect(Collectors.toList());
+    }
+
+    // Update thông tin theo customerId
+    @Transactional
+    public void updateCustomerInfo(Integer id, String fullName, String gender, String email, String numberPhone,
+            java.time.LocalDate birthDate) {
+        java.sql.Date sqlDate = null;
+        if (birthDate != null) {
+            sqlDate = java.sql.Date.valueOf(birthDate); // convert LocalDate → java.sql.Date
+        }
+
+        customerRepository.updateInformationCustomerByCustomerId(
+                id,
+                fullName,
+                gender,
+                email,
+                numberPhone,
+                sqlDate);
     }
 
 }
