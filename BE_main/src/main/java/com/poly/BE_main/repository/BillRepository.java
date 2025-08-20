@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.poly.BE_main.dto.InvoiceItemCustomerDTO;
 import com.poly.BE_main.dto.RevenueByBrandDTO;
 import com.poly.BE_main.dto.StockStatisticDTO;
 import com.poly.BE_main.dto.TopSellingProductDTO;
@@ -139,4 +140,30 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
             @Param("from") LocalDate from,
             @Param("to") LocalDate to);
 
+    List<Bill> findByCustomerId(Integer customerId);
+
+    @Query("""
+                SELECT new com.poly.BE_main.dto.InvoiceItemCustomerDTO(
+                    p.productName,
+                    c.name,
+                    CAST(s.eu AS string),
+                    bd.quantity,
+                    bd.price,
+                    COALESCE((SELECT img.url
+                             FROM Image img
+                             WHERE img.productDetailId = pd.id
+                               AND img.isMain = true), '')
+                )
+                FROM BillDetail bd
+                JOIN bd.productDetail pd
+                JOIN pd.product p
+                JOIN pd.color c
+                JOIN pd.size s
+                JOIN bd.bill b
+                WHERE b.customerId = :customerId
+                  AND b.id = :billId
+            """)
+    List<InvoiceItemCustomerDTO> findInvoiceItemsByCustomerIdAndBillId(
+            @Param("customerId") Integer customerId,
+            @Param("billId") Integer billId);
 }

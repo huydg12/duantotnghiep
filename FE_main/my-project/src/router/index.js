@@ -69,6 +69,16 @@ const router = createRouter({
           name: "informationcustomer",
           component: InformationCustomer,
         },
+        {
+          path: "invoicecustomer",
+          name: "invoicecustomer",
+          component: InvoiceCustomer,
+        },
+        {
+          path: "invoicedetailcustomer",
+          name: "invoicedetailcustomer",
+          component: InvoiceDetailCustomer,
+        },
       ],
     },
 
@@ -117,6 +127,8 @@ const router = createRouter({
 });
 
 import { useUserStore } from "@/stores/userStore";
+import InvoiceCustomer from "../components/customer/InvoiceCustomer.vue";
+import InvoiceDetailCustomer from "../components/customer/InvoiceDetailCustomer.vue";
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();

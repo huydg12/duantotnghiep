@@ -106,5 +106,4 @@ public class Bill {
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL)
     @JsonManagedReference // ✅ Thêm dòng này
     private List<BillDetail> billDetails;
-
 }

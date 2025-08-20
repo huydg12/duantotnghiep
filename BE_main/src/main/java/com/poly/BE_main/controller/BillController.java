@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.BillDTO;
+import com.poly.BE_main.dto.InvoiceCustomerDTO;
 import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.service.BillService;
 
@@ -72,4 +73,9 @@ public class BillController {
         }
     }
 
+    @GetMapping("/invoicecustomer/{customerId}")
+    public ResponseEntity<List<InvoiceCustomerDTO>> getInvoiceItems(@PathVariable Integer customerId) {
+        List<InvoiceCustomerDTO> items = billService.getInvoicesByCustomerId(customerId);
+        return ResponseEntity.ok(items);
+    }
 }
