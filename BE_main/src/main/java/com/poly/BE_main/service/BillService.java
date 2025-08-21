@@ -4,10 +4,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import com.poly.BE_main.utils.BillStatus;
 import com.poly.BE_main.dto.BillDTO;
 import com.poly.BE_main.dto.InvoiceCustomerDTO;
 import com.poly.BE_main.dto.InvoiceItemCustomerDTO;
@@ -122,43 +121,20 @@ public class BillService {
         return savedBill;
     }
 
-        // Phương thức helper để chuyển đổi int sang String
-    private String convertStatusToString(int status) {
-        switch (status) {
-            case 1: // Giả sử 0 là "Chờ xác nhận"
-                return "Chờ xác nhận";
-            case 2:
-                return "Đã xác nhận";
-            case 3:
-                return "Đang giao";
-            case 4:
-                return "Hoàn Thành";
-            case 5:
-                return "Đã hủy";
-            case 6:
-                return "Trả hàng/Hoàn tiền";
-            default:
-                return "Tất cả"; // Hoặc "Không xác định"
-        }
-    }
-
     public List<InvoiceCustomerDTO> getInvoicesByCustomerId(Integer customerId) {
         List<InvoiceCustomerDTO> result = new ArrayList<>();
 
-        // Lấy danh sách hóa đơn
         List<Bill> bills = billRepository.findByCustomerId(customerId);
         for (Bill bill : bills) {
-            // Lấy danh sách items cho từng hóa đơn
             List<InvoiceItemCustomerDTO> items = billRepository.findInvoiceItemsByCustomerIdAndBillId(customerId,
                     bill.getId());
 
-            // Tạo DTO hóa đơn
             InvoiceCustomerDTO dto = new InvoiceCustomerDTO(
                     bill.getId(),
                     bill.getCode(),
-                    bill.getCreatedDate(), // Hoặc bill.getDateOfPayment() tùy theo yêu cầu
-                   convertStatusToString(bill.getStatus()) ,
-                    bill.getGrandTotal(), // Đảm bảo entity Bill có trường grandTotal
+                    bill.getCreatedDate(),
+                    BillStatus.toString(bill.getStatus()), // Dùng BillStatus
+                    bill.getGrandTotal(),
                     items);
             result.add(dto);
         }
