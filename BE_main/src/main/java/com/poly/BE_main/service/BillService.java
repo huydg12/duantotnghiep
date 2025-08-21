@@ -121,7 +121,7 @@ public class BillService {
         return savedBill;
     }
 
-        // Phương thức helper để chuyển đổi int sang String
+    // Phương thức helper để chuyển đổi int sang String
     private String convertStatusToString(int status) {
         switch (status) {
             case 1: // Giả sử 0 là "Chờ xác nhận"
@@ -148,12 +148,11 @@ public class BillService {
         for (Bill bill : bills) {
             List<InvoiceItemCustomerDTO> items = billRepository.findInvoiceItemsByCustomerIdAndBillId(customerId,
                     bill.getId());
-
             InvoiceCustomerDTO dto = new InvoiceCustomerDTO(
                     bill.getId(),
                     bill.getCode(),
                     bill.getCreatedDate(), // Hoặc bill.getDateOfPayment() tùy theo yêu cầu
-                   convertStatusToString(bill.getStatus()) ,
+                    convertStatusToString(bill.getStatus()),
                     bill.getGrandTotal(), // Đảm bảo entity Bill có trường grandTotal
                     items);
             result.add(dto);

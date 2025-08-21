@@ -95,17 +95,17 @@ class StatisticServiceImpl implements StatisticService {
 
     // Top-selling
     public List<TopSellingProductDTO> getTopSellingProductsFiltered(LocalDate from, LocalDate to, String keyword) {
-        return billRepository.getTopSellingProductsFiltered(from, to, keyword);
+        return null;
     }
 
     // Revenue by brand
     public List<RevenueByBrandDTO> getRevenueByBrandFiltered(LocalDate from, LocalDate to, String keyword) {
-        return billRepository.getRevenueByBrandFiltered(from, to, keyword);
+        return null;
     }
 
     // Stock statistics
     public List<StockStatisticDTO> getStockStatisticsFiltered(LocalDate from, LocalDate to, String keyword) {
-        return billRepository.getStockStatisticsFiltered(from, to, keyword);
+        return null;
     }
 
 }
