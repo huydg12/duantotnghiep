@@ -1,7 +1,9 @@
 package com.poly.BE_main.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -78,4 +80,29 @@ public class BillController {
         List<InvoiceCustomerDTO> items = billService.getInvoicesByCustomerId(customerId);
         return ResponseEntity.ok(items);
     }
+
+    @GetMapping("/{billId}")
+    public ResponseEntity<Bill> getBillById(@PathVariable int billId) {
+        Optional<Bill> bill = billService.findById(billId);
+
+        if (bill.isPresent()) {
+            return ResponseEntity.ok(bill.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Trả về 404 nếu không tìm thấy
+        }
+    }
+
+    @PutMapping("/updateSubTotal/{billId}")
+    public ResponseEntity<String> updateSubTotal(@PathVariable int billId,
+            @RequestBody Map<String, BigDecimal> requestBody) {
+        try {
+            BigDecimal subTotal = requestBody.get("subTotal");
+            billService.updateSubTotal(billId, subTotal);
+            return ResponseEntity.ok("SubTotal đã được cập nhật thành công.");
+        } catch (Exception e) {
+            e.printStackTrace(); // Log lỗi để dễ dàng chẩn đoán
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật subTotal");
+        }
+    }
+
 }

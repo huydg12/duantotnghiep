@@ -18,4 +18,8 @@ public class InvoiceItemCustomerDTO {
     private int quantity;
     private BigDecimal price;
     private String image;
+    private BigDecimal subTotal;
+    private BigDecimal discountAmount;
+    private BigDecimal shippingFee;
+    private BigDecimal grandTotal;
 }

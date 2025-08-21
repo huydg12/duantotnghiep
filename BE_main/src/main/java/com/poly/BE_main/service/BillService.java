@@ -1,8 +1,10 @@
 package com.poly.BE_main.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -158,4 +160,30 @@ public class BillService {
         }
         return result;
     }
+
+    // Phương thức tìm hóa đơn theo ID
+    public Optional<Bill> findById(int billId) {
+        return billRepository.findById(billId); // Trả về Optional để kiểm tra sự tồn tại
+    }
+
+    // Phương thức để cập nhật sub_total sau khi thay đổi số lượng
+    public void updateSubTotal(int billId, BigDecimal subTotal) {
+        Optional<Bill> billOptional = billRepository.findById(billId);
+
+        if (billOptional.isPresent()) {
+            Bill bill = billOptional.get();
+            bill.setSubTotal(subTotal); // Cập nhật subTotal
+
+            BigDecimal shippingFee = bill.getShippingFee(); 
+            BigDecimal discountAmount = bill.getDiscountAmount(); 
+            BigDecimal updatedGrandTotal = subTotal.add(shippingFee).subtract(discountAmount); 
+
+            bill.setGrandTotal(updatedGrandTotal);
+            
+            billRepository.save(bill); // Lưu hóa đơn với subTotal đã được cập nhật
+        } else {
+            throw new RuntimeException("Không tìm thấy hóa đơn có id: " + billId);
+        }
+    }
+
 }
