@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.poly.BE_main.utils.BillStatus;
 import com.poly.BE_main.dto.BillDTO;
 import com.poly.BE_main.dto.InvoiceCustomerDTO;
 import com.poly.BE_main.dto.InvoiceItemCustomerDTO;
