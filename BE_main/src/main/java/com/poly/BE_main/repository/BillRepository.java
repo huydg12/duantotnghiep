@@ -149,7 +149,7 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
                     c.name,
                     CAST(s.eu AS string),
                     bd.quantity,
-                    bd.price,
+                    b.grandTotal,
                     COALESCE((SELECT img.url
                              FROM Image img
                              WHERE img.productDetailId = pd.id
