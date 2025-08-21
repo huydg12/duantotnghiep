@@ -125,16 +125,26 @@ const fetchAllProducts = async () => {
 };
 
 const selectedBrand = ref("nike");
+const currentPage = ref(0);
+const itemsPerPage = ref(8);
+const displayedProducts = computed(() => {
+  const start = currentPage.value * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return productsByBrand.value.slice(start, end);
+});
 
+function selectBrand(brand) {
+  selectedBrand.value = brand;
+  currentPage.value = 0;  // Reset trang khi thay đổi hãng
+}
 const productsByBrand = computed(() => {
   return allProducts.value.filter(
     p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase()
   );
 });
 
-function selectBrand(brand) {
-  selectedBrand.value = brand;
-}
+
+
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("vi-VN", {
@@ -217,50 +227,46 @@ onMounted(() => {
       </div>
     </section>
 
-    <section id="tat-ca-san-pham" class="py-5">
-      <div class="container-xl">
-        <div class="text-center mb-5 section-title">
-          <h2>Sản Phẩm Theo Hãng</h2>
-          <span class="divider"></span>
-          <p class="mt-3 mx-auto">
-            Khám phá những đôi giày nổi bật từ các thương hiệu đình đám.
-          </p>
-        </div>
+<section id="tat-ca-san-pham" class="py-5">
+  <div class="container-xl">
+    <div class="text-center mb-5 section-title">
+      <h2>Sản Phẩm Theo Hãng</h2>
+      <span class="divider"></span>
+      <p class="mt-3 mx-auto">
+        Khám phá những đôi giày nổi bật từ các thương hiệu đình đám.
+      </p>
+    </div>
 
-        <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
-          <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
-          <button class="btn" :class="{ active: selectedBrand === 'adidas' }"
-            @click="selectBrand('adidas')">Adidas</button>
-          <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
-          <button class="btn" :class="{ active: selectedBrand === 'converse' }"
-            @click="selectBrand('converse')">Converse</button>
-          <button class="btn" :class="{ active: selectedBrand === 'new balance' }"
-            @click="selectBrand('new balance')">New Balance</button>
+    <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
+      <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
+      <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">Adidas</button>
+      <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
+      <button class="btn" :class="{ active: selectedBrand === 'converse' }" @click="selectBrand('converse')">Converse</button>
+      <button class="btn" :class="{ active: selectedBrand === 'new balance' }" @click="selectBrand('new balance')">New Balance</button>
+    </div>
 
-        </div>
-
-        <div id="product-list-container">
-          <div class="row g-4">
-            <div class="col-6 col-md-3" v-for="product in productsByBrand" :key="product.productId">
-              <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
-                <!-- Icon yêu thích -->
-                <i class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition" :class="{
-                  'fas text-danger scale-up': favoriteMap.has(product.productId),
-                  'far text-secondary': !favoriteMap.has(product.productId)
-                }" @click.stop="toggleFavorite(product.productId)"></i>
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
-                <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                  :alt="product.productName" />
-                <div class="card-body text-center">
-                  <h6 class="card-title">{{ product.productName }}</h6>
-                  <p class="product-price">{{ formatCurrency(product.price) }}</p>
-                </div>
-              </div>
+    <div id="product-list-container">
+      <div class="row g-4">
+        <div class="col-6 col-md-3" v-for="product in displayedProducts" :key="product.productId">
+          <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+            <!-- Icon yêu thích -->
+            <i class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition" :class="{
+              'fas text-danger scale-up': favoriteMap.has(product.productId),
+              'far text-secondary': !favoriteMap.has(product.productId)
+            }" @click.stop="toggleFavorite(product.productId)"></i>
+            <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+            <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
+              :alt="product.productName" />
+            <div class="card-body text-center">
+              <h6 class="card-title">{{ product.productName }}</h6>
+              <p class="product-price">{{ formatCurrency(product.price) }}</p>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
   </main>
   <!-- Toast thông báo thêm vào giỏ thành công -->
   <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">

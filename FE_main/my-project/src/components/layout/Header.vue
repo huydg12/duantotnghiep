@@ -13,7 +13,6 @@ const userInfo = ref(JSON.parse(localStorage.getItem("user")));
 let customerId = ref(null);
 const brandList = ref([])
 const suggestedProducts = ref([]);
-let fetchCallCount = 0;
 const fetchSuggestedProducts = async () => {
   const keyword = searchText.value.trim();
   if (!keyword) {

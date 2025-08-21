@@ -108,6 +108,7 @@ const addToCart = async () => {
       await fetchProductDetail();
       await store.fetchCartItems(customerId);
     }
+    await store.fetchCartItems(customerId); // Gọi lại để cập nhật giỏ hàng
     showToast.value = true
     setTimeout(() => {
       showToast.value = false
