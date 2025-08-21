@@ -1,14 +1,9 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from 'axios';
-<<<<<<< HEAD
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
-import { Modal } from "bootstrap";
-import { nextTick } from 'vue';
 
 const store = useCartFavoriteStore()
-=======
->>>>>>> parent of 8c64eb6 (updateBE)
 
 const tabs = [
   { label: "Tất cả", value: "all" },
@@ -41,10 +36,9 @@ const getCustomerID = () => {
   }
 };
 
-<<<<<<< HEAD
 // Lấy cartID từ localStorage
 const getCartId = () => {
-  cartId = localStorage.getItem("cartId");
+  const cartId = localStorage.getItem("cartId");
   if (!cartId) return null;  // Nếu không có giá trị, trả về null
   try {
     // Nếu cartId là kiểu chuỗi, bạn có thể chuyển nó thành số hoặc giữ nguyên tùy theo dữ liệu
@@ -56,8 +50,6 @@ const getCartId = () => {
 };
 
 // API
-=======
->>>>>>> parent of 8c64eb6 (updateBE)
 const fetchOrder = async () => {
   const customerID = getCustomerID();
   if (!customerID) {
@@ -104,10 +96,11 @@ const paginatedOrders = computed(() => {
 });
 
 const formatCurrency = (v) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
-    v || 0);
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(v || 0);
 
-<<<<<<< HEAD
 const formatDateTime = (v) => {
   if (!v) return "";
   try {
@@ -120,7 +113,7 @@ const formatDateTime = (v) => {
 
 // Hàm Mua lại sản phẩm
 const addToCart = async (order) => {
-  cartId = getCartId();
+  const cartId = getCartId();
 
   try {
     if (!cartId || typeof cartId !== 'string') {
@@ -173,7 +166,7 @@ const addToCart = async (order) => {
         const updatePayload = {
           cartId: payload.cartId,
           productDetailId: payload.productDetailId,
-          quantity: payload.quantity
+          quantity: payload.quantity 
         };
         await axios.put('http://localhost:8080/cartDetail/updateQuantity', updatePayload);
         console.log("✅ Đã cập nhật số lượng trong giỏ");
@@ -190,143 +183,7 @@ const addToCart = async (order) => {
   }
 };
 
-// Modal
-const selectedInvoice = ref(null);
-const invoiceDetails = ref([]);
-const modalInstance = ref(null);
-const modal = ref(null);
-const editingDetail = ref(null);
-const editQuantity = ref(1);
-
-
-const mapInvoiceDetailData = (data) => {
-  return data.map((item) => ({
-    ID: item.id,
-    PRODUCT_DETAIL_ID: item.PRODUCT_DETAIL_ID || item.productDetailId,
-    PRODUCT_NAME: item.PRODUCT_NAME || item.productName,
-    SIZE: item.SIZE || item.size,
-    QUANTITY: item.QUANTITY || item.quantity,
-    PRICE: item.PRICE || item.price,
-    PRODUCT_IMAGE: item.PRODUCT_IMAGE || item.productImage,
-    COLOR: item.COLOR || item.color,
-  }));
-};
-
-const fetchInvoiceDetails = async (order) => {
-  try {
-    // Gọi API để lấy chi tiết hóa đơn
-    const response = await axios.get(
-      `http://localhost:8080/billDetail/show/${order.id}` // Sử dụng order.id
-    );
-
-    // Map dữ liệu thành định dạng bạn cần (nếu cần)
-    invoiceDetails.value = mapInvoiceDetailData(response.data);
-
-  } catch (error) {
-    console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
-  }
-};
-
-let statusInvoice = ref(null)
-const openModal = async (order) => {
-  if (!order || !order.id) {
-    console.error("❌ Hóa đơn không có ID");
-    return;
-  }
-
-  selectedInvoice.value = { ...order };
-  statusInvoice = selectedInvoice.value.status
-  await fetchInvoiceDetails(order);
-
-  // Đảm bảo modal được mở sau khi lấy dữ liệu
-  await nextTick();
-
-  if (!modalInstance.value) {
-    modalInstance.value = new Modal(modal.value); // Khởi tạo modal mỗi lần
-  }
-
-  modal.value.classList.remove("fade");
-
-  modalInstance.value.show(); // Hiển thị modal
-};
-
-
-const subTotal = computed(() =>
-  invoiceDetails.value.reduce(
-    (total, item) => total + item.QUANTITY * item.PRICE,
-    0
-  )
-);
-
-const grandTotal = computed(
-  () =>
-    subTotal.value -
-    (parseFloat(selectedInvoice.value?.DISCOUNT_AMOUNT) || 0) +
-    (parseFloat(selectedInvoice.value?.SHIPPING_FEE) || 0)
-);
-
-const isPaid = computed(() => selectedInvoice.value?.STATUS >= 3);
-
-function blockMinus(e) {
-  if (e.key === '-' || e.key === 'e') {
-    e.preventDefault()
-  }
-}
-const cacheOldQuantity = (detail) => {
-  detail.oldQuantity = detail.QUANTITY;
-};
-
-const handleQuantityChange = async (detail) => {
-  try {
-    // ✅ Lấy tồn kho hiện tại
-    const inventoryRes = await axios.get(`http://localhost:8080/inventory/getQuantity/${detail.PRODUCT_DETAIL_ID}`);
-    const quantityInventory = inventoryRes.data.quantityInventory;
-    detail.quantityInventory = quantityInventory;
-
-    // ✅ Lấy oldQuantity đúng thời điểm, trước khi thay đổi
-    const oldQuantity = detail.oldQuantity !== undefined ? detail.oldQuantity : parseInt(detail.QUANTITY) || 1;
-
-    // ✅ Parse lại QUANTITY người dùng nhập
-    detail.QUANTITY = parseInt(detail.QUANTITY);
-    if (!detail.QUANTITY || detail.QUANTITY < 1) {
-      detail.QUANTITY = 1;
-    } else if (detail.QUANTITY > quantityInventory + oldQuantity) {
-      detail.QUANTITY = quantityInventory + oldQuantity;
-    }
-
-    // ✅ Kiểm tra ID
-    if (!detail.ID || !detail.PRODUCT_DETAIL_ID) {
-      console.error("❌ Lỗi: ID hoặc PRODUCT_DETAIL_ID bị thiếu:", detail);
-      return;
-    }
-
-    // ✅ Cập nhật BILL_DETAIL
-    await axios.put(`http://localhost:8080/billDetail/updateQuantity/${detail.ID}`,
-      { quantity: detail.QUANTITY },
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    // ✅ Gửi chênh lệch để cập nhật kho
-    await axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${detail.PRODUCT_DETAIL_ID}`,
-      {
-        quantity: detail.QUANTITY,
-        oldQuantity: oldQuantity
-      },
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-    // ✅ Lưu lại oldQuantity mới nhất
-    detail.oldQuantity = detail.QUANTITY;
-    console.log("Old:", oldQuantity, "New:", detail.QUANTITY, "Chênh lệch:", detail.QUANTITY - oldQuantity);
-  } catch (error) {
-    console.error("❌ Lỗi khi cập nhật số lượng:", error);
-  }
-};
-
 onMounted(fetchOrder);
-=======
-fetchOrder();
->>>>>>> parent of 8c64eb6 (updateBE)
 </script>
 <template>
   <div class="orders">
@@ -377,13 +234,9 @@ fetchOrder();
           <div class="total">
             Thành tiền: <span class="total-number">{{ formatCurrency(order.total) }}</span>
           </div>
-<<<<<<< HEAD
           <button v-if="order.status === 'Hoàn Thành'" type="button" class="btn btn-primary" @click="addToCart(order)">
             Mua lại
           </button>
-          <button class="btn btn-outline" @click="openModal(order)">Xem chi tiết</button>
-=======
-          <button class="btn btn-primary">Mua lại</button>
           <button class="btn btn-outline">Xem chi tiết</button>
 >>>>>>> parent of 8c64eb6 (updateBE)
         </div>

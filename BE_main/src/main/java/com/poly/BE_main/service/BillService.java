@@ -121,6 +121,26 @@ public class BillService {
         return savedBill;
     }
 
+        // Phương thức helper để chuyển đổi int sang String
+    private String convertStatusToString(int status) {
+        switch (status) {
+            case 1: // Giả sử 0 là "Chờ xác nhận"
+                return "Chờ xác nhận";
+            case 2:
+                return "Đã xác nhận";
+            case 3:
+                return "Đang giao";
+            case 4:
+                return "Hoàn Thành";
+            case 5:
+                return "Đã hủy";
+            case 6:
+                return "Trả hàng/Hoàn tiền";
+            default:
+                return "Tất cả"; // Hoặc "Không xác định"
+        }
+    }
+
     public List<InvoiceCustomerDTO> getInvoicesByCustomerId(Integer customerId) {
         List<InvoiceCustomerDTO> result = new ArrayList<>();
 
@@ -132,9 +152,9 @@ public class BillService {
             InvoiceCustomerDTO dto = new InvoiceCustomerDTO(
                     bill.getId(),
                     bill.getCode(),
-                    bill.getCreatedDate(),
-                    BillStatus.toString(bill.getStatus()), // Dùng BillStatus
-                    bill.getGrandTotal(),
+                    bill.getCreatedDate(), // Hoặc bill.getDateOfPayment() tùy theo yêu cầu
+                   convertStatusToString(bill.getStatus()) ,
+                    bill.getGrandTotal(), // Đảm bảo entity Bill có trường grandTotal
                     items);
             result.add(dto);
         }
