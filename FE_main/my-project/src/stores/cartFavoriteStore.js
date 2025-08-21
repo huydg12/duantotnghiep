@@ -13,6 +13,7 @@ export const useCartFavoriteStore = defineStore("cartFavorite", () => {
       const res = await axios.get(
         `http://localhost:8080/cartDetail/showCartDetail/${customerId}`
       );
+      console.log("📦 Dữ liệu xem cartDetail:", res.data); // Log dữ liệu trả về từ API
       cartItems.value = res.data;
     } catch (err) {
       console.error("❌ Lỗi lấy cart", err);

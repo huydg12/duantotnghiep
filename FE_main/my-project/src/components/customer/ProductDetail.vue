@@ -71,7 +71,8 @@ const addToCart = async () => {
     const payload = {
       cartId: cartId.value, // Sử dụng cartId đã lấy từ API
       productDetailId: selectedProduct.value.productDetailId,
-      quantity: quantity.value
+      quantity: quantity.value,
+      images: selectedProduct.value.images
     }
     console.log("📦 Payload gửi lên /cartDetail/add:", payload)
 
@@ -95,7 +96,9 @@ const addToCart = async () => {
       const updatePayload = {
         cartId: payload.cartId,
         productDetailId: payload.productDetailId,
-        quantity: payload.quantity // số lượng muốn thêm
+        quantity: payload.quantity, // số lượng muốn thêm
+        images: payload.images
+
       }
       await axios.put('http://localhost:8080/cartDetail/updateQuantity', updatePayload)
       console.log("✅ Đã cập nhật số lượng trong giỏ")
