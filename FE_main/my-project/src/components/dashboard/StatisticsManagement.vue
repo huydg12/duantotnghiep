@@ -7,24 +7,23 @@ const topSellingProducts = ref([])
 const fromDate = ref('')
 const toDate = ref('')
 const revenueByBrand = ref([])
-
 const stockStatistics = ref([])
-
 const fromDateBrand = ref('')
 const toDateBrand = ref('')
-
+const searchStock = ref('')
 const fromDateStock = ref('')
 const toDateStock = ref('')
+const searchTopSelling = ref('')
+const searchBrand = ref('')
 
 const filterRevenueByBrand = async () => {
-  if (!fromDateBrand.value || !toDateBrand.value) return
   try {
-    const res = await axios.get('http://localhost:8080/api/statistics/revenue-by-brand/filter', {
-      params: {
-        from: fromDateBrand.value,
-        to: toDateBrand.value
-      }
-    })
+    const params = {}
+    if (fromDateBrand.value) params.from = fromDateBrand.value
+    if (toDateBrand.value) params.to = toDateBrand.value
+    if (searchBrand.value) params.keyword = searchBrand.value
+
+    const res = await axios.get('http://localhost:8080/api/statistics/revenue-by-brand/filter', { params })
     revenueByBrand.value = res.data
   } catch (error) {
     console.error('Lỗi khi lọc doanh thu theo thương hiệu:', error)
@@ -32,14 +31,13 @@ const filterRevenueByBrand = async () => {
 }
 
 const filterStockStatistics = async () => {
-  if (!fromDateStock.value || !toDateStock.value) return
   try {
-    const res = await axios.get('http://localhost:8080/api/statistics/stock/filter', {
-      params: {
-        from: fromDateStock.value,
-        to: toDateStock.value
-      }
-    })
+    const params = {}
+    if (fromDateStock.value) params.from = fromDateStock.value
+    if (toDateStock.value) params.to = toDateStock.value
+    if (searchStock.value) params.keyword = searchStock.value  // từ khóa tìm kiếm
+    console.log(params)
+    const res = await axios.get('http://localhost:8080/api/statistics/stock/filter', { params })
     stockStatistics.value = res.data
   } catch (error) {
     console.error('Lỗi khi lọc tồn kho đã bán:', error)
@@ -105,6 +103,43 @@ const filterTopSellingProducts = async () => {
   }
 }
 
+// Reset
+
+const resetTopSellingProducts = async () => {
+  fromDate.value = ''
+  toDate.value = ''
+  searchTopSelling.value = ''
+  await fetchTopSellingProducts()
+}
+
+const resetRevenueByBrand = async () => {
+  fromDateBrand.value = ''
+  toDateBrand.value = ''
+  searchBrand.value = ''
+  await fetchRevenueByBrand()
+}
+
+const searchTopSellingProducts = async () => {
+  try {
+    const params = {}
+    if (fromDate.value) params.from = fromDate.value
+    if (toDate.value) params.to = toDate.value
+    if (searchTopSelling.value) params.keyword = searchTopSelling.value
+
+    const res = await axios.get('http://localhost:8080/api/statistics/top-selling-products/filter', { params })
+    topSellingProducts.value = res.data
+  } catch (error) {
+    console.error('Lỗi khi tìm kiếm sản phẩm:', error)
+  }
+}
+
+const resetStockStatistics = async () => {
+  searchStock.value = ''
+  fromDateStock.value = ''
+  toDateStock.value = ''
+  await fetchStockStatistics()
+}
+
 onMounted(() => {
   fetchOverview()
   fetchTopSellingProducts()
@@ -163,12 +198,19 @@ onMounted(() => {
     <!-- Top sản phẩm bán chạy -->
     <div class="mt-5">
       <h3 class="mb-3 text-primary">🔥 Top sản phẩm bán chạy</h3>
-      <!-- <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+      <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
         <input type="date" v-model="fromDate" class="form-control" style="max-width: 200px" />
         <span>→</span>
         <input type="date" v-model="toDate" class="form-control" style="max-width: 200px" />
-        <button class="btn btn-outline-primary" @click="filterTopSellingProducts">Lọc</button>
-      </div> -->
+
+        <input type="text" v-model="searchTopSelling" class="form-control" placeholder="Tên sản phẩm..."
+          style="max-width: 200px" />
+
+        <button class="btn btn-outline-primary" @click="searchTopSellingProducts">Tìm kiếm</button>
+        <button class="btn btn-outline-secondary" @click="resetTopSellingProducts">Bỏ lọc</button>
+      </div>
+
+
       <table class="table table-bordered text-center align-middle table-hover">
         <thead class="table-dark">
           <tr>
@@ -193,12 +235,18 @@ onMounted(() => {
     <!-- Doanh thu theo thương hiệu -->
     <div class="mt-5">
       <h3 class="mb-3 text-primary">🏷️ Doanh thu theo thương hiệu</h3>
-      <!-- <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+      <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
         <input type="date" v-model="fromDateBrand" class="form-control" style="max-width: 200px" />
         <span>→</span>
         <input type="date" v-model="toDateBrand" class="form-control" style="max-width: 200px" />
-        <button class="btn btn-outline-success" @click="filterRevenueByBrand">Lọc</button>
-      </div> -->
+
+        <input type="text" v-model="searchBrand" class="form-control" placeholder="Tên thương hiệu..."
+          style="max-width: 200px" />
+        <button class="btn btn-outline-success" @click="filterRevenueByBrand">Tìm kiếm</button>
+        <button class="btn btn-outline-secondary" @click="resetRevenueByBrand">Bỏ lọc</button>
+
+      </div>
+
 
       <table class="table table-bordered text-center align-middle table-hover">
         <thead class="table-success">
@@ -224,6 +272,13 @@ onMounted(() => {
     <!-- Tồn kho đã bán -->
     <div class="mt-5">
       <h3 class="mb-3 text-primary">📦 Tồn kho đã bán</h3>
+      <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
+        <input type="text" v-model="searchStock" class="form-control" placeholder="Tìm theo tên sản phẩm..."
+          style="max-width: 300px" />
+        <button class="btn btn-outline-primary" @click="filterStockStatistics">Lọc</button>
+        <button class="btn btn-outline-secondary" @click="resetStockStatistics">Bỏ lọc</button>
+      </div>
+
       <table class="table table-bordered text-center align-middle table-hover">
         <thead class="table-warning">
           <tr>

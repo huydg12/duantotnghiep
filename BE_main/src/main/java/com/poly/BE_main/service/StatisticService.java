@@ -30,6 +30,13 @@ public interface StatisticService {
     List<RevenueByBrandDTO> getRevenueByBrandFiltered(LocalDate from, LocalDate to);
 
     List<StockStatisticDTO> getStockStatisticsFiltered(LocalDate from, LocalDate to);
+
+    List<TopSellingProductDTO> getTopSellingProductsFiltered(LocalDate from, LocalDate to, String keyword);
+
+    List<RevenueByBrandDTO> getRevenueByBrandFiltered(LocalDate from, LocalDate to, String keyword);
+
+    List<StockStatisticDTO> getStockStatisticsFiltered(LocalDate from, LocalDate to, String keyword);
+
 }
 
 // Implementation
@@ -85,4 +92,20 @@ class StatisticServiceImpl implements StatisticService {
     public List<StockStatisticDTO> getStockStatisticsFiltered(LocalDate from, LocalDate to) {
         return billRepository.getStockStatisticsFiltered(from, to);
     }
+
+    // Top-selling
+    public List<TopSellingProductDTO> getTopSellingProductsFiltered(LocalDate from, LocalDate to, String keyword) {
+        return billRepository.getTopSellingProductsFiltered(from, to, keyword);
+    }
+
+    // Revenue by brand
+    public List<RevenueByBrandDTO> getRevenueByBrandFiltered(LocalDate from, LocalDate to, String keyword) {
+        return billRepository.getRevenueByBrandFiltered(from, to, keyword);
+    }
+
+    // Stock statistics
+    public List<StockStatisticDTO> getStockStatisticsFiltered(LocalDate from, LocalDate to, String keyword) {
+        return billRepository.getStockStatisticsFiltered(from, to, keyword);
+    }
+
 }
