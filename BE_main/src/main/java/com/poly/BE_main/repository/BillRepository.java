@@ -161,7 +161,6 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
 
     @Query("""
                 SELECT new com.poly.BE_main.dto.InvoiceItemCustomerDTO(
-                    pd.id,
                     p.productName,
                     c.name,
                     CAST(s.eu AS string),

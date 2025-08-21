@@ -17,8 +17,7 @@ const showRemoveToast = ref(false);
 const favoriteProductIds = ref(new Set());
 const favoriteMap = ref(new Map());
 const recentlyRemovedId = ref(null); // 👈 để hiệu ứng icon
-let customerId = ref(null);
-let cartId = ref(null);
+let customerId = null;
 
 // Lấy thông tin khách hàng
 const userJson = localStorage.getItem("user");
@@ -144,16 +143,6 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-const findCartIdByCustomerId = async () => {
-  try {
-    const response = await axios.get(`http://localhost:8080/cart/getCartId/${customerId}`)
-    console.log("📦 cartId trả về:", response.data)
-    cartId.value = response.data
-    localStorage.setItem('cartId', cartId.value);
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy cartId:", error)
-  }
-}
 onMounted(() => {
   const flag = localStorage.getItem("paymentSuccessFlag");
   if (flag === "1") {
@@ -165,8 +154,6 @@ onMounted(() => {
     });
     localStorage.removeItem("paymentSuccessFlag");
   }
-
-  findCartIdByCustomerId();
   fetchTop4Products();
   fetchAllProducts();
   fetchFavorites();
