@@ -4,6 +4,7 @@ import axios from "axios";
 
 // Khuyến mãi
 const promotions = ref([]);
+
 const form = ref({
   id: null,
   promotionCode: "",
@@ -82,6 +83,11 @@ const resetForm = () => {
     status: 1,
     apply_all: false,
   };
+};
+
+const formatDate = (str) => {
+  const d = new Date(str);
+  return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
 };
 
 onMounted(async () => {
