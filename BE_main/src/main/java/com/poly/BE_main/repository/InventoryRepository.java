@@ -4,10 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
+
+import jakarta.persistence.LockModeType;
 
 public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     @Query("""
@@ -33,4 +37,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
     boolean existsByProductDetailId(int productDetailId);
 
     Optional<Inventory> findByProductDetailId(int productDetailId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Inventory i WHERE i.productDetailId = :pdId")
+    Optional<Inventory> lockByProductDetailId(@Param("pdId") Integer productDetailId);
+
 }

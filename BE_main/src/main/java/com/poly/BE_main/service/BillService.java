@@ -7,14 +7,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.poly.BE_main.dto.BillDTO;
+import com.poly.BE_main.dto.BillDetailDTO;
 import com.poly.BE_main.dto.InvoiceCustomerDTO;
 import com.poly.BE_main.dto.InvoiceItemCustomerDTO;
 import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.model.BillDetail;
+import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.repository.BillDetailRepository;
 import com.poly.BE_main.repository.BillRepository;
+import com.poly.BE_main.repository.InventoryRepository;
 
 @Service
 public class BillService {
@@ -24,6 +31,9 @@ public class BillService {
 
     @Autowired
     BillDetailRepository billDetailRepository;
+
+    @Autowired
+    InventoryRepository inventoryRepository;
 
     public List<Bill> findAll() {
         return billRepository.findAll();
@@ -79,8 +89,47 @@ public class BillService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
     }
 
+    @Transactional
     public Bill createBill(BillDTO dto) {
-        // 1. Tạo Bill và gán đầy đủ các trường từ DTO
+        if (dto.getBillDetails() == null || dto.getBillDetails().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hóa đơn không có sản phẩm.");
+        }
+
+        // 1) Trừ kho + tính subTotal
+        BigDecimal subTotal = BigDecimal.ZERO;
+
+        for (BillDetailDTO d : dto.getBillDetails()) {
+            if (d.getProductDetailId() == null || d.getQuantity() == null || d.getQuantity() <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dòng hóa đơn không hợp lệ.");
+            }
+
+            // Khoá ghi tồn kho theo productDetailId
+            Inventory inv = inventoryRepository.lockByProductDetailId(d.getProductDetailId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST, "Không thấy tồn kho cho sản phẩm: " + d.getProductDetailId()));
+
+            if (inv.getQuantity() < d.getQuantity()) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Sản phẩm " + d.getProductDetailId() + " không đủ hàng. Còn: " + inv.getQuantity());
+            }
+
+            // Trừ kho
+            inv.setQuantity(inv.getQuantity() - d.getQuantity());
+
+            // Cộng subTotal
+            BigDecimal price = d.getPrice() == null ? BigDecimal.ZERO : d.getPrice();
+            subTotal = subTotal.add(price.multiply(BigDecimal.valueOf(d.getQuantity())));
+        }
+
+        // 2) Lấy discount/shipping từ DTO (nếu có) và tính grandTotal
+        BigDecimal discount = dto.getDiscountAmount() == null ? BigDecimal.ZERO : dto.getDiscountAmount();
+        BigDecimal shipping = dto.getShippingFee() == null ? BigDecimal.ZERO : dto.getShippingFee();
+        BigDecimal grandTotal = subTotal.subtract(discount).add(shipping);
+        if (grandTotal.compareTo(BigDecimal.ZERO) < 0)
+            grandTotal = BigDecimal.ZERO;
+
+        // 3) Tạo Bill và gán đầy đủ các trường
         Bill bill = new Bill();
         bill.setCustomerId(dto.getCustomerId());
         bill.setEmployeeId(dto.getEmployeeId());
@@ -93,16 +142,16 @@ public class BillService {
         bill.setRecipientPhoneNumber(dto.getRecipientPhoneNumber());
         bill.setAddressMethod(dto.getAddressMethod());
         bill.setStatusPayment(dto.getStatusPayment());
-        bill.setSubTotal(dto.getSubTotal());
-        bill.setDiscountAmount(dto.getDiscountAmount());
-        bill.setShippingFee(dto.getShippingFee());
-        bill.setGrandTotal(dto.getGrandTotal());
+        bill.setSubTotal(subTotal); // ✅ dùng số liệu server tính
+        bill.setDiscountAmount(discount);
+        bill.setShippingFee(shipping);
+        bill.setGrandTotal(grandTotal);
         bill.setCreatedDate(LocalDate.now());
 
-        // 2. Lưu Bill trước để có ID
+        // 4) Lưu Bill để có ID
         Bill savedBill = billRepository.save(bill);
 
-        // 3. Tạo danh sách BillDetail từ DTO
+        // 5) Map và lưu BillDetail
         List<BillDetail> details = dto.getBillDetails().stream().map(detailDto -> {
             BillDetail detail = new BillDetail();
             detail.setBill(savedBill); // Gán quan hệ
@@ -115,14 +164,11 @@ public class BillService {
             return detail;
         }).collect(Collectors.toList());
 
-        // 4. Lưu danh sách chi tiết hóa đơn
         billDetailRepository.saveAll(details);
 
-        // 5. Trả về Bill đã lưu (nếu cần trả cả chi tiết, có thể set thêm)
         return savedBill;
     }
 
-    // Phương thức helper để chuyển đổi int sang String
     private String convertStatusToString(int status) {
         switch (status) {
             case 1: // Giả sử 0 là "Chờ xác nhận"
@@ -152,9 +198,9 @@ public class BillService {
             InvoiceCustomerDTO dto = new InvoiceCustomerDTO(
                     bill.getId(),
                     bill.getCode(),
-                    bill.getCreatedDate(), // Hoặc bill.getDateOfPayment() tùy theo yêu cầu
+                    bill.getCreatedDate(),
                     convertStatusToString(bill.getStatus()),
-                    bill.getGrandTotal(), // Đảm bảo entity Bill có trường grandTotal
+                    bill.getGrandTotal(),
                     items);
             result.add(dto);
         }
@@ -174,12 +220,12 @@ public class BillService {
             Bill bill = billOptional.get();
             bill.setSubTotal(subTotal); // Cập nhật subTotal
 
-            BigDecimal shippingFee = bill.getShippingFee(); 
-            BigDecimal discountAmount = bill.getDiscountAmount(); 
-            BigDecimal updatedGrandTotal = subTotal.add(shippingFee).subtract(discountAmount); 
+            BigDecimal shippingFee = bill.getShippingFee();
+            BigDecimal discountAmount = bill.getDiscountAmount();
+            BigDecimal updatedGrandTotal = subTotal.add(shippingFee).subtract(discountAmount);
 
             bill.setGrandTotal(updatedGrandTotal);
-            
+
             billRepository.save(bill); // Lưu hóa đơn với subTotal đã được cập nhật
         } else {
             throw new RuntimeException("Không tìm thấy hóa đơn có id: " + billId);

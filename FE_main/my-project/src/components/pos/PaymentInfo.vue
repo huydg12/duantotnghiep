@@ -8,8 +8,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'checkout', 'applyPromo'])
 
-const promoCode = ref('')
-
 const updatePaid = (e) => {
   emit('update:modelValue', Number(e.target.value))
 }
@@ -18,27 +16,11 @@ const checkout = () => {
   emit('checkout')
 }
 
-const applyPromo = () => {
-  emit('applyPromo', promoCode.value.trim())
-}
 </script>
 
 <template>
   <div class="card mt-2 shadow-sm border-0">
     <div class="card-body">
-      <div class="mb-3 d-flex justify-content-between">
-        <span class="fw-medium">Tổng tiền:</span>
-        <span class="fw-semibold text-danger fs-5">{{ total.toLocaleString() }}đ</span>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-medium">Mã khuyến mãi</label>
-        <div class="input-group">
-          <input type="text" class="form-control" v-model="promoCode" placeholder="Nhập mã giảm giá" />
-          <button class="btn btn-outline-primary" @click="applyPromo">Áp dụng</button>
-        </div>
-      </div>
-
       <div class="mb-3">
         <label class="form-label fw-medium">Khách đưa</label>
         <input type="number" class="form-control" :value="modelValue" @input="updatePaid"
