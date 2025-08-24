@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
 import { Modal } from "bootstrap";
 import { nextTick } from 'vue';
-
+import Swal from 'sweetalert2'
 const store = useCartFavoriteStore()
 
 const tabs = [
@@ -24,7 +24,188 @@ const isLoading = ref(false);
 const errorMsg = ref("");
 
 let customerId = ref(null);
-let cartId = ref(null);
+let cartId = ref(null); 
+const cancelReasons = [
+  'Đặt nhầm sản phẩm',
+  'Không muốn mua nữa',
+  'Thay đổi size',
+  'Thay đổi địa chỉ/Thông tin nhận hàng',
+  'Thời gian giao hàng lâu',
+  'Tìm được giá tốt hơn',
+  'Không còn nhu cầu',
+  'Khác'
+]
+
+const selectedReasons = ref([])       // Các lý do được chọn
+const otherReason = ref('')          // Lý do "Khác"
+const isCancelSubmitting = ref(false) // Trạng thái submit
+let cancelModalInstance = null
+
+const cancelBillId = ref(null)        // ID của Bill
+const prevNote = ref('')             // NOTE cũ để nối chuỗi
+const isOtherSelected = computed(() => selectedReasons.value.includes('Khác'))
+
+// Mở modal huỷ đơn
+const openCancelModal = (order) => {
+    // Log dữ liệu order và order.items để kiểm tra
+  console.log("Order Data:", order);
+  console.log("Order Items:", order.items);
+  const resolvedBillId =
+    order?.billId ?? 
+    order?.id ?? 
+    order?.BILL_ID ?? 
+    order?.items?.[0]?.billId ?? null
+
+  if (!Number.isFinite(Number(resolvedBillId))) {
+    console.error("❌ Không tìm thấy billId hợp lệ trong order")
+    Swal.fire('Lỗi', 'Không tìm thấy ID hoá đơn để huỷ.', 'error')
+    return
+  }
+
+  cancelBillId.value = Number(resolvedBillId)
+  prevNote.value = (order?.NOTE ?? order?.note ?? '').toString()
+  selectedReasons.value = []
+  otherReason.value = ''
+
+  const el = document.getElementById('cancelOrderModal')
+  cancelModalInstance = Modal.getOrCreateInstance(el)
+  cancelModalInstance.show()
+}
+
+// Đóng modal huỷ đơn
+const closeCancelModal = () => {
+  if (cancelModalInstance) cancelModalInstance.hide()
+}
+
+// Tạo text lý do (không dính NOTE cũ)
+const buildReasonText = () => {
+  const reasons = selectedReasons.value.filter(r => r !== 'Khác')
+  const hasOther = isOtherSelected.value
+  const other = (otherReason.value || '').trim()
+
+  if (hasOther && reasons.length === 0) return other // chỉ Khác
+  if (!hasOther) return reasons.join(', ')          // chỉ các lý do thường
+  return [reasons.join(', '), other].filter(Boolean).join(' | ') // cả hai
+}
+
+// Nối NOTE cũ + " | Lý do huỷ: ..."
+const buildCancelNote = () => {
+  const reasonText = buildReasonText()
+  const tag = `Lý do huỷ: ${reasonText}`
+
+  const base = (prevNote.value || '').trim()
+  if (!base) return tag
+
+  // tránh lặp nếu trước đó đã có "Lý do huỷ:"
+  if (base.includes('Lý do huỷ:')) return base
+
+  return `${base} | ${tag}`
+}
+
+// Cập nhật UI local (dùng ID bill và cập nhật status, note)
+const updateLocalBill = () => {
+  const sources = [orders.value, paginatedOrders.value] // Các mảng cần cập nhật
+
+  for (const list of sources) {
+    if (!Array.isArray(list)) continue
+    const b = list.find(x => (x.id ?? x.billId ?? x.BILL_ID) === cancelBillId.value)
+    if (b) {
+      // Cập nhật trạng thái và ghi chú
+      b.STATUS = 5
+      b.status = 'Đã hủy'
+      b.NOTE = buildCancelNote()  // Gắn NOTE mới
+    }
+  }
+}
+const updateInventory = async () => {
+  try {
+    const order = orders.value.find(order => order.id === cancelBillId.value);
+  if (!order || !order.items || order.items.length === 0) {
+    console.error("❌ Không tìm thấy sản phẩm trong đơn hàng");
+    return;
+  }
+  console.log("Found order:", order); // In ra để kiểm tra đúng order
+console.log("Order items:", order.items); // In ra để kiểm tra các sản phẩm
+    // Duyệt qua các sản phẩm trong đơn hàng
+    for (const item of order.items) {
+      const productDetailId = item.productDetailId;
+      const quantityToUpdate = item.quantity;
+
+      if (!productDetailId || !quantityToUpdate) {
+        console.error("❌ Sản phẩm không có productDetailId hoặc số lượng không hợp lệ")
+        continue
+      }
+
+      // Log chi tiết sản phẩm để kiểm tra
+      console.log(`Cập nhật kho cho sản phẩm: ${productDetailId}, số lượng: ${quantityToUpdate}`)
+
+      // Gọi API để cập nhật số lượng kho (sử dụng phương thức updateQuantity)
+      const response = await axios.put(
+        `http://localhost:8080/inventory/updateQuantity/${productDetailId}`,
+        { quantity: quantityToUpdate }
+      )
+
+      console.log(`Cập nhật kho sản phẩm ${productDetailId}: ${quantityToUpdate} vào kho`, response.data)
+    }
+  } catch (error) {
+    console.error("Lỗi khi cập nhật kho:", error)
+  }
+}
+// Hàm submit huỷ đơn
+const submitCancel = async () => {
+  const hasOther = isOtherSelected.value
+  const reasonsCount = selectedReasons.value.filter(r => r !== 'Khác').length
+  const other = (otherReason.value || '').trim()
+
+  // Validate
+  if (hasOther && !other) {
+    Swal.fire('Thiếu ghi chú', 'Vui lòng nhập lý do ở ô "Khác".', 'warning')
+    return
+  }
+  if (!hasOther && reasonsCount === 0) {
+    Swal.fire('Thiếu thông tin', 'Vui lòng chọn ít nhất 1 lý do huỷ.', 'warning')
+    return
+  }
+
+  if (!Number.isFinite(Number(cancelBillId.value))) {
+    Swal.fire('Lỗi', 'ID hoá đơn không hợp lệ.', 'error')
+    return
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Xác nhận huỷ đơn?',
+    text: 'Đơn hàng sẽ chuyển sang trạng thái Đã huỷ.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Huỷ đơn',
+    cancelButtonText: 'Không'
+  })
+  if (!confirm.isConfirmed) return
+
+  try {
+    isCancelSubmitting.value = true
+
+    const note = buildCancelNote() // NOTE mới
+
+    // Gọi API để cập nhật trạng thái và NOTE của Bill
+    await axios.put(
+      `http://localhost:8080/bill/updateStatusNote/${cancelBillId.value}`,
+      { status: 5, note }
+    )
+
+    // Cập nhật UI local (sử dụng các mảng orders/paginatedOrders)
+    updateLocalBill()
+        // Cập nhật số lượng kho cho từng sản phẩm trong Bill Detail
+    await updateInventory()
+    Swal.fire('Đã huỷ đơn', 'Cảm ơn bạn đã cho biết lý do.', 'success')
+    closeCancelModal()
+  } catch (e) {
+    console.error('Cancel error:', e.response?.data || e.message)
+    Swal.fire('Lỗi', e.response?.data?.message || 'Không thể huỷ đơn. Vui lòng thử lại.', 'error')
+  } finally {
+    isCancelSubmitting.value = false
+  }
+}
 
 // Lấy customerID từ localStorage
 const getCustomerID = () => {
@@ -38,7 +219,6 @@ const getCustomerID = () => {
     return null;
   }
 };
-
 // Lấy cartID từ localStorage
 const getCartId = () => {
   cartId = localStorage.getItem("cartId");
@@ -280,7 +460,22 @@ const openModal = async (order) => {
   modalInstance.value.show(); // Hiển thị modal
 };
 
-onMounted(fetchOrder);
+onMounted(() => {
+  fetchOrder();
+  const flag = localStorage.getItem("paymentSuccessFlag");
+  if (flag === "1") {
+    Swal.fire({
+      icon: 'success',
+      title: 'Thanh toán thành công!',
+      text: 'Cảm ơn bạn đã mua hàng tại cửa hàng chúng tôi.',
+      confirmButtonText: 'Đóng'
+    });
+    localStorage.removeItem("paymentSuccessFlag");
+  }
+
+
+
+});
 </script>
 
 <template>
@@ -348,11 +543,53 @@ onMounted(fetchOrder);
           <button v-if="order.status === 'Hoàn Thành'" type="button" class="btn btn-primary" @click="addToCart(order)">
             Mua lại
           </button>
+          <button v-if="order.status === 'Chờ xác nhận'" type="button" class="btn btn-danger" @click="openCancelModal(order)">
+            Huỷ đơn
+          </button>
           <button class="btn btn-outline" @click="openModal(order)">Xem chi tiết</button>
         </div>
       </div>
     </div>
+      <!-- Modal Huỷ đơn -->
+  <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 id="cancelOrderLabel" class="modal-title">Chọn lý do huỷ đơn</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" :disabled="isCancelSubmitting"></button>
+        </div>
 
+        <div class="modal-body">
+            <p class="mb-2 text-muted">Bạn có thể chọn nhiều lý do:</p>
+
+            <div class="form-check" v-for="(reason, idx) in cancelReasons" :key="idx">
+              <input class="form-check-input"
+                    type="checkbox"
+                    :id="'cancel-reason-'+idx"
+                    :value="reason"
+                    v-model="selectedReasons">
+              <label class="form-check-label" :for="'cancel-reason-'+idx">{{ reason }}</label>
+            </div>
+
+            <!-- Ô "Khác" chỉ hiện khi đã tick Khác -->
+            <div class="mt-3" v-if="isOtherSelected">
+              <label class="form-label">Lý do khác</label>
+              <textarea class="form-control" rows="3" v-model.trim="otherReason"
+                        placeholder="Mô tả chi tiết lý do huỷ..."></textarea>
+              <div class="form-text">* Bắt buộc nhập nếu chọn “Khác”.</div>
+            </div>
+          </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal" :disabled="isCancelSubmitting">Đóng</button>
+          <button class="btn btn-danger" @click="submitCancel" :disabled="isCancelSubmitting">
+            <span v-if="isCancelSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+            Xác nhận huỷ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
     <!-- Phân trang -->
     <div v-if="totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">

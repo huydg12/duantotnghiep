@@ -545,7 +545,9 @@ const sendBill = async () => {
       }
     }
     sessionStorage.removeItem("checkoutItems");
-    window.location.href = "/home";
+
+      window.location.href = "/invoicecustomer";  // Chuyển về trang invoicecustomer
+
   } catch (err) {
     console.error("Lỗi tạo đơn hàng:", err);
   }
@@ -1063,17 +1065,6 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <!-- Toast thông báo thêm vào giỏ thành công -->
-  <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
-    <div class="toast align-items-center show bg-success text-white border-0">
-      <div class="d-flex">
-        <div class="toast-body">
-          ✅ Đã thêm vào mục yêu thích!
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="showToast = false"></button>
-      </div>
-    </div>
-  </div>
 
 
 </template>

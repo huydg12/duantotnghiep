@@ -104,5 +104,13 @@ public class BillController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật subTotal");
         }
     }
+    @PutMapping("/updateStatusNote/{id}")
+    public ResponseEntity<Bill> updateStatusNote(
+            @PathVariable int id,
+            @RequestBody Bill bill
+    ) {
+        Bill updated = billService.updateStatusNote(id, bill);
+        return ResponseEntity.ok(updated);
+    }
 
 }
