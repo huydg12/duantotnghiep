@@ -33,6 +33,7 @@ public class ImageService {
         return imageRepository.findById(id).map(i -> {
             i.setUrl(iupdate.getUrl());
             i.setMain(iupdate.isMain());
+            i.setProductDetailId(iupdate.getProductDetailId());
             return imageRepository.save(i);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
@@ -41,8 +42,8 @@ public class ImageService {
         return imageRepository.countByProductDetailId(productDetailId);
     }
 
-    public List<Image> findByProductDetailId(int productDetailId) {
-        return imageRepository.findByProductDetailId(productDetailId);
+    public List<Image> findByProductDetailIdOrderByIdAsc(int productDetailId) {
+        return imageRepository.findByProductDetailIdOrderByIdAsc(productDetailId);
     }
 
     // ✅ Hàm tìm ảnh theo ID (dùng cho update ảnh có file mới)
@@ -50,11 +51,6 @@ public class ImageService {
         return imageRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ảnh có id: " + id));
     }
-
-    // @Transactional
-    // public void resetMainImageByProductDetailId(Integer productDetailId) {
-    // imageRepository.resetMainImageNative(productDetailId);
-    // }
 
     // Nếu bạn có thêm hàm đặt ảnh chính, có thể gộp vào đây:
     @Transactional
@@ -65,5 +61,4 @@ public class ImageService {
         // Bước 2: đặt ảnh có ID cụ thể thành IS_MAIN = true
         imageRepository.setMainImageById(imageId);
     }
-
 }

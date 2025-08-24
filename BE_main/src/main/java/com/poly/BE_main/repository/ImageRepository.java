@@ -12,7 +12,7 @@ import com.poly.BE_main.model.Image;
 import jakarta.transaction.Transactional;
 
 public interface ImageRepository extends JpaRepository<Image, Integer> {
-    List<Image> findByProductDetailId(int productDetailId);
+    List<Image> findByProductDetailIdOrderByIdAsc(int productDetailId);
 
     long countByProductDetailId(int productDetailId);
 

@@ -26,11 +26,27 @@ public class ImageController {
 
     @Autowired
     ImageService imageService;
-
     @Autowired
     ImageRepository imageRepository;
 
-    private final String uploadFolder = "D:/Shoes/FE_main/my-project/public/images";
+    private static final Path UPLOAD_DIR = Paths.get("D:/Shoes/FE_main/my-project/public/images");
+    private static final String URL_PREFIX = "./images/";
+
+    public ImageController() {
+        try {
+            Files.createDirectories(UPLOAD_DIR);
+        } catch (IOException ignored) {
+        }
+    }
+
+    private Path resolveFilePath(String url) {
+        String fileName = url.replace(URL_PREFIX, "");
+        return UPLOAD_DIR.resolve(fileName);
+    }
+
+    private String toUrl(String fileName) {
+        return URL_PREFIX + fileName;
+    }
 
     @GetMapping("/show")
     public List<Image> findAll() {
@@ -38,8 +54,8 @@ public class ImageController {
     }
 
     @GetMapping("/show/{productDetailId}")
-    public List<Image> findByProductDetailId(@PathVariable int productDetailId) {
-        return imageService.findByProductDetailId(productDetailId);
+    public List<Image> findByProductDetailIdOrderByIdAsc(@PathVariable int productDetailId) {
+        return imageService.findByProductDetailIdOrderByIdAsc(productDetailId);
     }
 
     @PostMapping("/add")
@@ -54,31 +70,21 @@ public class ImageController {
 
     @DeleteMapping("/delete-image/{id}")
     public ResponseEntity<?> deleteImage(@PathVariable Integer id) {
-        Optional<Image> imageOpt = imageRepository.findById(id);
-
-        if (!imageOpt.isPresent()) {
+        Optional<Image> imgOpt = imageRepository.findById(id);
+        if (imgOpt.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ảnh không tồn tại");
-        }
 
-        Image image = imageOpt.get();
-
-        // Đường dẫn tuyệt đối đến file ảnh
-        String imagePath = uploadFolder + "/" + image.getUrl().replace("./images/", "");
-
+        Image img = imgOpt.get();
         try {
-            Path path = Paths.get(imagePath);
-            Files.deleteIfExists(path); // Xoá file ảnh thật
+            Files.deleteIfExists(resolveFilePath(img.getUrl())); // xoá file thật
+            imageRepository.deleteById(id); // xoá DB
+            return ResponseEntity.ok("Đã xoá ảnh thành công");
         } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi xoá file ảnh trên ổ đĩa");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi xoá file ảnh");
         }
-
-        // Xoá ảnh khỏi database
-        imageRepository.deleteById(id);
-
-        return ResponseEntity.ok("Đã xoá ảnh thành công");
     }
 
+    // Cập nhật thông tin ảnh
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateImage(
             @PathVariable int id,
@@ -87,43 +93,37 @@ public class ImageController {
             @RequestParam(value = "file", required = false) MultipartFile file) {
         try {
             Image image = imageService.findById(id);
-            if (image == null) {
-                return ResponseEntity.notFound().build();
-            }
-
             image.setMain(isMain);
             image.setProductDetailId(productDetailId);
 
             if (file != null && !file.isEmpty()) {
-                // Xoá ảnh cũ
-                String oldFileName = image.getUrl().replace("./images/", "");
-                Path oldPath = Paths.get("D:/Shoes/FE_main/my-project/public/images", oldFileName);
-                Files.deleteIfExists(oldPath);
+                // xoá file cũ
+                Files.deleteIfExists(resolveFilePath(image.getUrl()));
 
-                // Upload ảnh mới
-                String extension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf('.'));
-                String newFileName = UUID.randomUUID().toString() + extension;
-                Path newPath = Paths.get("D:/Shoes/FE_main/my-project/public/images", newFileName);
+                // lưu file mới với tên random
+                String orig = file.getOriginalFilename();
+                String ext = (orig != null && orig.lastIndexOf('.') != -1) ? orig.substring(orig.lastIndexOf('.')) : "";
+                String newFileName = UUID.randomUUID() + ext;
+
+                Path newPath = UPLOAD_DIR.resolve(newFileName);
+                Files.createDirectories(newPath.getParent());
                 Files.write(newPath, file.getBytes());
 
-                image.setUrl("./images/" + newFileName);
+                image.setUrl(toUrl(newFileName));
             }
-
-            Image updated = imageService.update(id, image);
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok(imageService.update(id, image));
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Lỗi cập nhật ảnh.");
         }
     }
 
+    // Thêm mới nhiều ảnh
     @PostMapping("/upload")
     public ResponseEntity<?> uploadImages(
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("productDetailId") int productDetailId,
             @RequestParam("mainImageIndex") int mainImageIndex,
             @RequestParam(value = "customFilename", required = false) String customFilename) {
-        String feImageFolder = "D:/Shoes/FE_main/my-project/public/images";
-        String urlPrefix = "./images/";
 
         long currentCount = imageService.countByProductDetailId(productDetailId);
         if (currentCount + files.size() > 6) {
@@ -131,45 +131,67 @@ public class ImageController {
         }
 
         List<Image> savedImages = new ArrayList<>();
+
         try {
+            Files.createDirectories(UPLOAD_DIR);
+
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
-                if (!file.isEmpty()) {
-                    String originalName = file.getOriginalFilename();
-                    String extension = originalName.substring(originalName.lastIndexOf('.'));
+                if (file.isEmpty())
+                    continue;
 
-                    // ✅ Sử dụng customFilename nếu có
-                    String baseFileName;
-                    if (customFilename != null && !customFilename.isBlank() && files.size() == 1) {
-                        baseFileName = customFilename;
-                    } else {
-                        baseFileName = originalName.substring(0, originalName.lastIndexOf('.'));
-                    }
+                String originalName = file.getOriginalFilename();
+                String ext = (originalName != null && originalName.lastIndexOf('.') != -1)
+                        ? originalName.substring(originalName.lastIndexOf('.'))
+                        : "";
 
-                    // ✅ Tránh trùng tên
-                    String finalFileName = baseFileName + extension;
-                    Path path = Paths.get(feImageFolder, finalFileName);
-                    int counter = 1;
-                    while (Files.exists(path)) {
-                        finalFileName = baseFileName + "_" + counter + extension;
-                        path = Paths.get(feImageFolder, finalFileName);
-                        counter++;
-                    }
-
-                    Files.createDirectories(path.getParent());
-                    Files.write(path, file.getBytes());
-
-                    String fileUrl = urlPrefix + finalFileName;
-
-                    Image image = new Image();
-                    image.setProductDetailId(productDetailId);
-                    image.setUrl(fileUrl);
-                    image.setMain(i == mainImageIndex);
-
-                    Image saved = imageService.create(image);
-                    savedImages.add(saved);
+                String baseName;
+                if (customFilename != null && !customFilename.isBlank() && files.size() == 1) {
+                    baseName = customFilename;
+                } else {
+                    baseName = (originalName != null && originalName.lastIndexOf('.') != -1)
+                            ? originalName.substring(0, originalName.lastIndexOf('.'))
+                            : (originalName != null ? originalName : UUID.randomUUID().toString());
                 }
+
+                String candidate = baseName + ext;
+                Path candidatePath = UPLOAD_DIR.resolve(candidate);
+
+                // ==== DEDUPE THEO NỘI DUNG ====
+                byte[] newBytes = file.getBytes();
+                if (Files.exists(candidatePath)) {
+                    // Nếu file cùng tên đã tồn tại: so sánh nội dung
+                    byte[] oldBytes = Files.readAllBytes(candidatePath);
+                    if (!java.util.Arrays.equals(oldBytes, newBytes)) {
+                        // khác nội dung -> tìm tên rảnh: _1, _2, ...
+                        int counter = 1;
+                        while (Files.exists(candidatePath)) {
+                            candidate = baseName + "_" + counter + ext;
+                            candidatePath = UPLOAD_DIR.resolve(candidate);
+                            counter++;
+                        }
+                        Files.write(candidatePath, newBytes);
+                    }
+                    // nếu cùng nội dung -> KHÔNG ghi thêm, tái sử dụng file cũ (giữ nguyên
+                    // candidatePath)
+                } else {
+                    // tên chưa tồn tại -> ghi mới
+                    Files.write(candidatePath, newBytes);
+                }
+
+                Image img = new Image();
+                img.setProductDetailId(productDetailId);
+                img.setUrl(URL_PREFIX + candidate);
+                img.setMain(i == mainImageIndex); // đánh dấu tạm thời
+
+                savedImages.add(imageService.create(img));
             }
+
+            // Nếu có main index, đảm bảo chỉ 1 ảnh là main
+            if (mainImageIndex >= 0 && mainImageIndex < savedImages.size()) {
+                imageService.setMainImage(savedImages.get(mainImageIndex).getId(), productDetailId);
+            }
+
             return ResponseEntity.ok(savedImages);
         } catch (IOException e) {
             e.printStackTrace();
@@ -184,31 +206,40 @@ public class ImageController {
             @RequestParam("imageIndex") int imageIndex) {
 
         try {
-            List<Image> images = imageService.findByProductDetailId(productDetailId);
-
+            List<Image> images = imageService.findByProductDetailIdOrderByIdAsc(productDetailId);
             if (imageIndex < 0 || imageIndex >= images.size()) {
                 return ResponseEntity.badRequest().body("Vị trí ảnh không hợp lệ.");
             }
 
-            Image imageToUpdate = images.get(imageIndex);
+            Image img = images.get(imageIndex);
 
-            // Xoá file cũ
-            String oldFileName = imageToUpdate.getUrl().replace("./images/", "");
-            Path oldPath = Paths.get(uploadFolder, oldFileName);
-            Files.deleteIfExists(oldPath);
+            Path oldPath = resolveFilePath(img.getUrl());
+            String oldName = oldPath.getFileName().toString();
 
-            // Upload file mới
-            String newFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path newPath = Paths.get(uploadFolder, newFileName);
+            String orig = file.getOriginalFilename();
+            String newExt = "";
+            if (orig != null) {
+                int dot = orig.lastIndexOf('.');
+                if (dot != -1)
+                    newExt = orig.substring(dot).toLowerCase();
+            }
+
+            String base = oldName.contains(".") ? oldName.substring(0, oldName.lastIndexOf('.')) : oldName;
+            String newName = base + (newExt.isEmpty() ? "" : newExt);
+            Path newPath = UPLOAD_DIR.resolve(newName);
+
+            if (!newPath.equals(oldPath)) {
+                Files.deleteIfExists(oldPath);
+                img.setUrl(toUrl(newName));
+            }
+
             Files.createDirectories(newPath.getParent());
-            Files.write(newPath, file.getBytes());
+            Files.copy(file.getInputStream(), newPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-            imageToUpdate.setUrl("./images/" + newFileName);
-            imageService.update(imageToUpdate.getId(), imageToUpdate); // Đổi create → update
+            imageService.update(img.getId(), img);
+            return ResponseEntity.ok(img);
 
-            return ResponseEntity.ok("Cập nhật ảnh thành công.");
         } catch (IOException e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật ảnh.");
         }
     }
@@ -217,9 +248,7 @@ public class ImageController {
     public ResponseEntity<String> setMainImage(
             @PathVariable Integer imageId,
             @RequestParam Integer productDetailId) {
-
         imageService.setMainImage(imageId, productDetailId);
         return ResponseEntity.ok("Đã đặt ảnh chính.");
     }
-
 }
