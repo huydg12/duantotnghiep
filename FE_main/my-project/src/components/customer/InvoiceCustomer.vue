@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed,reactive, onMounted, watch } from "vue";
 import axios from 'axios';
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
 import { Modal } from "bootstrap";
@@ -29,7 +29,6 @@ const cancelReasons = [
   'Đặt nhầm sản phẩm',
   'Không muốn mua nữa',
   'Thay đổi size',
-  'Thay đổi địa chỉ/Thông tin nhận hàng',
   'Thời gian giao hàng lâu',
   'Tìm được giá tốt hơn',
   'Không còn nhu cầu',
@@ -412,7 +411,7 @@ const fetchInvoiceDetails = async (order) => {
 
     // Map dữ liệu thành định dạng bạn cần (nếu cần)
     invoiceDetails.value = response.data;
-    console.log(invoiceDetails.value)
+    console.log("bill cho tiết " + invoiceDetails.value)
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
   }
@@ -426,7 +425,7 @@ let subTotal = ref(null)
 let shippingFee = ref(null)
 let discountAmount = ref(null)
 let grandTotal = ref(null)
-
+const selectedAddress = ref(null);
 const openModal = async (order) => {
   if (!order || !order.id) {
     console.error("❌ Hóa đơn không có ID");
@@ -434,16 +433,16 @@ const openModal = async (order) => {
   }
 
   selectedInvoice.value = { ...order };
-  statusInvoice = selectedInvoice.value.status
-  billId = selectedInvoice.value.id;
-
+  statusInvoice = selectedInvoice.value.status;
+  billId.value = selectedInvoice.value.id;  // Gán billId cho biến toàn cục
+  console.log("Mã hoá đơn được chọn:", billId.value);
   order.items.forEach((item, index) => {
-    subTotal = item.subTotal
-    shippingFee = item.shippingFee
-    discountAmount = item.discountAmount
-    grandTotal = subTotal + shippingFee - discountAmount
+    subTotal = item.subTotal;
+    shippingFee = item.shippingFee;
+    discountAmount = item.discountAmount;
+    grandTotal = subTotal + shippingFee - discountAmount;
 
-    quantity = item.quantity
+    quantity = item.quantity;
   });
 
   await fetchInvoiceDetails(order);
@@ -460,6 +459,398 @@ const openModal = async (order) => {
   modalInstance.value.show(); // Hiển thị modal
 };
 
+// Hàm lưu địa chỉ đã chọn
+const saveSelectedAddress = async () => {
+  if (!selectedAddress.value) {
+    Swal.fire('Lỗi', 'Vui lòng chọn một địa chỉ', 'warning');
+    return;
+  }
+
+  const address = addressList.value.find(addr => addr.id === selectedAddress.value); // Sửa thành addr.id === selectedAddress.value
+  if (address) {
+    console.log('Địa chỉ đã chọn:', address);
+
+    // Gửi yêu cầu cập nhật địa chỉ vào hóa đơn
+    const payload = {
+      recipientName: address.fullName,
+      recipientPhoneNumber: address.numberPhone,
+      receiverAddress: address.fullAddress,
+    };
+
+    console.log("Payload gửi đi:", payload);
+
+    try {
+      const response = await axios.put(`http://localhost:8080/bill/updateAddressByBill/${billId.value}`, payload); // Sử dụng billId.value
+      console.log("Response:", response);
+      if (response.status === 200) {
+        Swal.fire('Thành công', 'Địa chỉ đã được cập nhật!', 'success');
+        closeAddressOverlay();
+        await fetchOrder();  // Làm mới danh sách địa chỉ sau khi lưu thành công
+      } else {
+        console.log("Không có phản hồi thành công từ server", response);
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật địa chỉ:", error);
+      Swal.fire('Lỗi', 'Không thể cập nhật địa chỉ. Vui lòng thử lại.', 'error');
+    }
+  }
+};
+
+
+
+const showAddressOverlay = ref(false);
+const showAddAddressOverlay = ref(false);
+const showUpdateAddressOverlay = ref(false);
+
+const addressList = ref([]);
+const provinces = ref([]);
+const districts = ref([]);
+const wards = ref([]);
+const defaultAddress = ref(null);
+const selectedProvinceCode = ref(null);
+const selectedDistrictCode = ref(null);
+const selectedWardCode = ref(null);
+
+
+const recipientName = ref('');
+const phoneNumber = ref('');
+const detailAddress = ref('');
+const isDefaultAddress = ref(false);
+const addressBeingEdited = reactive({
+  id: null,
+  fullName: '',
+  numberPhone: '',
+  fullAddress: '',
+  detailAddress: '',
+  wardCode: '',
+  districtCode: '',
+  cityCode: '',
+  default: false,
+});
+
+
+
+// Hàm normalize để so sánh tên không dấu
+const normalize = (str) => {
+  return str
+    ?.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
+
+
+
+// ✅ Lấy danh sách tỉnh/thành phố (và districts cấp 2 luôn)
+const fetchProvinces = async () => {
+  try {
+    const res = await axios.get("https://provinces.open-api.vn/api/?depth=2");
+    provinces.value = res.data;
+  } catch (err) {
+    console.error("❌ Lỗi tải tỉnh/thành:", err);
+  }
+};
+
+// ✅ Lấy danh sách quận/huyện từ mã tỉnh
+const fetchDistricts = async (cityCode) => {
+  try {
+    const res = await axios.get(`https://provinces.open-api.vn/api/p/${cityCode}?depth=2`);
+    const city = res.data;
+    districts.value = city.districts || [];
+  } catch (err) {
+    console.error("❌ Lỗi khi tải quận/huyện:", err);
+    districts.value = [];
+  }
+};
+
+const fetchWards = async (districtCode) => {
+  try {
+    const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+    const data = response.data;
+
+    // ✅ Gán vào wards riêng (nếu cần hiển thị ngoài UI)
+    wards.value = data.wards || [];
+
+    // ✅ Đồng thời cập nhật lại vào đúng district trong provinces
+    for (const city of provinces.value) {
+      const district = city.districts?.find(d => d.code === districtCode);
+      if (district) {
+        district.wards = data.wards || [];
+        break;
+      }
+    }
+
+    return data.wards || [];
+  } catch (err) {
+    console.error("❌ Lỗi khi tải phường/xã:", err);
+    wards.value = [];
+    return [];
+  }
+};
+
+const saveAddress = async () => {
+  try {
+    const province = provinces.value.find(p => p.code === selectedProvinceCode.value);
+    const district = districts.value.find(d => d.code === selectedDistrictCode.value);
+    const ward = wards.value.find(w => w.code === selectedWardCode.value);
+    const fullAddress = `${detailAddress.value}, ${ward.name}, ${district.name}, ${province.name}`;
+
+    if (!customerId) {
+      return;
+    }
+
+    const newAddress = {
+      fullAddress: fullAddress,
+      numberPhone: phoneNumber.value,
+      fullName: recipientName.value,
+      customerId: customerId,
+      default: isDefaultAddress.value,
+      detailAddress: detailAddress.value,
+      wardName: ward.name,
+      districtName: district.name,
+      cityName: province.name
+    };
+
+    const response = await fetch('http://localhost:8080/address/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newAddress)
+    });
+
+    if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
+
+    const result = await response.json();
+    console.log('Thêm địa chỉ thành công:', result);
+
+    resetAddressForm();
+    closeAddAddressOverlay();
+    await fetchAddressList();
+
+    // Nếu cần, load lại danh sách địa chỉ
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const handleCityChange = () => {
+  addressBeingEdited.districtCode = '';
+  addressBeingEdited.wardCode = '';
+  fetchDistricts(addressBeingEdited.cityCode);
+};
+
+const handleDistrictChange = () => {
+  addressBeingEdited.wardCode = '';
+  fetchWards(addressBeingEdited.districtCode);
+};
+
+
+const resetAddressForm = () => {
+  recipientName.value = '';
+  phoneNumber.value = '';
+  selectedProvinceCode.value = null;
+  selectedDistrictCode.value = null;
+  selectedWardCode.value = null;
+  detailAddress.value = '';
+  districts.value = [];
+  wards.value = [];
+  isDefaultAddress.value = false;
+};
+
+
+const getCityNameByCode = (code) => {
+  const city = (provinces.value || []).find(p => p.code === code);
+  return city ? city.name : '';
+};
+
+const getDistrictNameByCode = (code) => {
+  for (const city of provinces.value || []) {
+    const district = (city.districts || []).find(d => d.code === code);
+    if (district) return district.name;
+  }
+  return '';
+};
+
+const getWardNameByCode = (code) => {
+  for (const city of provinces.value || []) {
+    for (const district of city.districts || []) {
+      const ward = (district.wards || []).find(w => w.code === code);
+      if (ward) return ward.name;
+    }
+  }
+  return '';
+};
+
+const updateAddress = async () => {
+  try {
+    const data = {
+      customerId: customerId,
+      fullName: addressBeingEdited.fullName,
+      numberPhone: addressBeingEdited.numberPhone,
+      fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
+      ${getDistrictNameByCode(addressBeingEdited.districtCode)}, ${getCityNameByCode(addressBeingEdited.cityCode)}`,
+      default: addressBeingEdited.default,
+      detailAddress: addressBeingEdited.detailAddress,
+      wardName: getWardNameByCode(addressBeingEdited.wardCode) || addressBeingEdited.wardName,
+      districtName: getDistrictNameByCode(addressBeingEdited.districtCode) || addressBeingEdited.districtName,
+      cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
+    };
+
+    console.log("📦 Dữ liệu gửi đi:", data);
+
+    const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("⚠️ Response status:", response.status);
+      console.error("📩 Response body:", errorText);
+      throw new Error('Cập nhật địa chỉ thất bại');
+    }
+
+    await fetchAddressList();
+    closeUpdateAddressOverlay();
+  } catch (err) {
+    console.error('❌ Lỗi cập nhật địa chỉ:', err);
+
+  }
+};
+
+const fetchAddressList = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/address/showById/${customerId}`);
+    addressList.value = response.data;
+    // Gán default address
+    defaultAddress.value = addressList.value.find(addr => addr.default === true);
+
+    // 👉 Đóng popup và reset form
+    closeAddAddressOverlay();
+  } catch (error) {
+    console.error('Lỗi khi lấy địa chỉ:', error);
+  }
+};
+
+const newAddressForm = ref(null);
+
+// Mở popup chọn địa chỉ
+const openAddressOverlay = () => {
+  showAddressOverlay.value = true;
+};
+
+// Đóng popup chọn địa chỉ
+const closeAddressOverlay = () => {
+  showAddressOverlay.value = false;
+};
+
+// Mở popup thêm địa chỉ
+const openAddAddressOverlay = () => {
+  showAddAddressOverlay.value = true;
+};
+
+// Đóng popup thêm địa chỉ
+const closeAddAddressOverlay = () => {
+  showAddAddressOverlay.value = false;
+  if (newAddressForm.value) newAddressForm.value.reset();
+};
+
+const openUpdateAddressOverlay = async (address) => {
+  console.log("🔍 Đang mở popup sửa địa chỉ:", address);
+
+  // Tìm tỉnh/thành phố
+  const city = provinces.value.find(p =>
+    normalize(p.name) === normalize(address.cityName)
+  );
+  const cityCode = city?.code || null;
+  console.log("📍 Mã tỉnh (cityCode):", cityCode, "| Tên tỉnh:", address.cityName);
+
+  let districtCode = null;
+  let wardCode = null;
+
+  if (cityCode) {
+    await fetchDistricts(cityCode); // Cập nhật danh sách quận/huyện
+
+    // Tìm quận/huyện
+    const district = (city?.districts || []).find(d =>
+      normalize(d.name) === normalize(address.districtName)
+    );
+    districtCode = district?.code || null;
+    console.log("🏙️ Mã quận (districtCode):", districtCode, "| Tên quận:", address.districtName);
+
+    if (districtCode) {
+      const wardList = await fetchWards(districtCode); // <-- CHỜ WARD THỰC SỰ TRẢ VỀ
+
+      if (Array.isArray(wardList)) {
+        const ward = wardList.find(w =>
+          normalize(w.name) === normalize(address.wardName)
+        );
+        console.table(wardList.map(w => ({ code: w.code, name: w.name })));
+        wardCode = ward?.code || null;
+        console.log("🏡 Mã phường (wardCode):", wardCode, "| Tên phường:", address.wardName);
+      } else {
+        console.error("❌ wards không phải là mảng:", wardList);
+      }
+    }
+  }
+
+  // Gán dữ liệu vào form đang chỉnh sửa
+  addressBeingEdited.id = address.id;
+  addressBeingEdited.fullName = address.fullName;
+  addressBeingEdited.numberPhone = address.numberPhone;
+  addressBeingEdited.fullAddress = address.fullAddress;
+  addressBeingEdited.cityCode = cityCode;
+  addressBeingEdited.detailAddress = address.detailAddress;
+  addressBeingEdited.districtCode = districtCode;
+  addressBeingEdited.wardCode = wardCode;
+  addressBeingEdited.default = address.default;
+
+  // Hiển thị popup
+  showUpdateAddressOverlay.value = true;
+};
+// Đóng popup sửa địa chỉ
+const closeUpdateAddressOverlay = () => {
+  showUpdateAddressOverlay.value = false;
+  if (newAddressForm.value) newAddressForm.value.reset();
+};
+
+// Đóng popup khi click bên ngoài
+const handleOverlayClick = (e) => {
+  if (e.target.classList.contains('overlay-background')) {
+    showAddressOverlay.value = false;
+    showAddAddressOverlay.value = false;
+    showUpdateAddressOverlay.value = false;
+    if (newAddressForm.value) newAddressForm.value.reset();
+  }
+};
+
+const deleteAddress = async (id) => {
+  const addressToDelete = addressList.value.find(addr => addr.id === id)
+
+  // Nếu là mặc định thì không cho xóa
+  if (addressToDelete.default) {
+    alert("❌ Không thể xoá địa chỉ mặc định.\nVui lòng chọn địa chỉ khác làm mặc định trước.")
+    return
+  }
+
+  if (!confirm('🗑️ Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
+
+  try {
+    await axios.delete(`http://localhost:8080/address/delete/${id}`);
+    addressList.value = addressList.value.filter(addr => addr.id !== id);
+    alert("✅ Xoá địa chỉ thành công.")
+  } catch (error) {
+    console.error('❌ Lỗi khi xoá địa chỉ:', error);
+    alert("Đã xảy ra lỗi khi xoá địa chỉ.")
+  }
+}
+
+
 onMounted(() => {
   fetchOrder();
   const flag = localStorage.getItem("paymentSuccessFlag");
@@ -472,7 +863,11 @@ onMounted(() => {
     });
     localStorage.removeItem("paymentSuccessFlag");
   }
+    if (customerId) {
 
+    fetchAddressList();
+  }
+  fetchProvinces();
 
 
 });
@@ -618,24 +1013,22 @@ onMounted(() => {
 
           <div class="modal-body" v-if="selectedInvoice">
             <!-- Thông tin hóa đơn -->
+            <div class="border rounded bg-light p-3">
+              <div class="row mb-3 align-items-center">
+                <div class="col-md-9">
+                  <strong>{{ selectedInvoice.recipientName }}</strong> - {{ selectedInvoice.recipientNumberPhone }}<br>
+                  {{ selectedInvoice.receiverAddress }}
+                </div>
+                <div class="col-md-3 text-end">
+                  <button v-if="order.status === 'Chờ xác nhận'" @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
+                </div>
+              </div>
+            </div>
+
             <div class="row mb-3">
               <div class="col-md-6">
                 <label>Mã hóa đơn</label>
                 <input v-model="selectedInvoice.code" class="form-control" :readonly="true" />
-              </div>
-              <div class="col-md-6">
-                <label>Người nhận</label>
-                <input v-model="selectedInvoice.RECIPIENT_NAME" class="form-control" :readonly="true" />
-              </div>
-            </div>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label>SĐT</label>
-                <input v-model="selectedInvoice.RECIPIENT_PHONE_NUMBER" class="form-control" :readonly="true" />
-              </div>
-              <div class="col-md-6">
-                <label>Địa chỉ</label>
-
               </div>
             </div>
             <div class="mb-3">
@@ -704,9 +1097,235 @@ onMounted(() => {
             <button v-if="statusInvoice === 'Chờ xác nhận'" class="btn btn-success"
               @click="">Lưu</button>
           </div>
+
         </div>
       </div>
+
+<!-- Popup chọn địa chỉ -->
+<div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+  <div class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
+    style="max-width: 600px; height: 70vh;" @click.stop>
+    <!-- Header: cố định -->
+    <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
+      <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Đóng"
+        @click="closeAddressOverlay"></button>
     </div>
+
+    <!-- Body: cuộn -->
+    <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
+      <form @submit.prevent="confirmAddressSelection">
+        <!-- Danh sách địa chỉ -->
+        <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
+          <div class="mb-2">
+            <strong>{{ address.fullName }}</strong><br />
+            <span class="text-muted small">{{ address.numberPhone }}</span><br />
+            <span class="small">{{ address.fullAddress }}</span>
+          </div>
+
+          <!-- Khung chọn địa chỉ -->
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" :id="'address-' + address.id" 
+                v-model="selectedAddress" 
+                :value="address.id">
+              <label class="form-check-label" :for="'address-' + address.id">Chọn địa chỉ</label>
+            </div>
+
+            <!-- Bên phải: nút Cập nhật và Lưu -->
+            <div class="d-flex gap-2">
+              <span class="text-primary text-decoration-underline small" role="button"
+                @click="openUpdateAddressOverlay(address)">
+                Cập nhật
+              </span>
+              <span class="text-danger text-decoration-underline small" role="button"
+                @click="deleteAddress(address.id)">
+                Xoá
+              </span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer: cố định -->
+    <div class="p-4 border-top bg-white position-sticky bottom-0 z-2">
+      <button type="button" class="btn btn-outline-primary w-100" @click="saveSelectedAddress">
+        Lưu thay đổi
+      </button>
+      <button type="button" class="btn btn-success w-100 mt-2" @click="openAddAddressOverlay">
+        + Thêm Địa Chỉ Mới
+      </button>
+    </div>
+  </div>
+</div>
+  <!-- Popup thêm địa chỉ -->
+  <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
+    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+    <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
+      <div class="p-3"> <!-- Giảm padding -->
+        <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
+
+        <!-- Nút X -->
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+          @click="closeAddAddressOverlay"></button>
+
+        <form @submit.prevent="saveAddress">
+          <!-- Họ và tên -->
+          <div class="mb-2">
+            <label class="form-label">Họ và tên người nhận</label>
+            <input type="text" class="form-control form-control-sm" placeholder="Nhập họ tên" v-model="recipientName"
+              required />
+          </div>
+
+          <!-- Số điện thoại -->
+          <div class="mb-2">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" class="form-control form-control-sm" placeholder="Nhập số điện thoại"
+              v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
+              required />
+          </div>
+
+          <!-- Tỉnh / Thành phố -->
+          <div class="mb-2">
+            <label class="form-label">Tỉnh / Thành phố</label>
+            <select class="form-select form-select-sm" required v-model="selectedProvinceCode"
+              @change="fetchDistricts(selectedProvinceCode)">
+              <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
+              <option v-for="province in provinces" :key="province.code" :value="province.code">
+                {{ province.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Quận / Huyện -->
+          <div class="mb-2">
+            <label class="form-label">Quận / Huyện</label>
+            <select class="form-select form-select-sm" required v-model="selectedDistrictCode"
+              @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
+              <option value="" disabled selected>-- Chọn quận/huyện --</option>
+              <option v-for="district in districts" :key="district.code" :value="district.code">
+                {{ district.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Phường / Xã -->
+          <div class="mb-2">
+            <label class="form-label">Phường / Xã</label>
+            <select class="form-select form-select-sm" required v-model="selectedWardCode" :disabled="!wards.length">
+              <option value="" disabled selected>-- Chọn phường/xã --</option>
+              <option v-for="ward in wards" :key="ward.code" :value="ward.code">
+                {{ ward.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Địa chỉ chi tiết -->
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ chi tiết</label>
+            <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập địa chỉ cụ thể"
+              v-model="detailAddress" required></textarea>
+          </div>
+
+          <!-- Nút lưu -->
+          <div class="text-end">
+            <button type="submit" class="btn btn-sm btn-primary">Lưu địa chỉ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Popup cập nhật địa chỉ -->
+  <div v-if="showUpdateAddressOverlay"
+    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+    style="z-index: 9999">
+    <div class="bg-white p-3 rounded shadow position-relative w-100"
+      style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
+      <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
+
+      <!-- Nút X -->
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+        @click="closeUpdateAddressOverlay"></button>
+
+      <form @submit.prevent="updateAddress">
+        <!-- Họ tên -->
+        <div class="mb-2">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" class="form-control form-control-sm"
+            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName" required />
+        </div>
+
+        <!-- Số điện thoại -->
+        <div class="mb-2">
+          <label class="form-label">Số điện thoại</label>
+          <input type="text" class="form-control form-control-sm"
+            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+            required />
+        </div>
+
+        <!-- Tỉnh / Thành phố -->
+        <div class="mb-2">
+          <label class="form-label">Tỉnh / Thành phố</label>
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.cityCode" @change="handleCityChange">
+            <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
+            <option v-for="province in provinces" :key="province.code" :value="province.code">
+              {{ province.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Quận / Huyện -->
+        <div class="mb-2">
+          <label class="form-label">Quận / Huyện</label>
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.districtCode" @change="handleDistrictChange" :disabled="!districts.length">
+            <option disabled value="">-- Chọn quận/huyện --</option>
+            <option v-for="district in districts" :key="district.code" :value="district.code">
+              {{ district.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Phường / Xã -->
+        <div class="mb-2">
+          <label class="form-label">Phường / Xã</label>
+          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
+            v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
+            <option disabled value="">-- Chọn phường/xã --</option>
+            <option v-for="ward in wards" :key="ward.code" :value="ward.code">
+              {{ ward.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Địa chỉ chi tiết -->
+        <div class="mb-3 mt-2">
+          <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
+          <textarea class="form-control form-control-sm" rows="2" style="font-size: 0.7rem; padding: 4px 8px;"
+            placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
+        </div>
+
+        <div class="text-end">
+          <button type="submit" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 4px 12px;">
+            Lưu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+    </div>
+
+
+
+    
   </div>
 </template>
 
@@ -918,4 +1537,5 @@ onMounted(() => {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 </style>

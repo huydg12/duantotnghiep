@@ -198,6 +198,9 @@ public class BillService {
             InvoiceCustomerDTO dto = new InvoiceCustomerDTO(
                     bill.getId(),
                     bill.getCode(),
+                    bill.getRecipientName(),
+                    bill.getRecipientPhoneNumber(),
+                    bill.getReceiverAddress(),
                     bill.getCreatedDate(),
                     convertStatusToString(bill.getStatus()),
                     bill.getGrandTotal(),
@@ -231,12 +234,29 @@ public class BillService {
             throw new RuntimeException("Không tìm thấy hóa đơn có id: " + billId);
         }
     }
-            public Bill updateStatusNote(int id, Bill b) {
+    public Bill updateStatusNote(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setStatus(b.getStatus());
             bUpdate.setNote(b.getNote());
             return billRepository.save(bUpdate);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
-        }
+    }
+        public Bill updateAddressByBill(int id, Bill b) {
+        return billRepository.findById(id).map(bUpdate -> {
+            bUpdate.setRecipientName(b.getRecipientName());
+            bUpdate.setRecipientPhoneNumber(b.getRecipientPhoneNumber());
+            bUpdate.setReceiverAddress(b.getReceiverAddress());
+            return billRepository.save(bUpdate);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+    }
+
+            public Bill updateBill(int id, Bill b) {
+        return billRepository.findById(id).map(bUpdate -> {
+            bUpdate.setNote(b.getNote());
+            bUpdate.setSubTotal(b.getSubTotal());
+            bUpdate.setGrandTotal(b.getGrandTotal());
+            return billRepository.save(bUpdate);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+    }
 
 }

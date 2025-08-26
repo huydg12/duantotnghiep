@@ -848,7 +848,7 @@ onUnmounted(() => {
 
     <!-- Nút thanh toán -->
     <div class="text-end mt-4">
-      <button class="btn btn-success px-4" @click="createBill">Thanh toán</button>
+      <button class="btn btn-success px-4" @click="createBill">Đặt hàng</button>
     </div>
   </div>
   <!-- Popup chọn địa chỉ -->

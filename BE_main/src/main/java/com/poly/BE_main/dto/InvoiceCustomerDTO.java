@@ -14,6 +14,9 @@ import lombok.NoArgsConstructor;
 public class InvoiceCustomerDTO {
     int id;
     String code;
+    String recipientName;
+    String recipientNumberPhone;
+    String receiverAddress;
     LocalDate date;
     String status;
     BigDecimal total;

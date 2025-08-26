@@ -3,7 +3,6 @@ import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
-import Swal from 'sweetalert2'
 
 // Store và router
 const store = useCartFavoriteStore();
@@ -154,16 +153,6 @@ function formatCurrency(value) {
 }
 
 onMounted(() => {
-  const flag = localStorage.getItem("paymentSuccessFlag");
-  if (flag === "1") {
-    Swal.fire({
-      icon: 'success',
-      title: 'Thanh toán thành công!',
-      text: 'Cảm ơn bạn đã mua hàng tại cửa hàng chúng tôi.',
-      confirmButtonText: 'Đóng'
-    });
-    localStorage.removeItem("paymentSuccessFlag");
-  }
   fetchTop4Products();
   fetchAllProducts();
   fetchFavorites();

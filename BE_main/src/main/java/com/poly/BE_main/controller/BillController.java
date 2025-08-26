@@ -112,5 +112,21 @@ public class BillController {
         Bill updated = billService.updateStatusNote(id, bill);
         return ResponseEntity.ok(updated);
     }
+    @PutMapping("/updateAddressByBill/{id}")
+    public ResponseEntity<Bill> updateAddressByBill(
+            @PathVariable int id,
+            @RequestBody Bill bill
+    ) {
+        Bill updated = billService.updateAddressByBill(id, bill);
+        return ResponseEntity.ok(updated);
+    }
+        @PutMapping("/updateBill/{id}")
+    public ResponseEntity<Bill> updateBill(
+            @PathVariable int id,
+            @RequestBody Bill bill
+    ) {
+        Bill updated = billService.updateBill(id, bill);
+        return ResponseEntity.ok(updated);
+    }
 
 }

@@ -1,9 +1,8 @@
 <script setup>
-import { ref, shallowRef, defineAsyncComponent, onMounted } from "vue";
-
+import { ref, shallowRef,computed, defineAsyncComponent,onUnmounted, onMounted } from "vue";
+import axios from "axios";
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import EmployeeManagement from "../dashboard/EmployeeManagement.vue";
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -185,10 +184,23 @@ function handleClick(target) {
     loadContent(target)
   }
 }
+const bills = ref([]);
+const newBillCount = computed(() => bills.value.filter(b => Number(b.STATUS) === 1).length);
+
+const fetchBills = async () => {
+  const { data } = await axios.get('http://localhost:8080/bill/show');
+  bills.value = data.map(x => ({ ...x, STATUS: Number(x.status) }));
+};
+
+const refreshOnChanged = () => fetchBills();
 
 onMounted(() => {
-  console.log('Thông tin user đang đăng nhập:', userStore.user)
-})
+  fetchBills();
+  window.addEventListener('bill:changed', refreshOnChanged);
+});
+onUnmounted(() => {
+  window.removeEventListener('bill:changed', refreshOnChanged);
+});
 
 const openMenus = ref({})
 
@@ -221,6 +233,7 @@ function isCollapseOpen(id) {
             <a v-if="!item.sub" href="#" class="nav-link" :class="{ active: activeTarget === item.target }"
               @click.prevent="handleClick(item.target)">
               <i :class="item.icon"></i> {{ item.label }}
+              <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{ newBillCount }}</span>
             </a>
 
             <template v-else>
@@ -258,7 +271,17 @@ function isCollapseOpen(id) {
 <style scoped>
 @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';
 @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+/* Container của mục menu (ví dụ .nav-link trong sidebar) */
+/* đẩy badge sang phải, nằm TRONG khung */
+.sidebar .nav-link {
+  display: flex;
+  align-items: center;
+}
 
+.sidebar .nav-link .badge {
+  margin-left: auto;   /* đẩy sát phải */
+  margin-right: 0px;  /* chừa 10px trong khung */
+}
 .sidebar {
   width: 288px;
   background-color: #212529;
