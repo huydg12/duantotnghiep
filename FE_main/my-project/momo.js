@@ -187,7 +187,6 @@ momo.post("/callback", async (req, res) => {
           );
         }
       }
-      window.location.href = "/invoicecustomer";
       console.log("🔎 Payload gửi về Java:", billPayload);
       console.log("✅ Đã lưu đơn hàng vào CSDL:", response.data);
     } catch (err) {

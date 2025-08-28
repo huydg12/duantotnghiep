@@ -19,6 +19,10 @@ export const useUserStore = defineStore("user", {
       this.user = null;
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
+      this.removePaymentSuccessFlag(); // Xóa flag payment success khi logout
+    },
+    removePaymentSuccessFlag() {
+      localStorage.removeItem("paymentSuccessFlag");
     },
   },
 });

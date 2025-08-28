@@ -125,9 +125,9 @@ onMounted(async () => {
 });
 
 
-function goToProductDetail(productDetailId) {
-  router.push(`/productdetail/${productDetailId}`);
-  console.log("sp chi tiết: " + productDetailId);
+function goToProductDetail(productId) {
+  router.push(`/productdetail/${productId}`);
+  console.log("sp chi tiết: " + productId);
 }
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`)
@@ -193,7 +193,7 @@ const goToDetail = (id) => {
               <div v-if="store.cartItems.length > 0">
                 <div v-for="item in store.cartItems.slice(0, 5)" :key="item.cartDetailId"
                   class="d-flex align-items-center mb-2 px-2 hover-highlight"
-                  @click="goToProductDetail(item.productDetailId)">
+                  @click="goToProductDetail(item.productId)">
                   <img :src="item.images" alt="..." class="me-2"
                     style="width: 50px; height: 50px; object-fit: contain;" />
                   <div class="flex-grow-1">
@@ -203,8 +203,7 @@ const goToDetail = (id) => {
                 </div>
                 <hr class="my-2" />
                 <div class="d-flex justify-content-between align-items-center px-2 pb-2">
-                  <span class="text-muted small">{{ store.cartItems.length }} Thêm Hàng Vào Giỏ</span>
-                  <router-link to="/cart" class="btn btn-sm btn-danger custom-cart-btn">Xem Giỏ Hàng</router-link>
+                  <span class="text-muted small">{{ store.cartItems.length }} Sản phẩm trong Giỏ</span>
                 </div>
               </div>
               <div v-else class="text-center text-muted py-2">Chưa có sản phẩm</div>

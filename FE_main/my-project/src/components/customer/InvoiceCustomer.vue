@@ -853,16 +853,6 @@ const deleteAddress = async (id) => {
 
 onMounted(() => {
   fetchOrder();
-  const flag = localStorage.getItem("paymentSuccessFlag");
-  if (flag === "1") {
-    Swal.fire({
-      icon: 'success',
-      title: 'Thanh toán thành công!',
-      text: 'Cảm ơn bạn đã mua hàng tại cửa hàng chúng tôi.',
-      confirmButtonText: 'Đóng'
-    });
-    localStorage.removeItem("paymentSuccessFlag");
-  }
     if (customerId) {
 
     fetchAddressList();

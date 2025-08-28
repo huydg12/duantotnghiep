@@ -288,9 +288,9 @@ onMounted(() => {
           <label class="form-label">Số lượng</label>
           <input type="number" v-model.number="quantity" min="1" :max="selectedProduct.quantity" class="form-control"
             @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" />
-          <small class="text-muted mt-1 d-block">
-            {{ selectedProduct.quantity }} sản phẩm có sẵn
-          </small>
+        <small class="text-muted mt-1 d-block">
+          {{ selectedProduct.quantity === null || selectedProduct.quantity === 0 ? '0 sản phẩm có sẵn' : selectedProduct.quantity + ' sản phẩm có sẵn' }}
+        </small>
         </div>
 
 

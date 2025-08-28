@@ -412,16 +412,7 @@ const paymentMethodMapping = {
   QR: 3
 };
 
-const getValidPromotion = () => {
-  const today = new Date().toISOString().split("T")[0];
 
-  return discountAmount.value.find(promo => {
-    return promo.startDate <= today &&
-      promo.endDate >= today &&
-      promo.status === 1 &&
-      promo.applyAll === true;
-  });
-};
 
 const billCode = ref(`HD${Date.now()}`)  // ví dụ: "HD1721810123980"
 // Hàm tạo billPayload động
@@ -502,6 +493,7 @@ const createBill = async () => {
   });
 
   localStorage.setItem("paymentSuccessFlag", "1");
+  console.log("Đã lưu flag paymentSuccessFlag = 1 vào localStorage");
   if (selectedPaymentMethod.value === 'QR') {
     amount.value = grandTotal.value;
     addInfo.value = billCode.value;
