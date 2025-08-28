@@ -199,4 +199,20 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
         @Query("UPDATE Bill b SET b.subTotal = :subTotal WHERE b.id = :billId")
         void updateSubTotal(@Param("billId") int billId, @Param("subTotal") BigDecimal subTotal);
 
+        @Query(value = """
+              SELECT 
+                  CONVERT(varchar(10), b.CREATED_DATE, 23) AS createDate,
+                  COUNT(*) AS billCount,
+                  SUM(
+                      ISNULL(b.GRAND_TOTAL,
+                            ISNULL(b.SUB_TOTAL,0) - ISNULL(b.DISCOUNT_AMOUNT,0) + ISNULL(b.SHIPPING_FEE,0))
+                  ) AS totalStatistic
+              FROM BILL b
+              WHERE b.CREATED_DATE IS NOT NULL
+                AND (b.[STATUS] IS NULL OR b.[STATUS] <> 5)  -- 👈 bỏ trạng thái 5
+              GROUP BY b.CREATED_DATE
+              ORDER BY b.CREATED_DATE DESC;
+            """, nativeQuery = true)
+        List<Object[]> revenueByDayPaid();
+
 }

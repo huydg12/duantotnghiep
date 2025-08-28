@@ -527,16 +527,6 @@ const sendBill = async () => {
     const response = await axios.post("http://localhost:8080/bill/add", payload);
     const savedBill = response.data;
 
-    // ✅ Trừ kho dựa vào billDetails
-    if (Array.isArray(savedBill.billDetails)) {
-      for (const detail of savedBill.billDetails) {
-        if (detail.productDetailId && detail.quantity) {
-          await axios.put(`http://localhost:8080/inventory/updateQuantityByPayMent/${detail.productDetailId}`, {
-            quantity: detail.quantity
-          });
-        }
-      }
-    }
 
     // Xoá cart
     for (const item of checkoutItems.value) {

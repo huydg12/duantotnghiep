@@ -53,7 +53,7 @@ public class InventoryService {
 
         if (optionalInventory.isPresent()) {
             Inventory inventory = optionalInventory.get();
-            inventory.setQuantity(inventory.getQuantity() + addedQuantity);
+            inventory.setQuantity(inventory.getQuantity() - addedQuantity);
             inventory.setModifiedDate(LocalDateTime.now());
             inventoryRepository.save(inventory);
             return true;

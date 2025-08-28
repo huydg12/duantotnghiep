@@ -1020,7 +1020,7 @@ onMounted(() => {
                   {{ selectedInvoice.receiverAddress }}
                 </div>
                 <div class="col-md-3 text-end">
-                  <button v-if="order.status === 'Chờ xác nhận'" @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
+                  <button v-if="selectedInvoice.status === 'Chờ xác nhận'" @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
                 </div>
               </div>
             </div>

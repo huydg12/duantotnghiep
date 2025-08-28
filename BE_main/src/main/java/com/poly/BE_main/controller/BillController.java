@@ -129,4 +129,13 @@ public class BillController {
         return ResponseEntity.ok(updated);
     }
 
+    @PutMapping("/updateBillStatus4/{id}")
+    public ResponseEntity<Bill> updateStatus4(
+            @PathVariable int id,
+            @RequestBody Bill bill
+    ) {
+        Bill updated = billService.updateStatusNote4(id, bill);
+        return ResponseEntity.ok(updated);
+    }
+
 }

@@ -12,8 +12,8 @@ const modal = ref(null);
 const currentTab = ref("all");
 const searchQuery = ref("");
 const tabs = [
-    { label: "Chờ xác nhận", value: "Chờ xác nhận" },
   { label: "Tất cả", value: "all" },
+  { label: "Chờ xác nhận", value: "Chờ xác nhận" },
   { label: "Đã xác nhận", value: "Đã xác nhận" },
   { label: "Đang giao", value: "Đang giao" },
   { label: "Hoàn thành", value: "Hoàn thành" },
@@ -201,7 +201,20 @@ const updateBillStatus = async (bill, newStatus) => {
     // Cập nhật lạc quan trên UI
     bill.STATUS = newStatus;
     // (tuỳ chọn) refresh danh sách:
-    // await fetchBills();
+    await fetchBills();
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật trạng thái:", error);
+    alert("Cập nhật trạng thái thất bại");
+  }
+};
+
+const updateBillStatus4 = async (bill, newStatus) => {
+  try {
+    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus,statusPayment: "ĐÃ_THANH_TOÁN"  });
+    // Cập nhật lạc quan trên UI
+    bill.STATUS = newStatus;
+    // (tuỳ chọn) refresh danh sách:
+    await fetchBills();
   } catch (error) {
     console.error("❌ Lỗi khi cập nhật trạng thái:", error);
     alert("Cập nhật trạng thái thất bại");
@@ -446,16 +459,16 @@ onMounted(() => {
             <button class="btn btn-sm btn-primary me-2" @click="openModal(bill, $event)">Chi tiết</button>
 
             <!-- Ở đây chỉ là các nút, KHÔNG có thêm <td> -->
-            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-secondary me-1" @click="updateBillStatus(bill, 2)">
+            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-secondary me-1" @click="updateInventory(bill, 2)">
               xác nhận
             </button>
             <button v-if="+bill.STATUS === 2" class="btn btn-sm btn-warning me-1" @click="updateBillStatus(bill, 3)">
               Đang giao
             </button>
-            <button v-if="+bill.STATUS === 3" class="btn btn-sm btn-success me-1" @click="updateBillStatus(bill, 4)">
+            <button v-if="+bill.STATUS === 3" class="btn btn-sm btn-success me-1" @click="updateBillStatus4(bill, 4)">
               Hoàn thành
             </button>
-            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-danger me-1" @click="updateInventory(bill, 5)">
+            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-danger me-1" @click="updateBillStatus(bill, 5)">
               Huỷ
             </button>
           </td>

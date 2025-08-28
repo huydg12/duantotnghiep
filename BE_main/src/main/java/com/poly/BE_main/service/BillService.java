@@ -241,6 +241,14 @@ public class BillService {
             return billRepository.save(bUpdate);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
     }
+
+        public Bill updateStatusNote4(int id, Bill b) {
+        return billRepository.findById(id).map(bUpdate -> {
+            bUpdate.setStatus(b.getStatus());
+            bUpdate.setStatusPayment(b.getStatusPayment());
+            return billRepository.save(bUpdate);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
+        }
         public Bill updateAddressByBill(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setRecipientName(b.getRecipientName());

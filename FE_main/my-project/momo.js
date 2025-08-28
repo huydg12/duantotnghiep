@@ -165,7 +165,7 @@ momo.post("/callback", async (req, res) => {
         ...parsedExtra, // nếu client truyền full bill payload vào extraData
         // code: orderId,
         grandTotal: amount,
-        statusPayment: "DA_THANH_TOAN",
+        statusPayment: "ĐÃ_THANH_TOÁN",
         billType: "ONLINE",
         ptttId: 2, // MOMO = 2
       };
@@ -179,19 +179,7 @@ momo.post("/callback", async (req, res) => {
       console.log("🔎 Payload gửi về Java:", billPayload);
       console.log("✅ Đã lưu đơn hàng vào CSDL:", savedBill);
 
-      // ✅ Trừ kho dựa vào billDetails
-      if (Array.isArray(savedBill.billDetails)) {
-        for (const detail of savedBill.billDetails) {
-          if (detail.productDetailId && detail.quantity) {
-            await axios.put(
-              `http://localhost:8080/inventory/updateQuantityByPayMent/${detail.productDetailId}`,
-              {
-                quantity: detail.quantity,
-              }
-            );
-          }
-        }
-      }
+
       for (const item of cartItems) {
         if (item.cartDetailId) {
           await axios.delete(
@@ -199,6 +187,7 @@ momo.post("/callback", async (req, res) => {
           );
         }
       }
+      window.location.href = "/invoicecustomer";
       console.log("🔎 Payload gửi về Java:", billPayload);
       console.log("✅ Đã lưu đơn hàng vào CSDL:", response.data);
     } catch (err) {
