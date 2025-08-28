@@ -46,4 +46,16 @@ public class PromotionService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy khuyến mãi với id: " + id));
     }
 
+    public Promotion updateStatus(int id, Promotion pUpdate) {
+        return promotionRepository.findById(id).map(p -> {
+            if (p.getStatus() == 1) {
+                p.setStatus(0);
+            } else {
+                p.setStatus(1);
+            }
+
+            return promotionRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy khuyến mãi với id: " + id));
+    }
+
 }

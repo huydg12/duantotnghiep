@@ -88,4 +88,9 @@ public class EmployeeController {
     public EmployeeDTO update(@PathVariable int id, @RequestBody EmployeeDTO e) {
         return employeeService.update(id, e);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public EmployeeDTO updateStatus(@PathVariable int id, @RequestBody EmployeeDTO e) {
+        return employeeService.updateStatus(id, e);
+    }
 }

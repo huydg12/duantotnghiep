@@ -55,6 +55,12 @@ public class CustomerController {
         return customerService.update(id, c);
     }
 
+    @PutMapping("/updateStatus/{id}")
+    public CustomerDTO updateStatus(@PathVariable int id, @RequestBody CustomerDTO c) {
+        System.out.println("Received: " + c);
+        return customerService.updateStatus(id, c);
+    }
+
     @PutMapping("/updateInfoCustomer/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable Integer id, @RequestBody InformationCustomerDTO dto) {
         LocalDate birthDate = dto.getBirthOfDate();

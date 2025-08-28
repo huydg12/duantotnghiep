@@ -43,7 +43,17 @@ public class ProductService {
             p.setDescription(pUpdate.getDescription());
             p.setCreatedBy(pUpdate.getCreatedBy());
             p.setCreatedDate(pUpdate.getCreatedDate());
-            p.setStatus(pUpdate.getStatus());
+            return productRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
+    }
+
+    public Product updateStatus(int id, Product pUpdate) {
+        return productRepository.findById(id).map(p -> {
+            if (p.getStatus().equals(1)) {
+                p.setStatus(0);
+            }else{
+                p.setStatus(1);
+            }
             return productRepository.save(p);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));
     }

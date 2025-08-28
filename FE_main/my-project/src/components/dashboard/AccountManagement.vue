@@ -14,47 +14,23 @@ const fetchAccount = async () => {
     }
 }
 
-async function saveAccount() {
-    try {
-        if (isEditing.value) {
-            await axios.put(`http://localhost:8080/account/update/${form.value.id}`, form.value)
-        } else {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái khách hàng này?')) return;
 
-            await axios.post('http://localhost:8080/account/add', form.value);
-        }
+    const updateAccount = {
+        id: id,
+    };
+
+    try {
+        await axios.put(`http://localhost:8080/account/updateStatus/${id}`, updateAccount)
+        alert('Đã chuyển trạng thái tài khoản');
         await fetchAccount();
-        resetForm();
     } catch (error) {
-        console.log('Lỗi save account', error);
+        console.error('Lỗi chuyển trạng thái tài khoản:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái tài khoản');
     }
 }
 
-function editAccount(account) {
-    form.value = { ...account };
-    isEditing.value = true;
-}
-
-async function deleteAccount(id) {
-    try {
-        if (confirm('Bạn có chắc chắn muốn xóa tài khoản này không ?')) {
-            await axios.delete(`http://localhost:8080/account/delete/${id}`)
-            await fetchAccount()
-        }
-    } catch (error) {
-        console.log('Lỗi delete', error)
-    }
-}
-
-const form = ref({
-    id: null,
-    username: '',
-    password: '',
-    createdDate: getVietnamDateTimeLocalFormat(),
-    isActive: true,
-    roleId: 1
-});
-
-const isEditing = ref(false);
 const currentPage = ref(1);
 const pageSize = 5;
 
@@ -65,17 +41,6 @@ const paginatedAccounts = computed(() => {
     return accounts.value.slice(start, start + pageSize);
 });
 
-function resetForm() {
-    form.value = {
-        id: null,
-        username: '',
-        password: '',
-        isActive: true,
-        createdDate: getVietnamDateTimeLocalFormat(),
-        roleId: 1
-    };
-    isEditing.value = false;
-}
 
 function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
@@ -147,11 +112,8 @@ onMounted(() => {
                         </td>
 
                         <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editAccount(account)">
-                                Làm mới
-                            </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteAccount(account.id)">
-                                Trạng Thái
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(account.id)">
+                               Chuyển trạng Thái
                             </button>
                         </td>
                     </tr>

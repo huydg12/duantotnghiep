@@ -41,9 +41,6 @@ const componentMap = {
   ColorManagement: defineAsyncComponent(() =>
     import("../dashboard/ColorManagement.vue")
   ),
-  ImageManagement: defineAsyncComponent(() =>
-    import("../dashboard/ImageManagement.vue")
-  ),
   InvoiceManagement: defineAsyncComponent(() =>
     import("../dashboard/InvoiceManagement.vue")
   ),
@@ -75,9 +72,7 @@ const componentMap = {
 
 // Hàm thay đổi component để hiển thị
 function loadContent(target) {
-  activeComponent.value =
-    componentMap[target] ||
-    defineAsyncComponent(() => import("../dashboard/NotFound.vue"));
+  activeComponent.value = componentMap[target]
   activeTarget.value = target;
 }
 
@@ -106,7 +101,6 @@ const menuItems = [
       { label: "Cổ", target: "CollarManagement", icon: "fa-solid fa-socks" },
       { label: "Size", target: "SizeManagement", icon: "fa-solid fa-ruler-horizontal" },
       { label: "Màu", target: "ColorManagement", icon: "fa-solid fa-palette" },
-      { label: "Ảnh", target: "ImageManagement", icon: "fa-solid fa-image" },
     ],
   },
   {

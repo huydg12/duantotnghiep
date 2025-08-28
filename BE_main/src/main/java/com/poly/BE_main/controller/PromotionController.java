@@ -44,4 +44,9 @@ public class PromotionController {
         return promotionService.update(id, p);
     }
 
+    @PutMapping("/updateStatus/{id}")
+    public Promotion updateStatus(@PathVariable int id, @RequestBody Promotion p) {
+        return promotionService.updateStatus(id, p);
+    }
+
 }

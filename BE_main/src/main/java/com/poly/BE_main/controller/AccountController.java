@@ -46,6 +46,11 @@ public class AccountController {
         return accountService.update(id, accountDTO);
     }
 
+    @PutMapping("/updateStatus/{id}")
+    public AccountDTO updateStatus(@PathVariable Integer id, @RequestBody AccountDTO accountDTO) {
+        return accountService.updateStatus(id, accountDTO);
+    }
+
     @PutMapping("/changePassword/{id}")
     public ResponseEntity<?> changePassword(
             @PathVariable Integer id,

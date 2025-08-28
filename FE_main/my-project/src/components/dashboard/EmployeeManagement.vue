@@ -33,14 +33,20 @@ function editEmployee(employee) {
     isEditing.value = true
 }
 
-async function deleteEmployee(id) {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái nhân viên này?')) return;
+
+    const updateEmployee = {
+        id: id,
+    };
+
     try {
-        if (confirm('Bạn có muốn xóa nhân viên này không?')) {
-            await axios.delete(`http://localhost:8080/employee/delete/${id}`)
-            await fetchEmployee()
-        }
+        await axios.put(`http://localhost:8080/employee/updateStatus/${id}`, updateEmployee)
+        alert('Đã chuyển trạng thái nhân viên');
+        await fetchEmployee();
     } catch (error) {
-        console.log('Lỗi không xóa được', error)
+        console.error('Lỗi chuyển trạng thái nhân viên:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái nhân viên');
     }
 }
 
@@ -188,18 +194,6 @@ onMounted(() => {
                 <input type="date" v-model="form.birthOfDate" required class="form-control" />
             </div>
 
-            <div class="mb-3">
-                <label class="form-label d-block">Trạng thái</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="active" :value="true" v-model="form.isActive" />
-                    <label class="form-check-label" for="active">Hoạt động</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="inactive" :value="false" v-model="form.isActive" />
-                    <label class="form-check-label" for="inactive">Không hoạt động</label>
-                </div>
-            </div>
-
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     {{ isEditing ? "Cập nhật" : "Thêm" }}
@@ -244,14 +238,12 @@ onMounted(() => {
                         <td class="text-center">{{ employee.createdBy }}</td>
                         <td class="text-center">{{ formatDateTime(employee.createdDate) }}</td>
                         <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-success btn-sm" @click="editEmployee(employee)">
-                                    Sửa
-                                </button>
-                                <button class="btn btn-danger btn-sm" @click="deleteEmployee(employee.id)">
-                                    Xoá
-                                </button>
-                            </div>
+                            <button class="btn btn-success btn-sm" @click="editEmployee(employee)">
+                                Sửa
+                            </button>
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(employee.id)">
+                                Chuyển trạng thái
+                            </button>
                         </td>
                     </tr>
                 </tbody>

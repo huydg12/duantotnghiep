@@ -447,14 +447,20 @@ const saveCustomer = async () => {
   }
 };
 
-const deleteCustomer = async (id) => {
-  if (confirm("Bạn có chắc muốn xoá khách hàng này?")) {
-    try {
-      await axios.delete(`http://localhost:8080/customer/delete/${id}`);
-      await fetchCustomer();
-    } catch (error) {
-      console.error("Lỗi xoá:", error);
-    }
+const changeStatus = async (id) => {
+  if (!confirm('Bạn có chắc muốn chuyển trạng thái khách hàng này?')) return;
+
+  const updateEmployee = {
+    id: id,
+  };
+
+  try {
+    await axios.put(`http://localhost:8080/customer/updateStatus/${id}`, updateEmployee)
+    alert('Đã chuyển trạng thái khách hàng');
+    await fetchCustomer();
+  } catch (error) {
+    console.error('Lỗi chuyển trạng thái khách hàng:', error.response ? error.response.data : error.message);
+    alert('Không thể chuyển trạng thái khách hàng');
   }
 };
 
@@ -520,17 +526,6 @@ onMounted(fetchCustomer);
         <label class="form-label">Ngày sinh</label>
         <input type="date" v-model="form.birthOfDate" required class="form-control" />
       </div>
-      <div class="mb-3">
-        <label class="form-label d-block">Trạng thái</label>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" value="1" v-model="form.status" />
-          <label class="form-check-label">Hoạt động</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" value="2" v-model="form.status" />
-          <label class="form-check-label">Không hoạt động</label>
-        </div>
-      </div>
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">{{ isEditing ? "Cập nhật" : "Thêm" }}</button>
         <button type="button" class="btn btn-secondary" @click="resetForm">Làm mới</button>
@@ -571,7 +566,7 @@ onMounted(fetchCustomer);
           <td class="text-center">
             <button class="btn btn-info btn-sm me-2" @click="openAddressOverlay(customer.id)">Xem địa chỉ</button>
             <button class="btn btn-success btn-sm me-2" @click="editCustomer(customer)">Sửa</button>
-            <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.id)">Xoá</button>
+            <button class="btn btn-danger btn-sm" @click="changeStatus(customer.id)">Chuyển trạng thái</button>
           </td>
         </tr>
       </tbody>

@@ -117,7 +117,7 @@ CREATE TABLE [dbo].[IMAGE]
 	[ID] [int] IDENTITY(1,1),
 	[PRODUCT_DETAIL_ID] [int],
 	[URL] [nvarchar](max),
-	[IS_MAIN] [bit] DEFAULT 0
+	[IS_MAIN] [bit] DEFAULT 0,
 		PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC

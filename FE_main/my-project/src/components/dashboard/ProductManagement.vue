@@ -167,10 +167,21 @@ async function saveProduct() {
 
 function editProduct(p) { Object.assign(form, JSON.parse(JSON.stringify(p))) }
 
-async function deleteProduct(id) {
-    if (!confirm('Bạn có chắc muốn xoá sản phẩm này?')) return
-    try { await API.delete(`/product/delete/${id}`); alert('Đã xoá sản phẩm'); await fetchProducts() }
-    catch (error) { console.error('Lỗi xoá sản phẩm:', error); alert('Không thể xoá sản phẩm') }
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái sản phẩm này?')) return;
+
+    const updateProduct = {
+        id: id,
+    };
+
+    try {
+        await API.put(`/product/updateStatus/${id}`, updateProduct);
+        alert('Đã chuyển trạng thái sản phẩm');
+        await fetchProducts();
+    } catch (error) {
+        console.error('Lỗi chuyển trạng thái sản phẩm:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái sản phẩm');
+    }
 }
 
 // Tải chi tiết & mở modal
@@ -373,7 +384,6 @@ async function hydrateMainImages(list) {
 }
 
 // Hydrate cho Trang hiển thị sau khi lọc
-
 function currentPageItems() {
     const start = (detailPage.value - 1) * detailsPerPage
     return detailsFiltered.value.slice(start, start + detailsPerPage)
@@ -614,19 +624,6 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                         <option v-for="s in soles" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label d-block">Trạng thái</label>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" v-model.number="form.status" :value="1"
-                            id="active" />
-                        <label class="form-check-label" for="active">Hoạt động</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" v-model.number="form.status" :value="0"
-                            id="inactive" />
-                        <label class="form-check-label" for="inactive">Ẩn</label>
-                    </div>
-                </div>
                 <div class="col-md-12">
                     <label>Mô tả</label>
                     <textarea v-model="form.description" class="form-control"></textarea>
@@ -651,29 +648,32 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
         <!-- Bảng sản phẩm -->
         <table class="table table-bordered">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tên</th>
-                    <th>Thương hiệu</th>
-                    <th>Danh mục</th>
-                    <th>Đế</th>
-                    <th>Trạng thái</th>
-                    <th>Mô Tả</th>
-                    <th>Hành động</th>
+                <tr class="text-center">
+                    <th style="width: 60px">ID</th>
+                    <th style="width: 180px">Tên</th>
+                    <th style="width: 100px">Thương hiệu</th>
+                    <th style="width: 80px">Danh mục</th>
+                    <th style="width: 60px">Đế</th>
+                    <th style="width: 120px">Trạng thái</th>
+                    <th style="width: 180px">Mô Tả</th>
+                    <th style="width: 180px">Hành động</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="p in paginatedProducts" :key="p.id">
-                    <td>{{ p.id }}</td>
-                    <td>{{ p.productName }}</td>
-                    <td>{{ getNameById(brands, p.brandId) }}</td>
-                    <td>{{ getNameById(categories, p.categoryId) }}</td>
-                    <td>{{ getNameById(soles, p.soleId) }}</td>
-                    <td>{{ p.status === 1 ? 'Hoạt động' : 'Ẩn' }}</td>
+                    <td class="text-center">{{ p.id }}</td>
+                    <td class="text-center">{{ p.productName }}</td>
+                    <td class="text-center">{{ getNameById(brands, p.brandId) }}</td>
+                    <td class="text-center">{{ getNameById(categories, p.categoryId) }}</td>
+                    <td class="text-center">{{ getNameById(soles, p.soleId) }}</td>
+                    <td class="text-center">
+                        <span v-if="p.status === 1" class="badge bg-success">Hoạt động</span>
+                        <span v-else class="badge bg-danger">Không hoạt động</span>
+                    </td>
                     <td>{{ p.description }}</td>
                     <td>
                         <button class="btn btn-warning btn-sm me-2" @click="editProduct(p)">Sửa</button>
-                        <button class="btn btn-danger btn-sm me-2" @click="deleteProduct(p.id)">Xoá</button>
+                        <button class="btn btn-danger btn-sm me-2" @click="changeStatus(p.id)">Chuyển trạng thái</button>
                         <button class="btn btn-info btn-sm" @click="openDetailModal(p)">Chi tiết</button>
                     </td>
                 </tr>

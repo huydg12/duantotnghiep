@@ -102,6 +102,16 @@ public class CustomerService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với id: " + id));
     }
 
+    public CustomerDTO updateStatus(Integer id, CustomerDTO dto) {
+        return customerRepository.findById(id).map(c -> {
+            if (c.getStatus() == 1) {
+                c.setStatus(0);
+            }else{
+                c.setStatus(1);
+            }
+            return toDTO(customerRepository.save(c));
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với id: " + id));
+    }
     // Xoá khách hàng
     public void deleteById(Integer id) {
         customerRepository.deleteById(id);

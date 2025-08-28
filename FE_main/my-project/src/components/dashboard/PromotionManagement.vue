@@ -18,7 +18,7 @@ const form = ref({
   apply_all: false,
 });
 
-const fetchPromotions = async () => {
+const fetchPromotion = async () => {
   try {
     const response = await axios.get("http://localhost:8080/promotion/show");
     promotions.value = response.data;
@@ -58,17 +58,22 @@ const editPromotion = (promo) => {
   };
 };
 
-const deletePromotion = async (id) => {
+async function changeStatus(id) {
+  if (!confirm('Bạn có chắc muốn chuyển trạng thái khuyến mãi này?')) return;
+
+  const updatePromotion = {
+    id: id,
+  };
+
   try {
-    if (confirm("Bạn có chắc chắn muốn xóa size này không?")) {
-      await axios.delete(`http://localhost:8080/promotionDetail/delete/${id}`);
-      await fetchPromotions();
-    }
-    if (form.value.id === id) resetForm();
-  } catch (err) {
-    console.error("Lỗi khi xoá:", err);
+    await axios.put(`http://localhost:8080/promotion/updateStatus/${id}`, updatePromotion)
+    alert('Đã chuyển trạng thái khuyến mãi');
+    await fetchPromotion();
+  } catch (error) {
+    console.error('Lỗi chuyển trạng thái khuyến mãi:', error.response ? error.response.data : error.message);
+    alert('Không thể chuyển trạng thái khuyến mãi');
   }
-};
+}
 
 const resetForm = () => {
   form.value = {
@@ -91,7 +96,7 @@ const formatDate = (str) => {
 };
 
 onMounted(async () => {
-  await fetchPromotions();
+  await fetchPromotion();
 });
 </script>
 
@@ -134,18 +139,6 @@ onMounted(async () => {
             <label class="form-label">Đến ngày</label>
             <input type="date" v-model="form.endDate" class="form-control" required />
           </div>
-          <div class="col-md-3">
-            <label class="form-label d-block">Trạng thái</label>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" id="statusActive" value="1" v-model="form.status" />
-              <label class="form-check-label" for="statusActive">Đang áp dụng</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" id="statusInactive" value="0" v-model="form.status" />
-              <label class="form-check-label" for="statusInactive">Ngưng áp dụng</label>
-            </div>
-          </div>
-
           <div class="col-md-12">
             <label class="form-label">Ghi chú</label>
             <textarea v-model="form.note" class="form-control" rows="2"></textarea>
@@ -190,16 +183,15 @@ onMounted(async () => {
             {{ formatDate(promo.endDate) }}
           </td>
           <td>
-            <span :class="promo.status === 1 ? 'text-success' : 'text-secondary'">
-              {{ promo.status === 1 ? "Đang áp dụng" : "Ngưng áp dụng" }}
-            </span>
+            <span v-if="promo.status === 1" class="badge bg-success">Đang áp dụng</span>
+            <span v-else class="badge bg-danger">Ngưng áp dụng</span>
           </td>
           <td>
             <button class="btn btn-sm btn-warning me-1" @click="editPromotion(promo)">
               Sửa
             </button>
-            <button class="btn btn-sm btn-danger me-1" @click="deletePromotion(promo.id)">
-              Xoá
+            <button class="btn btn-sm btn-danger me-1" @click="changeStatus(promo.id)">
+              Chuyển trạng thái
             </button>
           </td>
         </tr>

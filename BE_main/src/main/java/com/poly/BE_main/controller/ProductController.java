@@ -54,6 +54,11 @@ public class ProductController {
         return productService.update(id, p);
     }
 
+    @PutMapping("/updateStatus/{id}")
+    public Product updateStatus(@PathVariable int id, @RequestBody Product p) {
+        return productService.updateStatus(id, p);
+    }
+    
     @GetMapping("/search")
     public ResponseEntity<List<ProductDTO>> searchProduct(@RequestParam("keyword") String keyword) {
         List<ProductDTO> results = productService.searchByKeyword(keyword);

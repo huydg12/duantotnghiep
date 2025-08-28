@@ -156,6 +156,17 @@ public class AccountService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với id: " + id));
     }
 
+    public AccountDTO updateStatus(int id, AccountDTO dto) {
+        return accountRepository.findById(id).map(account -> {
+            if (account.getIsActive() == true) {
+                account.setIsActive(false);
+            } else {
+                account.setIsActive(true);
+            }
+            return toDTO(accountRepository.save(account));
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với id: " + id));
+    }
+
     public void deleteById(Integer id) {
         accountRepository.deleteById(id);
     }

@@ -79,7 +79,6 @@ public class EmployeeService {
             e.setEmail(dto.getEmail());
             e.setNumberPhone(dto.getNumberPhone());
             e.setBirthOfDate(dto.getBirthOfDate());
-            e.setIsActive(dto.getIsActive());
             e.setCreatedBy(dto.getCreatedBy());
             e.setCreatedDate(dto.getCreatedDate());
 
@@ -89,6 +88,18 @@ public class EmployeeService {
                 e.setAccount(acc);
             }
 
+            return toDTO(employeeRepository.save(e));
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên có id: " + id));
+    }
+
+    public EmployeeDTO updateStatus(Integer id, EmployeeDTO dto) {
+        return employeeRepository.findById(id).map(e -> {
+            if (e.getIsActive() == true) {
+                e.setIsActive(false);
+            }else{
+                e.setIsActive(true);
+            }
+            
             return toDTO(employeeRepository.save(e));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên có id: " + id));
     }
