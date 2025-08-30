@@ -18,7 +18,11 @@ const availableSizes = ref([])
 const cartId = ref(null)
 let customerId = null;
 const userJson = localStorage.getItem("user");
-
+// === Size guide modal ===
+const showSizeGuide = ref(false)
+const sizeChartUrl = '/images/size-chart.png'
+const openSizeGuide = () => (showSizeGuide.value = true)
+const closeSizeGuide = () => (showSizeGuide.value = false)
 if (userJson) {
   try {
     const user = JSON.parse(userJson);
@@ -282,6 +286,10 @@ onMounted(() => {
           ]" :disabled="!availableSizes.includes(size)" @click="selectSize(size)">
             {{ size }}
           </button>
+          <br>
+            <a href="#" class="small text-decoration-underline ms-auto" @click.prevent="openSizeGuide">
+            Xem bảng chọn size
+    </a>
         </div>
 
         <div class="mb-4" style="max-width: 150px;">
@@ -329,9 +337,46 @@ onMounted(() => {
       </div>
     </div>
   </div>
+
+  <!-- Modal xem bảng size & cách đo -->
+<div v-if="showSizeGuide" class="size-modal-backdrop" @click.self="closeSizeGuide">
+  <div class="size-modal">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0">Bảng size</h6>
+      <button class="btn-close" @click="closeSizeGuide" aria-label="Close"></button>
+    </div>
+
+    <div class="size-modal-body">
+      <img :src="sizeChartUrl" alt="Bảng size" class="img-fluid rounded border mb-3" />
+
+    </div>
+  </div>
+</div>
 </template>
 
 <style scoped>
+.size-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: grid;
+  place-items: center;
+  z-index: 1060;
+}
+.size-modal {
+  background: #fff;
+  width: min(800px, 90vw);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+.size-modal-body img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
 .product-image {
   height: 500px;
   object-fit: cover;
