@@ -8,7 +8,6 @@ const router = useRouter()
 const userStore = useUserStore()
 userStore.loadUserFromLocalStorage()
 
-
 // shallowRef để tối ưu các component => thay đổi cả component
 const activeComponent = shallowRef(
   defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
@@ -165,6 +164,10 @@ const menuItems = [
   },
 ];
 
+const userJson = localStorage.getItem('user')
+const user = JSON.parse(userJson)
+const username = user.username
+
 function handleClick(target) {
   if (target === 'logout') {
     userStore.logout()
@@ -218,7 +221,7 @@ function isCollapseOpen(id) {
             <i class="fa-solid fa-user text-dark fa-2x"></i>
           </div>
           <h2 class="mt-3 fs-5 fw-semibold">
-            Xin chào, <span class="fw-bold">Admin</span>
+            Xin chào, <span class="fw-bold">{{ username }}</span>
           </h2>
         </div>
 
