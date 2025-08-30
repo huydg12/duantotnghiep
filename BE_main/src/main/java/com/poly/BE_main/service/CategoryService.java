@@ -33,4 +33,16 @@ public class CategoryService {
             return categoryRepository.save(s);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy category có id: " + id));
     }
+
+    public Category updateStatus(int id, Category category) {
+        return categoryRepository.findById(id).map(s -> {
+            if (s.isActive() == true) {
+                s.setActive(false);
+            }else{
+                s.setActive(true);
+            }
+            return categoryRepository.save(s);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy category có id: " + id));
+    }
+
 }

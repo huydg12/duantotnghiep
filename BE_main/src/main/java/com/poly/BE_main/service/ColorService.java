@@ -33,4 +33,15 @@ public class ColorService {
             return colorRepository.save(c);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy màu có id: " + id));
     }
+
+    public Color updateStatus(int id, Color cUpdate) {
+        return colorRepository.findById(id).map(c -> {
+            if (c.isActive() == true) {
+                c.setActive(false);
+            }else{
+                c.setActive(true);
+            }
+            return colorRepository.save(c);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy màu có id: " + id));
+    }
 }

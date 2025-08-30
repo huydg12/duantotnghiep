@@ -40,4 +40,9 @@ public class BrandController {
     public Brand update(@PathVariable int id, @RequestBody Brand b) {
         return brandService.update(id, b);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public Brand updateStatus(@PathVariable int id, @RequestBody Brand b) {
+        return brandService.updateStatus(id, b);
+    }
 }

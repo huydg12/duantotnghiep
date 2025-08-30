@@ -40,4 +40,9 @@ public class SizeController {
     public Size update(@PathVariable int id, @RequestBody Size s) {
         return sizeService.update(id, s);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public Size updateStatus(@PathVariable int id, @RequestBody Size s) {
+        return sizeService.updateStatus(id, s);
+    }
 }

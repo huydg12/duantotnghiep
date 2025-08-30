@@ -32,14 +32,20 @@ function editSole(sole) {
     isEditing.value = true
 }
 
-async function deleteSole(id) {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái đế này?')) return;
+
+    const updateSole = {
+        id: id,
+    };
+
     try {
-        if (confirm('Bạn có chắc là muốn xóa đế giày không ')) {
-            await axios.delete(`http://localhost:8080/sole/delete/${id}`)
-            await fetchSole()
-        }
+        await axios.put(`http://localhost:8080/sole/updateStatus/${id}`, updateSole)
+        alert('Đã chuyển trạng thái đế');
+        await fetchSole();
     } catch (error) {
-        console.log('lỗi xóa ', error)
+        console.error('Lỗi chuyển trạng thái đế:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái đế');
     }
 }
 
@@ -116,7 +122,7 @@ onMounted(() => {
                         </td>
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editSole(sole)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteSole(sole.id)"> Chuyển trạng thái
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(sole.id)"> Chuyển trạng thái
                             </button>
                         </td>
                     </tr>

@@ -63,15 +63,21 @@ function editSize(size) {
   isEditing.value = true
 }
 
-async function deleteSize(id) {
-  try {
-    if (confirm('Bạn có chắc chắn muốn xóa size này không?')) {
-      await axios.delete(`http://localhost:8080/size/delete/${id}`)
-      await fetchSize()
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái kích cỡ này?')) return;
+
+    const updateSize = {
+        id: id,
+    };
+
+    try {
+        await axios.put(`http://localhost:8080/size/updateStatus/${id}`, updateSize)
+        alert('Đã chuyển trạng thái kích cỡ');
+        await fetchSize();
+    } catch (error) {
+        console.error('Lỗi chuyển trạng thái kích cỡ:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái kích cỡ');
     }
-  } catch (error) {
-    console.error('Lỗi khi xóa size:', error)
-  }
 }
 
 onMounted(() => {
@@ -124,7 +130,7 @@ onMounted(() => {
             </td>
             <td class="text-center">
               <button class="btn btn-success btn-sm me-2" @click="editSize(size)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteSize(size.id)">Chuyển trạng thái</button>
+              <button class="btn btn-danger btn-sm" @click="changeStatus(size.id)">Chuyển trạng thái</button>
             </td>
           </tr>
         </tbody>

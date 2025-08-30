@@ -32,4 +32,15 @@ public class SoleService {
             return soleRepository.save(s);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy Sole có id: " + id));
     }
+
+    public Sole updateStatus(int id, Sole sUpdate) {
+        return soleRepository.findById(id).map(s -> {
+            if (s.isActive()) {
+                s.setActive(false);
+            }else{
+                s.setActive(true);
+            }
+            return soleRepository.save(s);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy Sole có id: " + id));
+    }
 }

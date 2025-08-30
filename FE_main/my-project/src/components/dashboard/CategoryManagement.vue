@@ -6,7 +6,7 @@ const categories = ref([])
 
 const fetchCategories = async () => {
     try {
-        const response = await axios.get('http://localhost:8080/style/show')
+        const response = await axios.get('http://localhost:8080/category/show')
         categories.value = response.data
         console.log(categories)
     } catch (error) {
@@ -17,9 +17,9 @@ const fetchCategories = async () => {
 async function saveCategories() {
     try {
         if (isEditing.value) {
-            await axios.put(`http://localhost:8080/style/update/${form.value.id}`, form.value)
+            await axios.put(`http://localhost:8080/category/update/${form.value.id}`, form.value)
         } else {
-            await axios.post('http://localhost:8080/style/add', form.value)
+            await axios.post('http://localhost:8080/category/add', form.value)
         }
         fetchCategories()
         resetForm()
@@ -33,14 +33,20 @@ function editCategories(category) {
     isEditing.value = true
 }
 
-async function deleteCategories(id) {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái thể loại này?')) return;
+
+    const updateCategory = {
+        id: id,
+    };
+
     try {
-        if (confirm('Bạn  có chắc là muốn xóa loại này không')) {
-            await axios.delete(`http://localhost:8080/style/delete/${id}`)
-            await fetchCategories()
-        }
+        await axios.put(`http://localhost:8080/category/updateStatus/${id}`, updateCategory)
+        alert('Đã chuyển trạng thái thể loại');
+        await fetchCategories();
     } catch (error) {
-        console.log('lỗi khi xóa loại ', error)
+        console.error('Lỗi chuyển trạng thái thể loại:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái thể loại');
     }
 }
 
@@ -117,7 +123,7 @@ onMounted(() => {
                         </td>
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editCategories(category)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteCategories(category.id)"> Chuyển trạng thái </button>
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(category.id)"> Chuyển trạng thái </button>
                         </td>
                     </tr>
                 </tbody>

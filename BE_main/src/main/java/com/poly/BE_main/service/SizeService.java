@@ -32,4 +32,15 @@ public class SizeService {
             return sizeRepository.save(s);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy Size có id: " + id));
     }
+
+    public Size updateStatus(int id, Size sUpdate) {
+        return sizeRepository.findById(id).map(s -> {
+            if (s.isActive() == true) {
+                s.setActive(false);
+            }else{
+                s.setActive(true);
+            }
+            return sizeRepository.save(s);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy Size có id: " + id));
+    }
 }

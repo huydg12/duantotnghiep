@@ -63,14 +63,20 @@ function editColor(color) {
   isEditing.value = true
 }
 
-async function deleteColor(id) {
+async function changeStatus(id) {
+  if (!confirm('Bạn có chắc muốn chuyển trạng thái màu này?')) return;
+
+  const updateColor = {
+    id: id,
+  };
+
   try {
-    if (confirm('Bạn có chắc chắn muốn xóa màu này không?')) {
-      await axios.delete(`http://localhost:8080/color/delete/${id}`)
-      await fetchColor()
-    }
+    await axios.put(`http://localhost:8080/color/updateStatus/${id}`, updateColor)
+    alert('Đã chuyển trạng thái màu');
+    await fetchColor();
   } catch (error) {
-    console.error('Lỗi khi xóa màu:', error)
+    console.error('Lỗi chuyển trạng thái màu:', error.response ? error.response.data : error.message);
+    alert('Không thể chuyển trạng thái màu');
   }
 }
 
@@ -124,7 +130,7 @@ onMounted(() => {
             </td>
             <td class="text-center">
               <button class="btn btn-success btn-sm me-2" @click="editColor(color)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteColor(color.id)">Chuyển trạng thái</button>
+              <button class="btn btn-danger btn-sm" @click="changeStatus(color.id)">Chuyển trạng thái</button>
             </td>
           </tr>
         </tbody>

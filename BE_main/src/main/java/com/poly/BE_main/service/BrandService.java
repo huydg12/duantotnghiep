@@ -33,4 +33,15 @@ public class BrandService {
             return brandRRepository.save(b);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu có id: " + id));
     }
+
+    public Brand updateStatus(int id, Brand bUpdate) {
+        return brandRRepository.findById(id).map(b -> {
+            if (b.isActive() == true) {
+                b.setActive(false);
+            }else{
+                b.setActive(true);
+            }
+            return brandRRepository.save(b);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy thương hiệu có id: " + id));
+    }
 }

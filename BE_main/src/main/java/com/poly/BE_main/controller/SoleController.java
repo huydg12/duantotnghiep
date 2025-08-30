@@ -34,4 +34,9 @@ public class SoleController {
     public Sole update(@PathVariable int id, @RequestBody Sole s) {
         return soleService.update(id, s);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public Sole updateStatus(@PathVariable int id, @RequestBody Sole s) {
+        return soleService.updateStatus(id, s);
+    }
 }

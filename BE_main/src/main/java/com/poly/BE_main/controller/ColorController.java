@@ -41,4 +41,9 @@ public class ColorController {
     public Color update(@PathVariable int id, @RequestBody Color c) {
         return colorService.update(id, c);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public Color updateStatus(@PathVariable int id, @RequestBody Color c) {
+        return colorService.updateStatus(id, c);
+    }
 }

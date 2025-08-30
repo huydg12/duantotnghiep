@@ -17,7 +17,7 @@ import com.poly.BE_main.service.CategoryService;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/style")
+@RequestMapping("/category")
 public class CategoryController {
     @Autowired
     CategoryService categoryService;
@@ -40,5 +40,10 @@ public class CategoryController {
     @PutMapping("/update/{id}")
     public Category update(@PathVariable Integer id, @RequestBody Category category) {
         return categoryService.update(id, category);
+    }
+
+    @PutMapping("/updateStatus/{id}")
+    public Category updateStatus(@PathVariable Integer id, @RequestBody Category category) {
+        return categoryService.updateStatus(id, category);
     }
 }

@@ -32,4 +32,15 @@ public class CollarService {
             return collarRepository.save(c);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy cổ giày có id: " + id));
     }
+
+    public Collar updateStatus(int id, Collar cUpdate) {
+        return collarRepository.findById(id).map(c -> {
+            if (c.isActive() == true) {
+                c.setActive(false);
+            }else{
+                c.setActive(true);
+            }
+            return collarRepository.save(c);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy cổ giày có id: " + id));
+    }
 }

@@ -33,14 +33,20 @@ async function editCollar(collar) {
     isEditing.value = true
 }
 
-async function deleteCollar(id) {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái cổ này?')) return;
+
+    const updateCollar = {
+        id: id,
+    };
+
     try {
-        if (confirm('bạn có chắc là muốn xóa loại này không')) {
-            await axios.delete(`http://localhost:8080/collar/delete/${id}`)
-            await fetchCollar()
-        }
+        await axios.put(`http://localhost:8080/collar/updateStatus/${id}`, updateCollar)
+        alert('Đã chuyển trạng thái cổ');
+        await fetchCollar();
     } catch (error) {
-        console.log('lỗi xóa', error)
+        console.error('Lỗi chuyển trạng thái cổ:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái cổ');
     }
 }
 
@@ -116,7 +122,7 @@ onMounted(() => {
                         </td>
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editCollar(collar)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteCollar(collar.id)"> Chuyển trạng thái </button>
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(collar.id)"> Chuyển trạng thái </button>
                         </td>
                     </tr>
                 </tbody>

@@ -58,14 +58,20 @@ function editBrand(brand) {
     isEditing.value = true
 }
 
-async function deleteBrand(id) {
+async function changeStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái hãng này?')) return;
+
+    const updateBrand = {
+        id: id,
+    };
+
     try {
-        if (confirm('Bạn có chắc chắn là muốn xóa hãng này không ?')) {
-            await axios.delete(`http://localhost:8080/brand/delete/${id}`)
-            await fetchBrand()
-        }
+        await axios.put(`http://localhost:8080/brand/updateStatus/${id}`, updateBrand)
+        alert('Đã chuyển trạng thái hãng');
+        await fetchBrand();
     } catch (error) {
-        console.error('lỗi khi xóa hãng ' + error)
+        console.error('Lỗi chuyển trạng thái hãng:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái hãng');
     }
 }
 
@@ -116,7 +122,7 @@ onMounted(() => {
                         </td>
                         <td class="text-center">
                             <button class="btn btn-success btn-sm me-2" @click="editBrand(brand)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteBrand(brand.id)"> Chuyển trạng thá<i></i> </button>
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(brand.id)"> Chuyển trạng thái </button>
                         </td>
                     </tr>
                 </tbody>

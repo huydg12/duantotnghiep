@@ -40,4 +40,9 @@ public class CollarController {
     public Collar update(@PathVariable int id, @RequestBody Collar c) {
         return collarService.update(id, c);
     }
+
+    @PutMapping("/updateStatus/{id}")
+    public Collar updateStatus(@PathVariable int id, @RequestBody Collar c) {
+        return collarService.updateStatus(id, c);
+    }
 }
