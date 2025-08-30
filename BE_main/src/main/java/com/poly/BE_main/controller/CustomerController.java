@@ -67,7 +67,7 @@ public class CustomerController {
         customerService.updateCustomerInfo(
                 id,
                 dto.getFullName(),
-                dto.getGender(),
+                dto.isGender(),
                 dto.getEmail(),
                 dto.getNumberPhone(),
                 birthDate);

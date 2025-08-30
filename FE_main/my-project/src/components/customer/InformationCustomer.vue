@@ -505,11 +505,11 @@ onMounted(() => {
               <div class="col-md-6">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="0" v-model="userInfo.gender" />
+                  <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" />
                   <label class="form-check-label">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="1" v-model="userInfo.gender" />
+                  <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" />
                   <label class="form-check-label">Nữ</label>
                 </div>
               </div>

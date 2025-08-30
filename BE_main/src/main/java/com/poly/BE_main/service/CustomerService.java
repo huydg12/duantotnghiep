@@ -127,7 +127,7 @@ public class CustomerService {
         }
         return new InformationCustomerDTO(
                 (String) data[0], // fullName
-                (String) data[1], // gender
+                (boolean) data[1], // gender
                 (String) data[2], // email
                 (String) data[3], // numberPhone
                 birthOfDate);
@@ -145,7 +145,7 @@ public class CustomerService {
 
     // Update thông tin theo customerId
     @Transactional
-    public void updateCustomerInfo(Integer id, String fullName, String gender, String email, String numberPhone,
+    public void updateCustomerInfo(Integer id, String fullName, boolean gender, String email, String numberPhone,
             java.time.LocalDate birthDate) {
         java.sql.Date sqlDate = null;
         if (birthDate != null) {

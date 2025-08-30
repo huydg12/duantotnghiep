@@ -37,7 +37,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Integer> {
                     FROM IMAGE
                 ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
 
-                WHERE P.STATUS = 1 AND F.CUSTOMER_ID = :customerId
+                WHERE P.IS_ACTIVE = 1 AND F.CUSTOMER_ID = :customerId
 
                 GROUP BY F.ID, F.CUSTOMER_ID, P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
             """, nativeQuery = true)

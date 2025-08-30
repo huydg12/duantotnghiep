@@ -49,7 +49,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     int updateInformationCustomerByCustomerId(
             @Param("customerId") Integer customerId,
             @Param("fullName") String fullName,
-            @Param("gender") String gender,
+            @Param("gender") boolean gender,
             @Param("email") String email,
             @Param("numberPhone") String numberPhone,
             @Param("birthOfDate") java.sql.Date birthOfDate);
