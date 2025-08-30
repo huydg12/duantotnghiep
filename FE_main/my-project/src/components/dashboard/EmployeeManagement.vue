@@ -81,11 +81,11 @@ const form = ref({
     password: "",
     role: "",
     fullName: "",
-    gender: 1,
+    gender: true,
     email: "",
     numberPhone: "",
     birthOfDate: "",
-    isActive: true,
+    active: true,
     createdBy: "admin",
     createdDate: getVietnamDateTimeLocalFormat(),
 });
@@ -109,11 +109,11 @@ function resetForm() {
         password: "",
         role: "",
         fullName: "",
-        gender: "",
+        gender: true,
         email: "",
         numberPhone: "",
         birthOfDate: "",
-        isActive: true,
+        active: true,
         createdBy: "admin",
         createdDate: "",
     };
@@ -227,12 +227,12 @@ onMounted(() => {
                         <td class="text-center">{{ employee.id }}</td>
                         <td class="text-center">{{ employee.accountId }}</td>
                         <td class="text-center">{{ employee.fullName }}</td>
-                        <td class="text-center">{{ employee.gender === '1' ? 'Nam' : 'Nữ' }}</td>
+                        <td class="text-center">{{ employee.gender === true ? 'Nam' : 'Nữ' }}</td>
                         <td class="text-center">{{ employee.email }}</td>
                         <td class="text-center">{{ employee.numberPhone }}</td>
                         <td class="text-center">{{ formatDateTime(employee.birthOfDate) }}</td>
                         <td class="text-center">
-                            <span v-if="employee.isActive" class="badge bg-success">Hoạt động</span>
+                            <span v-if="employee.active" class="badge bg-success">Hoạt động</span>
                             <span v-else class="badge bg-danger">Không hoạt động</span>
                         </td>
                         <td class="text-center">{{ employee.createdBy }}</td>

@@ -101,17 +101,23 @@ onMounted(() => {
                         <th style="width: 60px">ID</th>
                         <th style="width: 180px">Tên thương hiệu</th>
                         <th style="width: 300px">Mô tả</th>
+                        <th style="width: 160px">Trạng thái</th>
                         <th style="width: 160px">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="soles in paginatedSoles" :key="soles.id">
-                        <td class="text-center">{{ soles.id }}</td>
-                        <td>{{ soles.name }}</td>
-                        <td class="text-wrap">{{ soles.description }}</td>
+                    <tr v-for="sole in paginatedSoles" :key="sole.id">
+                        <td class="text-center">{{ sole.id }}</td>
+                        <td>{{ sole.name }}</td>
+                        <td class="text-wrap">{{ sole.description }}</td>
                         <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editSole(soles)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteSole(soles.id)"> Xoá </button>
+                            <span v-if="sole.active" class="badge bg-success">Hoạt động</span>
+                            <span v-else class="badge bg-danger">Không hoạt động</span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-success btn-sm me-2" @click="editSole(sole)"> Sửa </button>
+                            <button class="btn btn-danger btn-sm" @click="deleteSole(sole.id)"> Chuyển trạng thái
+                            </button>
                         </td>
                     </tr>
                 </tbody>

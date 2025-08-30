@@ -14,7 +14,7 @@ const form = ref({
   startDate: "",
   endDate: "",
   note: "",
-  status: 1,
+  active: true,
   apply_all: false,
 });
 
@@ -43,7 +43,7 @@ const savePromotion = async () => {
       form.value.id = response.data.id;
     }
 
-    await fetchPromotions();
+    await fetchPromotion();
     resetForm();
   } catch (error) {
     console.error("Lỗi khi lưu khuyến mãi:", error); // sửa từ `err` -> `error`
@@ -85,7 +85,7 @@ const resetForm = () => {
     startDate: "",
     endDate: "",
     note: "",
-    status: 1,
+    active: true,
     apply_all: false,
   };
 };
@@ -183,7 +183,7 @@ onMounted(async () => {
             {{ formatDate(promo.endDate) }}
           </td>
           <td>
-            <span v-if="promo.status === 1" class="badge bg-success">Đang áp dụng</span>
+            <span v-if="promo.active" class="badge bg-success">Đang áp dụng</span>
             <span v-else class="badge bg-danger">Ngưng áp dụng</span>
           </td>
           <td>

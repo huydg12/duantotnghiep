@@ -1008,7 +1008,6 @@ INSERT INTO dbo.FAVORITE
 VALUES
 	(1, 1);
 GO
-<<<<<<< HEAD
 
 -- SELECT 
 --     P.ID AS id,
@@ -1285,5 +1284,3 @@ GO
 
 -- WHERE P.IS_ACTIVE = 1
 -- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
-=======
->>>>>>> 5dae5591ec3c6550f311ca39747acc409bd3cfec

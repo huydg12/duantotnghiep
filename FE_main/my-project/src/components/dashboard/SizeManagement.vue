@@ -109,6 +109,7 @@ onMounted(() => {
             <th style="width: 60px">ID</th>
             <th style="width: 180px">Size (EU)</th>
             <th style="width: 300px">Mô tả</th>
+            <th style="width: 160px">Trạng thái</th>
             <th style="width: 160px">Hành động</th>
           </tr>
         </thead>
@@ -118,8 +119,12 @@ onMounted(() => {
             <td>{{ size.eu }}</td>
             <td class="text-wrap">{{ size.description }}</td>
             <td class="text-center">
+              <span v-if="size.active" class="badge bg-success">Hoạt động</span>
+              <span v-else class="badge bg-danger">Không hoạt động</span>
+            </td>
+            <td class="text-center">
               <button class="btn btn-success btn-sm me-2" @click="editSize(size)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteSize(size.id)">Xoá</button>
+              <button class="btn btn-danger btn-sm" @click="deleteSize(size.id)">Chuyển trạng thái</button>
             </td>
           </tr>
         </tbody>

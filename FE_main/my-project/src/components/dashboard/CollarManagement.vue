@@ -101,17 +101,22 @@ onMounted(() => {
                         <th style="width: 60px">ID</th>
                         <th style="width: 180px">Tên thương hiệu</th>
                         <th style="width: 300px">Mô tả</th>
+                        <th style="width: 160px">Trạng thái</th>
                         <th style="width: 160px">Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="collars in paginatedCollars" :key="collars.id">
-                        <td class="text-center">{{ collars.id }}</td>
-                        <td>{{ collars.name }}</td>
-                        <td class="text-wrap">{{ collars.description }}</td>
+                    <tr v-for="collar in paginatedCollars" :key="collar.id">
+                        <td class="text-center">{{ collar.id }}</td>
+                        <td>{{ collar.name }}</td>
+                        <td class="text-wrap">{{ collar.description }}</td>
                         <td class="text-center">
-                            <button class="btn btn-success btn-sm me-2" @click="editCollar(collars)"> Sửa </button>
-                            <button class="btn btn-danger btn-sm" @click="deleteCollar(collars.id)"> Xoá </button>
+                            <span v-if="collar.active" class="badge bg-success">Hoạt động</span>
+                            <span v-else class="badge bg-danger">Không hoạt động</span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-success btn-sm me-2" @click="editCollar(collar)"> Sửa </button>
+                            <button class="btn btn-danger btn-sm" @click="deleteCollar(collar.id)"> Chuyển trạng thái </button>
                         </td>
                     </tr>
                 </tbody>

@@ -34,7 +34,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
                 LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
 
-                WHERE P.STATUS = 1
+                WHERE P.IS_ACTIVE = 1
                 GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
             """, nativeQuery = true)
     List<Object[]> findAllProductsWithImages();
@@ -72,7 +72,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
                 LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
 
-                WHERE P.STATUS = 1
+                WHERE P.IS_ACTIVE = 1
                 GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
             """, nativeQuery = true)
     List<Object[]> findTop4ListProucts();
@@ -99,7 +99,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                         ROW_NUMBER() OVER (PARTITION BY PRODUCT_DETAIL_ID ORDER BY ID) AS RN
                     FROM IMAGE
                 ) I ON I.PRODUCT_DETAIL_ID = PD.ID AND I.RN IN (1, 2)
-                WHERE P.STATUS = 1 AND P.PRODUCT_NAME LIKE CONCAT('%', :keyword, '%')
+                WHERE P.IS_ACTIVE = 1 AND P.PRODUCT_NAME LIKE CONCAT('%', :keyword, '%')
                 GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
             """, nativeQuery = true)
     List<Object[]> searchByKeyword(@Param("keyword") String keyword);

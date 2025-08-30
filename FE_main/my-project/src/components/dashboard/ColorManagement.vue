@@ -109,6 +109,7 @@ onMounted(() => {
             <th style="width: 60px">ID</th>
             <th style="width: 180px">Tên màu</th>
             <th style="width: 300px">Mô tả</th>
+            <th style="width: 160px">Trạng thái</th>
             <th style="width: 160px">Hành động</th>
           </tr>
         </thead>
@@ -118,8 +119,12 @@ onMounted(() => {
             <td>{{ color.name }}</td>
             <td class="text-wrap">{{ color.description }}</td>
             <td class="text-center">
+              <span v-if="color.active" class="badge bg-success">Hoạt động</span>
+              <span v-else class="badge bg-danger">Không hoạt động</span>
+            </td>
+            <td class="text-center">
               <button class="btn btn-success btn-sm me-2" @click="editColor(color)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteColor(color.id)">Xoá</button>
+              <button class="btn btn-danger btn-sm" @click="deleteColor(color.id)">Chuyển trạng thái</button>
             </td>
           </tr>
         </tbody>

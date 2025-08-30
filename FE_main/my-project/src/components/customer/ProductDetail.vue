@@ -18,11 +18,13 @@ const availableSizes = ref([])
 const cartId = ref(null)
 let customerId = null;
 const userJson = localStorage.getItem("user");
+
 // === Size guide modal ===
 const showSizeGuide = ref(false)
 const sizeChartUrl = '/images/size-chart.png'
 const openSizeGuide = () => (showSizeGuide.value = true)
 const closeSizeGuide = () => (showSizeGuide.value = false)
+
 if (userJson) {
   try {
     const user = JSON.parse(userJson);

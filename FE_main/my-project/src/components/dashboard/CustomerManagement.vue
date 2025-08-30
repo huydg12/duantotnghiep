@@ -373,11 +373,11 @@ const form = ref({
   id: null,
   accountId: null,
   fullName: '',
-  gender: '',
+  gender: true,
   email: '',
   numberPhone: '',
   birthOfDate: '',
-  status: 1,
+  active: true,
   createdDate: getVietnamDateTimeLocalFormat()
 });
 const isEditing = ref(false);
@@ -422,7 +422,7 @@ const resetForm = () => {
     email: '',
     numberPhone: '',
     birthOfDate: '',
-    status: true,
+    active: true,
   };
   isEditing.value = false;
 };
@@ -553,13 +553,13 @@ onMounted(fetchCustomer);
           <td class="text-center">{{ customer.id }}</td>
           <td class="text-center">{{ customer.accountId }}</td>
           <td class="text-center">{{ customer.fullName }}</td>
-          <td class="text-center">{{ customer.gender === '0' ? 'Nam' : 'Nữ' }}</td>
+          <td class="text-center">{{ customer.gender === true ? 'Nam' : 'Nữ' }}</td>
           <td class="text-center">{{ customer.email }}</td>
           <td class="text-center">{{ customer.numberPhone }}</td>
           <td class="text-center">{{ formatDateTime(customer.birthOfDate) }}</td>
           <td class="text-center">
-            <span class="badge" :class="customer.status === 1 ? 'bg-success' : 'bg-danger'">
-              {{ customer.status === 1 ? 'Hoạt động' : 'Không hoạt động' }}
+            <span class="badge" :class="customer.active === true ? 'bg-success' : 'bg-danger'">
+              {{ customer.active === true ? 'Hoạt động' : 'Không hoạt động' }}
             </span>
           </td>
           <td class="text-center">{{ formatDateTime(customer.createdDate) }}</td>
