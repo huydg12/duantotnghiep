@@ -36,4 +36,6 @@ public class PaymentMethod {
     @Column(name = "MODIFIED_DATE")
     private LocalDateTime modifiedDate;
 
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 }

@@ -48,7 +48,7 @@ public class ProductDetail {
     @Column(name = "DESCRIPTION")
     private String description;
 
-    @Column(name = "STATUS")
-    private Integer status;
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 
 }

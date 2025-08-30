@@ -14,10 +14,10 @@ public class EmployeeCreateDTO {
     private String password;
     private Integer roleId;
     private String fullName;
-    private String gender;
+    private boolean gender;
     private String email;
     private String numberPhone;
     private LocalDate birthOfDate;
-    private Boolean isActive;
+    private boolean isActive;
     private String createdBy;
 }

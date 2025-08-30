@@ -28,4 +28,6 @@ public class Brand {
     @Column(name = "DESCRIPTION")
     private String description;
 
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 }

@@ -20,8 +20,13 @@ public class Collar {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
+
     @Column(name = "NAME")
     private String name;
+
     @Column(name = "DESCRIPTION")
     private String description;
+    
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 }

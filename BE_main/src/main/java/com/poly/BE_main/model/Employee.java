@@ -32,8 +32,8 @@ public class Employee {
     @Column(name = "FULL_NAME", length = 255)
     private String fullName;
 
-    @Column(name = "GENDER", length = 45)
-    private String gender;
+     @Column(name = "GENDER")
+    private boolean gender;
 
     @Column(name = "EMAIL", length = 255)
     private String email;
@@ -45,7 +45,7 @@ public class Employee {
     private LocalDate birthOfDate;
 
     @Column(name = "IS_ACTIVE")
-    private Boolean isActive;
+    private boolean isActive;
 
     @Column(name = "CREATED_BY")
     private String createdBy;

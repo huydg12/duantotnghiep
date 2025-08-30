@@ -38,7 +38,7 @@ public class PromotionService {
             p.setValue(pUpdate.getValue());
             p.setStartDate(pUpdate.getStartDate());
             p.setEndDate(pUpdate.getEndDate());
-            p.setStatus(pUpdate.getStatus());
+            p.setActive(pUpdate.isActive());
             p.setNote(pUpdate.getNote());
             p.setCreatedDate(pUpdate.getCreatedDate());
             p.setModifiedDate(pUpdate.getModifiedDate());
@@ -48,10 +48,10 @@ public class PromotionService {
 
     public Promotion updateStatus(int id, Promotion pUpdate) {
         return promotionRepository.findById(id).map(p -> {
-            if (p.getStatus() == 1) {
-                p.setStatus(0);
+            if (p.isActive() == true) {
+                p.setActive(false);
             } else {
-                p.setStatus(1);
+                p.setActive(true);
             }
 
             return promotionRepository.save(p);

@@ -56,22 +56,6 @@ function formatDateTime(datetimeStr) {
     return `${day}-${month}-${year}`;
 }
 
-function getVietnamDateTimeLocalFormat() {
-    const now = new Date();
-    const vietnamOffset = 7 * 60;
-    const localOffset = now.getTimezoneOffset();
-    const totalOffset = vietnamOffset + localOffset;
-    const vietnamTime = new Date(now.getTime() + totalOffset * 60000);
-
-    const year = vietnamTime.getFullYear();
-    const month = String(vietnamTime.getMonth() + 1).padStart(2, '0');
-    const day = String(vietnamTime.getDate()).padStart(2, '0');
-    const hours = String(vietnamTime.getHours()).padStart(2, '0');
-    const minutes = String(vietnamTime.getMinutes()).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
 onMounted(() => {
     fetchAccount();
 })

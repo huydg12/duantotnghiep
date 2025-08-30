@@ -13,11 +13,11 @@ import lombok.NoArgsConstructor;
 public class CustomerDTO {
     private Integer id;
     private String fullName;
-    private String gender;
+    private boolean gender;
     private String email;
     private String numberPhone;
     private LocalDate birthOfDate;
-    private Integer status;
+    private boolean isActive;
     private LocalDateTime createdDate;
     private Integer accountId;
 }

@@ -23,14 +23,17 @@ public class CartDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
+
     @Column(name = "CART_ID")
     private int cartId;
 
     @Column(name = "PRODUCT_DETAIL_ID")
     private int productDetailId;
+
     @Column(name = "QUANTITY")
     private int quantity;
+    
     @Column(name = "MODIFIED_DATE")
     private LocalDateTime modifiedDate = LocalDateTime.now();
-
+    
 }

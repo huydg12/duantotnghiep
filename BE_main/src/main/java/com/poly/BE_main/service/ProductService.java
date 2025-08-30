@@ -49,10 +49,10 @@ public class ProductService {
 
     public Product updateStatus(int id, Product pUpdate) {
         return productRepository.findById(id).map(p -> {
-            if (p.getStatus().equals(1)) {
-                p.setStatus(0);
+            if (p.isActive() == true ) {
+                p.setActive(false);
             }else{
-                p.setStatus(1);
+                p.setActive(true);
             }
             return productRepository.save(p);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có id: " + id));

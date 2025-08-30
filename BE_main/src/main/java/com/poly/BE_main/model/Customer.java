@@ -31,8 +31,8 @@ public class Customer {
     @Column(name = "FULL_NAME", length = 255)
     private String fullName;
 
-    @Column(name = "GENDER", length = 45)
-    private String gender;
+    @Column(name = "GENDER")
+    private boolean gender;
 
     @Column(name = "EMAIL", length = 255)
     private String email;
@@ -43,8 +43,8 @@ public class Customer {
     @Column(name = "BIRTH_OF_DATE")
     private LocalDate birthOfDate;
 
-    @Column(name = "STATUS")
-    private Integer status;
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;

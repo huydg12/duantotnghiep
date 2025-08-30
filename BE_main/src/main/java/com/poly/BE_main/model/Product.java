@@ -51,7 +51,7 @@ public class Product {
     @Column(name = "CREATED_DATE")
     private LocalDateTime createdDate;
 
-    @Column(name = "STATUS")
-    private Integer status;
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 
 }

@@ -29,11 +29,11 @@ public class CustomerService {
         CustomerDTO dto = new CustomerDTO();
         dto.setId(customer.getId());
         dto.setFullName(customer.getFullName());
-        dto.setGender(customer.getGender());
+        dto.setGender(customer.isGender());
         dto.setEmail(customer.getEmail());
         dto.setNumberPhone(customer.getNumberPhone());
         dto.setBirthOfDate(customer.getBirthOfDate());
-        dto.setStatus(customer.getStatus());
+        dto.setActive(customer.isActive());
         dto.setCreatedDate(customer.getCreatedDate());
 
         if (customer.getAccount() != null) {
@@ -49,11 +49,11 @@ public class CustomerService {
         Customer customer = new Customer();
         customer.setId(dto.getId());
         customer.setFullName(dto.getFullName());
-        customer.setGender(dto.getGender());
+        customer.setGender(dto.isGender());
         customer.setEmail(dto.getEmail());
         customer.setNumberPhone(dto.getNumberPhone());
         customer.setBirthOfDate(dto.getBirthOfDate());
-        customer.setStatus(dto.getStatus());
+        customer.setActive(dto.isActive());
         customer.setCreatedDate(dto.getCreatedDate());
 
         // Nếu cần gán account theo accountId thì xử lý ở đây
@@ -92,11 +92,11 @@ public class CustomerService {
     public CustomerDTO update(Integer id, CustomerDTO dto) {
         return customerRepository.findById(id).map(c -> {
             c.setFullName(dto.getFullName());
-            c.setGender(dto.getGender());
+            c.setGender(dto.isGender());
             c.setEmail(dto.getEmail());
             c.setNumberPhone(dto.getNumberPhone());
             c.setBirthOfDate(dto.getBirthOfDate());
-            c.setStatus(dto.getStatus());
+            c.setActive(dto.isActive());
             c.setCreatedDate(dto.getCreatedDate());
             return toDTO(customerRepository.save(c));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với id: " + id));
@@ -104,10 +104,10 @@ public class CustomerService {
 
     public CustomerDTO updateStatus(Integer id, CustomerDTO dto) {
         return customerRepository.findById(id).map(c -> {
-            if (c.getStatus() == 1) {
-                c.setStatus(0);
+            if (c.isActive() == true) {
+                c.setActive(false);
             }else{
-                c.setStatus(1);
+                c.setActive(true);
             }
             return toDTO(customerRepository.save(c));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với id: " + id));

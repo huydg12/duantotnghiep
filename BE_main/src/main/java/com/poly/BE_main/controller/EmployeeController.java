@@ -52,11 +52,11 @@ public class EmployeeController {
         // 2. Tạo employee gắn account
         Employee employee = new Employee();
         employee.setFullName(dto.getFullName());
-        employee.setGender(dto.getGender());
+        employee.setGender(dto.isGender());
         employee.setEmail(dto.getEmail());
         employee.setNumberPhone(dto.getNumberPhone());
         employee.setBirthOfDate(dto.getBirthOfDate());
-        employee.setIsActive(dto.getIsActive());
+        employee.setActive(dto.isActive());
         employee.setCreatedBy(dto.getCreatedBy());
         employee.setCreatedDate(LocalDateTime.now());
         employee.setAccount(account);
@@ -66,11 +66,11 @@ public class EmployeeController {
         EmployeeDTO response = new EmployeeDTO();
         response.setId(employee.getId());
         response.setFullName(employee.getFullName());
-        response.setGender(employee.getGender());
+        response.setGender(employee.isGender());
         response.setEmail(employee.getEmail());
         response.setNumberPhone(employee.getNumberPhone());
         response.setBirthOfDate(employee.getBirthOfDate());
-        response.setIsActive(employee.getIsActive());
+        response.setActive(employee.isActive());
         response.setCreatedBy(employee.getCreatedBy());
         response.setCreatedDate(employee.getCreatedDate());
         response.setAccountId(account.getId());

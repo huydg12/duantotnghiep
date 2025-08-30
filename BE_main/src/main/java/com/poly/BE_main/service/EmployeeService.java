@@ -21,11 +21,11 @@ public class EmployeeService {
         EmployeeDTO dto = new EmployeeDTO();
         dto.setId(e.getId());
         dto.setFullName(e.getFullName());
-        dto.setGender(e.getGender());
+        dto.setGender(e.isGender());
         dto.setEmail(e.getEmail());
         dto.setNumberPhone(e.getNumberPhone());
         dto.setBirthOfDate(e.getBirthOfDate());
-        dto.setIsActive(e.getIsActive());
+        dto.setActive(e.isActive());
         dto.setCreatedBy(e.getCreatedBy());
         dto.setCreatedDate(e.getCreatedDate());
         if (e.getAccount() != null) {
@@ -40,11 +40,11 @@ public class EmployeeService {
         Employee e = new Employee();
         e.setId(dto.getId());
         e.setFullName(dto.getFullName());
-        e.setGender(dto.getGender());
+        e.setGender(dto.isGender());
         e.setEmail(dto.getEmail());
         e.setNumberPhone(dto.getNumberPhone());
         e.setBirthOfDate(dto.getBirthOfDate());
-        e.setIsActive(dto.getIsActive());
+        e.setActive(dto.isActive());
         e.setCreatedBy(dto.getCreatedBy());
         e.setCreatedDate(dto.getCreatedDate());
         if (dto.getAccountId() != null) {
@@ -75,7 +75,7 @@ public class EmployeeService {
     public EmployeeDTO update(Integer id, EmployeeDTO dto) {
         return employeeRepository.findById(id).map(e -> {
             e.setFullName(dto.getFullName());
-            e.setGender(dto.getGender());
+            e.setGender(dto.isGender());
             e.setEmail(dto.getEmail());
             e.setNumberPhone(dto.getNumberPhone());
             e.setBirthOfDate(dto.getBirthOfDate());
@@ -94,10 +94,10 @@ public class EmployeeService {
 
     public EmployeeDTO updateStatus(Integer id, EmployeeDTO dto) {
         return employeeRepository.findById(id).map(e -> {
-            if (e.getIsActive() == true) {
-                e.setIsActive(false);
+            if (e.isActive() == true) {
+                e.setActive(false);
             }else{
-                e.setIsActive(true);
+                e.setActive(true);
             }
             
             return toDTO(employeeRepository.save(e));

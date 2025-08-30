@@ -8,16 +8,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class EmployeeDTO {
     private Integer id;
     private String fullName;
-    private String gender;
+    private boolean gender;
     private String email;
     private String numberPhone;
     private LocalDate birthOfDate;
-    private Boolean isActive;
+    private boolean isActive;
     private String createdBy;
     private LocalDateTime createdDate;
     private Integer accountId;

@@ -82,7 +82,6 @@ public class ProductDetailService {
             p.setDescription(pUpdate.getDescription());
             p.setPrice(pUpdate.getPrice());
             p.setSize(pUpdate.getSize());
-            p.setStatus(pUpdate.getStatus());
             return productDetailRepository.save(p);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
     }

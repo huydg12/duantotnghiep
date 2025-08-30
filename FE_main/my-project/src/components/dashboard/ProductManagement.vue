@@ -70,7 +70,7 @@ const form = reactive({
     soleId: null,
     description: '',
     createdDate: new Date().toISOString().split('.')[0],
-    status: 1,
+    active: 1,
     details: []
 })
 const detailForm = reactive({ price: '', description: '', id: null })
@@ -140,13 +140,13 @@ const fetchSoles = async () => { soles.value = (await API.get('/sole/show')).dat
 const fetchSizes = async () => { sizes.value = (await API.get('/size/show')).data }
 const fetchColors = async () => { colors.value = (await API.get('/color/show')).data }
 const fetchCollars = async () => { collars.value = (await API.get('/collar/show')).data }
-const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1 }
+const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1;}
 
 // CRUD Sản phẩm
 function resetForm() {
     Object.assign(form, {
         id: null, productName: '', brandId: null, categoryId: null, soleId: null,
-        description: '', status: 1, details: []
+        description: '', active: 1, details: []
     })
 }
 
@@ -667,7 +667,7 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                     <td class="text-center">{{ getNameById(categories, p.categoryId) }}</td>
                     <td class="text-center">{{ getNameById(soles, p.soleId) }}</td>
                     <td class="text-center">
-                        <span v-if="p.status === 1" class="badge bg-success">Hoạt động</span>
+                        <span v-if="p.active" class="badge bg-success">Hoạt động</span>
                         <span v-else class="badge bg-danger">Không hoạt động</span>
                     </td>
                     <td>{{ p.description }}</td>

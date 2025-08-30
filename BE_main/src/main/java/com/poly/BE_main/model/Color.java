@@ -27,8 +27,10 @@ public class Color {
 
     @Column(name = "DESCRIPTION")
     private String description;
-    
+
     @Column(name = "CODE")
     private String code;
 
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 }

@@ -44,8 +44,8 @@ public class Promotion {
     @Column(name = "END_DATE")
     private LocalDateTime endDate;
 
-    @Column(name = "STATUS")
-    private Integer status;
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 
     @Column(name = "NOTE")
     private String note;

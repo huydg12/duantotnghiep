@@ -293,9 +293,8 @@ onMounted(() => {
         </small>
         </div>
 
-
         <!-- Thông báo khi không thể mua -->
-        <div v-if="selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
+        <div v-if="selectedProduct.quantity === null || selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
           Sản phẩm hiện đã hết hàng
         </div>
 

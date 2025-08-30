@@ -21,9 +21,13 @@ public class Size {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
+
     @Column(name = "EU")
     private String eu;
+
     @Column(name = "DESCRIPTION")
     private String description;
 
+    @Column(name = "IS_ACTIVE")
+    private boolean isActive;
 }
