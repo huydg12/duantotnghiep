@@ -135,7 +135,7 @@ function getVietnamTimeWithoutSeconds() {
 
 // API
 const fetchBrands = async () => { brands.value = (await API.get('/brand/show')).data }
-const fetchCategories = async () => { categories.value = (await API.get('/style/show')).data }
+const fetchCategories = async () => { categories.value = (await API.get('/category/show')).data }
 const fetchSoles = async () => { soles.value = (await API.get('/sole/show')).data }
 const fetchSizes = async () => { sizes.value = (await API.get('/size/show')).data }
 const fetchColors = async () => { colors.value = (await API.get('/color/show')).data }
