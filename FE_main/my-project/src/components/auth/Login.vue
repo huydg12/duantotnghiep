@@ -42,11 +42,11 @@ const handleLogin = async () => {
   <form @submit.prevent="handleLogin">
     <div class="mb-3">
       <label class="form-label fw-semibold">TÀI KHOẢN</label>
-      <input v-model="username" type="text" class="form-control" placeholder="Nhập tài khoản">
+      <input v-model="username" type="text" class="form-control" placeholder="Nhập tài khoản" required>
     </div>
     <div class="mb-3">
       <label class="form-label fw-semibold">MẬT KHẨU</label>
-      <input v-model="password" type="password" class="form-control" placeholder="Nhập mật khẩu">
+      <input v-model="password" type="password" class="form-control" placeholder="Nhập mật khẩu" required>
     </div>
     <div class="mb-3 text-end">
       <router-link to="/auth/forgetpassword" class="text-decoration-none text-primary">Quên mật khẩu?</router-link>

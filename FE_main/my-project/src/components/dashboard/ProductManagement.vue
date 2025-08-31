@@ -279,87 +279,113 @@ async function deleteDetail(id) {
 }
 
 async function saveProductDetails() {
-    if (loading.value) return
-    loading.value = true
-    try {
-        if (!currentProduct.value?.id) return
-        const isEdit = !!detailForm.id
-        const missingBase =
-            !detailForm.price || !detailForm.description ||
-            selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0
-        if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
-        if (!isEdit && selectedImages.value.length === 0) { alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.'); return }
+  if (loading.value) return
+  loading.value = true
+  try {
+    if (!currentProduct.value?.id) return
+    const isEdit = !!detailForm.id
+    const missingBase =
+      !detailForm.price || !detailForm.description ||
+      selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0
+    if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
+    if (!isEdit && selectedImages.value.length === 0) { alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.'); return }
 
-        if (isEdit) {
-            const targetKey = tripleKey(selectedSizes.value[0], selectedColors.value[0], selectedCollars.value[0])
-            const duplicated = productDetailList.value.some(d => {
-                const id = detailIdOf(d); if (id === detailForm.id) return false
-                const { key } = tripleFromRow(d); return key === targetKey
-            })
-            if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
+    if (isEdit) {
+      // ====== CHECK NO-CHANGE ======
+      const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {}
+      const origTriple = tripleFromRow(orig)
+      const sameSize   = Number(selectedSizes.value[0])   === Number(origTriple.sizeId)
+      const sameColor  = Number(selectedColors.value[0])  === Number(origTriple.colorId)
+      const sameCollar = Number(selectedCollars.value[0]) === Number(origTriple.collarId)
+      const samePrice  = Number(detailForm.price) === Number(orig.price)
+      const sameDesc   = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim()
 
-            const updatedDetail = {
-                product: { id: currentProduct.value.id },
-                size: { id: selectedSizes.value[0] },
-                color: { id: selectedColors.value[0] },
-                collar: { id: selectedCollars.value[0] },
-                price: detailForm.price,
-                description: detailForm.description,
-                status: 1
-            }
-            await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
+      const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc)
+      const needUploadImages = selectedImages.value.length > 0
 
-            if (selectedImages.value.length > 0) {
-                const filesCopy = [...selectedImages.value]
-                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-                await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
-            }
-            alert('Cập nhật chi tiết thành công')
-        } else {
-            const wantKeys = new Set(), wantTriples = []
-            for (const size of selectedSizes.value) {
-                for (const color of selectedColors.value) {
-                    for (const collar of selectedCollars.value) {
-                        const k = tripleKey(size, color, collar)
-                        if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
-                    }
-                }
-            }
-            const duplicates = [], payloads = []
-            for (const t of wantTriples) {
-                if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
-                else {
-                    payloads.push({
-                        product: { id: currentProduct.value.id },
-                        size: { id: t.size }, color: { id: t.color }, collar: { id: t.collar },
-                        price: detailForm.price, description: detailForm.description, status: 1
-                    })
-                }
-            }
-            if (payloads.length === 0) {
-                alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
-                return
-            }
-            const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
-            const successIds = []; let failed = 0
-            addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
+      if (!needUpdateDetail && !needUploadImages) {
+        alert('Không có thay đổi để cập nhật.')
+        return
+      }
 
-            if (selectedImages.value.length > 0 && successIds.length > 0) {
-                const filesCopy = [...selectedImages.value]
-                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-                await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
-            }
-            alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
+      // Nếu đổi bộ biến thể (size/màu/cổ) thì mới cần check trùng
+      if (!(sameSize && sameColor && sameCollar)) {
+        const targetKey = tripleKey(selectedSizes.value[0], selectedColors.value[0], selectedCollars.value[0])
+        const duplicated = productDetailList.value.some(d => {
+          const id = detailIdOf(d); if (id === detailForm.id) return false
+          const { key } = tripleFromRow(d); return key === targetKey
+        })
+        if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
+      }
+
+      // Cập nhật detail nếu có thay đổi field
+      if (needUpdateDetail) {
+        const updatedDetail = {
+          product: { id: currentProduct.value.id },
+          size: { id: selectedSizes.value[0] },
+          color: { id: selectedColors.value[0] },
+          collar: { id: selectedCollars.value[0] },
+          price: detailForm.price,
+          description: detailForm.description,
+          status: 1
         }
+        await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
+      }
 
-        resetDetailForm()
-        await loadProductDetails(currentProduct.value.id)
-    } catch (err) {
-        console.error('Lỗi khi lưu chi tiết:', err)
-        alert('Không thể lưu chi tiết!')
-    } finally {
-        loading.value = false
+      // Nếu có chọn ảnh thì upload
+      if (needUploadImages) {
+        const filesCopy = [...selectedImages.value]
+        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+        await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
+      }
+
+      alert('Cập nhật chi tiết thành công')
+    } else {
+      // (giữ nguyên nhánh thêm mới)
+      const wantKeys = new Set(), wantTriples = []
+      for (const size of selectedSizes.value) {
+        for (const color of selectedColors.value) {
+          for (const collar of selectedCollars.value) {
+            const k = tripleKey(size, color, collar)
+            if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
+          }
+        }
+      }
+      const duplicates = [], payloads = []
+      for (const t of wantTriples) {
+        if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
+        else {
+          payloads.push({
+            product: { id: currentProduct.value.id },
+            size: { id: t.size }, color: { id: t.color }, collar: { id: t.collar },
+            price: detailForm.price, description: detailForm.description, status: 1
+          })
+        }
+      }
+      if (payloads.length === 0) {
+        alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
+        return
+      }
+      const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
+      const successIds = []; let failed = 0
+      addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
+
+      if (selectedImages.value.length > 0 && successIds.length > 0) {
+        const filesCopy = [...selectedImages.value]
+        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+        await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
+      }
+      alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
     }
+
+    resetDetailForm()
+    await loadProductDetails(currentProduct.value.id)
+  } catch (err) {
+    console.error('Lỗi khi lưu chi tiết:', err)
+    alert('Không thể lưu chi tiết!')
+  } finally {
+    loading.value = false
+  }
 }
 
 // Hydrate ảnh
@@ -592,7 +618,7 @@ onMounted(async () => {
     }
 })
 watch(detailPage, () => { hydrateCurrentPage(false) })
-watch(productDetailList, () => { hydrateCurrentPage(false) })
+
 </script>
 
 <template>
@@ -604,29 +630,29 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
             <div class="card-body row g-3">
                 <div class="col-md-4">
                     <label>Tên sản phẩm</label>
-                    <input v-model="form.productName" class="form-control" />
+                    <input v-model="form.productName" class="form-control"  required/>
                 </div>
                 <div class="col-md-2">
                     <label>Thương hiệu</label>
-                    <select v-model.number="form.brandId" class="form-select">
+                    <select v-model.number="form.brandId" class="form-select" required>
                         <option v-for="b in brands" :key="b.id" :value="b.id">{{ b.name }}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label>Danh mục</label>
-                    <select v-model.number="form.categoryId" class="form-select">
+                    <select v-model.number="form.categoryId" class="form-select" required>
                         <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label>Đế giày</label>
-                    <select v-model.number="form.soleId" class="form-select">
+                    <select v-model.number="form.soleId" class="form-select" required>
                         <option v-for="s in soles" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
                 <div class="col-md-12">
                     <label>Mô tả</label>
-                    <textarea v-model="form.description" class="form-control"></textarea>
+                    <textarea v-model="form.description" class="form-control" required></textarea>
                 </div>
                 <div class="col-md-12">
                     <button class="btn btn-success me-2" @click="saveProduct">{{ form.id ? 'Cập nhật' : 'Thêm'
@@ -717,7 +743,7 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                                     </div>
                                     <div class="form-check" v-for="c in filteredColors" :key="c.id">
                                         <input class="form-check-input" type="checkbox" :id="`color_${c.id}`"
-                                            :value="c.id" v-model="selectedColors" />
+                                            :value="c.id" v-model="selectedColors" required />
                                         <label class="form-check-label" :for="`color_${c.id}`">{{ c.name }}</label>
                                     </div>
                                 </div>
@@ -732,7 +758,7 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                                     </div>
                                     <div class="form-check" v-for="s in filteredSizes" :key="s.id">
                                         <input class="form-check-input" type="checkbox" :id="`size_${s.id}`"
-                                            :value="s.id" v-model="selectedSizes" />
+                                            :value="s.id" v-model="selectedSizes" required />
                                         <label class="form-check-label" :for="`size_${s.id}`">{{ s.eu }}</label>
                                     </div>
                                 </div>
@@ -747,7 +773,7 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                                         hợp</div>
                                     <div class="form-check" v-for="c in filteredCollars" :key="c.id">
                                         <input class="form-check-input" type="checkbox" :id="`collar_${c.id}`"
-                                            :value="c.id" v-model="selectedCollars" />
+                                            :value="c.id" v-model="selectedCollars" required />
                                         <label class="form-check-label" :for="`collar_${c.id}`">{{ c.name }}</label>
                                     </div>
                                 </div>
@@ -758,9 +784,9 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                             <!-- Cột trái -->
                             <div class="col-md-6">
                                 <label>Giá</label>
-                                <input type="number" class="form-control" v-model="detailForm.price" />
+                                <input type="number" class="form-control" v-model="detailForm.price" required />
                                 <label class="mt-2">Mô tả</label>
-                                <input type="text" class="form-control" v-model="detailForm.description" />
+                                <input type="text" class="form-control" v-model="detailForm.description" required />
                                 <button class="btn btn-primary mt-3 w-100" @click="saveProductDetails">
                                     {{ detailForm.id ? '✔ Cập nhật' : 'Thêm' }}
                                 </button>
@@ -783,7 +809,7 @@ watch(productDetailList, () => { hydrateCurrentPage(false) })
                                                 width: '120px', height: '120px', objectFit: 'cover',
                                                 border: mainImageIndex === index ? '3px solid red' : '1px solid #ccc',
                                                 boxShadow: mainImageIndex === index ? '0 0 6px red' : 'none'
-                                            }" />
+                                            }" required />
                                             <span v-if="mainImageIndex === index"
                                                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">Chính</span>
                                         </div>

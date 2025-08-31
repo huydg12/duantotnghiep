@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
-
+import Swal from 'sweetalert2'
 const store = useCartFavoriteStore()
 const route = useRoute()
 const router = useRouter()
@@ -68,8 +68,13 @@ function blockMinus(e) {
 
 const addToCart = async () => {
   if (!customerId) {
-    alert("Vui lòng đăng nhập để thêm vào giỏ hàng.");
-    router.push("/auth/login");
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Bạn cần đăng nhập',
+      text: 'Vui lòng đăng nhập để thêm vào giỏ hàng.',
+      confirmButtonText: 'OK',
+      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+    });
     return;
   }
 
@@ -213,10 +218,15 @@ const fetchProductDetail = async () => {
   }
 }
 
-const buyNow = () => {
+const buyNow = async() => {
   if (!customerId) {
-    alert("Vui lòng đăng nhập để mua hàng.");
-    router.push("/auth/login");
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Bạn cần đăng nhập',
+      text: 'Vui lòng đăng nhập để mua hàng.',
+      confirmButtonText: 'OK',
+      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+    });
     return;
   }
   const checkoutItem = {

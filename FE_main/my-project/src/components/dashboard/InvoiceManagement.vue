@@ -142,6 +142,7 @@ const mapBillData = (data) => {
   return data.map((item) => ({
     ID: item.id,
     CODE: item.code,
+    PTTT_ID: item.ptttId,
     CREATED_DATE: item.createdDate,
     RECIPIENT_NAME: item.recipientName,
     RECIPIENT_PHONE_NUMBER: item.recipientPhoneNumber,
@@ -210,7 +211,7 @@ const updateBillStatus = async (bill, newStatus) => {
 
 const updateBillStatus4 = async (bill, newStatus) => {
   try {
-    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus,statusPayment: "ĐÃ_THANH_TOÁN"  });
+    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus,statusPayment: "Đã thanh toán"  });
     // Cập nhật lạc quan trên UI
     bill.STATUS = newStatus;
     // (tuỳ chọn) refresh danh sách:
@@ -401,6 +402,12 @@ function blockMinus(e) { if (e.key === '-' || e.key === 'e') { e.preventDefault(
       };
       return statusMap[status] || "Không xác định"; // Trả về nếu không có trạng thái phù hợp
     };
+
+    const PTTT_LABELS = {
+      1: 'Thanh toán khi nhận hàng',
+      2: 'Thanh toán MoMo',
+      3: 'Thanh toán qua QR'
+    };
 onMounted(() => {
   fetchBills();
 });
@@ -439,6 +446,7 @@ onMounted(() => {
           <th>Mã HĐ</th>
           <th>Ngày tạo</th>
           <th>Người nhận</th>
+          <th>Phương thức thanh toán</th>
           <th>Trạng thái</th>
           <th>Thanh toán</th>
           <th>Tổng tiền</th>
@@ -451,6 +459,7 @@ onMounted(() => {
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
+          <td>{{ PTTT_LABELS[bill.PTTT_ID] }}</td>
           <td>{{ getStatusText(bill.STATUS) }}</td>
 
           <td>{{ bill.STATUS_PAYMENT }}</td>

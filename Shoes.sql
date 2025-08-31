@@ -811,9 +811,7 @@ INSERT INTO dbo.PAYMENT_METHOD
 	([NAME],[DESCRIPTION])
 VALUES
 	(N'Cash', N'Thanh toán tiền mặt'),
-	(N'ZaloPay', N'Thanh toán qua Zalo Pay'),
-	(N'Momo', N'Thanh toán qua Momo'),
-	(N'VNPay', N'Thanh toán qua ngân hàng');
+	(N'MOMO', N'Thanh toán qua MoMo');
 GO
 
 -- 9. EMPLOYEE
@@ -829,7 +827,7 @@ INSERT INTO dbo.CUSTOMER
 	(ACCOUNT_ID, FULL_NAME, GENDER, EMAIL, NUMBER_PHONE, BIRTH_OF_DATE, IS_ACTIVE, CREATED_DATE)
 VALUES
 	(2, N'Trần Thị B', 0, 'tranthib@example.com', '0987654321', '1998-09-20', 1, GETDATE()),
-	(2, N'Đào Gia Huy', 1, 'dhuy12112002@gmail.com', '0912618528', '2002-11-12', 1, GETDATE());
+	(3, N'Đào Gia Huy', 1, 'dhuy12112002@gmail.com', '0912618528', '2002-11-12', 1, GETDATE());
 GO
 
 

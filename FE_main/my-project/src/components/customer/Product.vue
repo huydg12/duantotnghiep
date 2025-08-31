@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import Banner from "../common/Banner.vue";
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
-
+import Swal from 'sweetalert2'
 const store = useCartFavoriteStore()
 const router = useRouter()
 const route = useRoute()
@@ -131,8 +131,14 @@ const fetchFavorites = async () => {
 
 const toggleFavorite = async (productId) => {
   if (!customerId) {
-    alert("Bạn cần đăng nhập để sử dụng tính năng này")
-    return
+        await Swal.fire({
+      icon: 'warning',
+      title: 'Bạn cần đăng nhập',
+      text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',
+      confirmButtonText: 'OK',
+      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+    });
+    return;
   }
 
   const isFav = favoriteProductIds.value.has(productId)

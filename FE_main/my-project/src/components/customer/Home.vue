@@ -7,7 +7,7 @@ import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
 // Store và router
 const store = useCartFavoriteStore();
 const router = useRouter();
-
+import Swal from 'sweetalert2'
 // Reactive
 const products = ref([]);
 const allProducts = ref([]);
@@ -55,7 +55,13 @@ const fetchFavorites = async () => {
 // Xử lý thêm/xóa yêu thích
 const toggleFavorite = async (productId) => {
   if (!customerId) {
-    alert("Bạn cần đăng nhập để sử dụng tính năng này");
+        await Swal.fire({
+      icon: 'warning',
+      title: 'Bạn cần đăng nhập',
+      text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',
+      confirmButtonText: 'OK',
+      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+    });
     return;
   }
 

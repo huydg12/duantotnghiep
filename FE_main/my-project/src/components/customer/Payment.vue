@@ -70,7 +70,7 @@ const fetchPromotion = async () => {
   try {
     const response = await axios.get('http://localhost:8080/promotion/show');
     discountAmountList.value = response.data;
-    console.log("dữ liệu khuyến mãi:", response.data);
+
   } catch (err) {
     console.error("Lỗi khuyến mãi", err);
   }
@@ -80,8 +80,7 @@ const applyPromotionCode = () => {
   const now = new Date();
   now.setHours(0, 0, 0, 0); // so sánh theo ngày, bỏ giờ
 
-  console.log("Danh sách khuyến mãi hiện có:", discountAmountList.value);
-  console.log("Mã bạn nhập:", code);
+
 
   const promo = discountAmountList.value.find(p => {
     const start = new Date(p.startDate);
@@ -129,7 +128,7 @@ if (userJson) {
   try {
     const user = JSON.parse(userJson);
     customerId = user.customerId;
-    console.log("✅ Customer ID:", customerId);
+
   } catch (error) {
     console.error("❌ Lỗi khi parse userJson:", error);
   }
@@ -219,12 +218,18 @@ const saveAddress = async () => {
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
     const result = await response.json();
-    console.log('Thêm địa chỉ thành công:', result);
+
 
     resetAddressForm();
     closeAddAddressOverlay();
     await fetchAddressList();
-
+        await Swal.fire({
+      icon: "success",
+      title: "Thêm địa chỉ thành công",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
     // Nếu cần, load lại danh sách địa chỉ
     // await fetchAddressList();
 
@@ -249,7 +254,7 @@ const setAsDefault = async (address) => {
     const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
       method: 'PUT',
     });
-    console.log("📦 Địa chỉ được chọn để đặt mặc định:", address.id);
+
 
     if (!response.ok) {
       throw new Error('Lỗi khi đặt địa chỉ mặc định');
@@ -313,44 +318,84 @@ const getWardNameByCode = (code) => {
 
 const updateAddress = async () => {
   try {
+    const m = addressBeingEdited;
+    const original = (addressList.value || []).find(a => a.id === m.id);
+
+    if (original) {
+      // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
+      const cityNameNew     = getCityNameByCode(m.cityCode)        || m.cityName       || original.cityName || "";
+      const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
+      const wardNameNew     = getWardNameByCode(m.wardCode)        || m.wardName       || original.wardName || "";
+
+      // So sánh TRỰC TIẾP, không normalize
+      const noChange =
+        String(m.fullName ?? "")        === String(original.fullName ?? "") &&
+        String(m.numberPhone ?? "")     === String(original.numberPhone ?? "") &&
+        String(m.detailAddress ?? "")   === String(original.detailAddress ?? "") &&
+        cityNameNew                     === (original.cityName || "") &&
+        districtNameNew                 === (original.districtName || "") &&
+        wardNameNew                     === (original.wardName || "") &&
+        (!!m.default === !!original.default);
+
+      if (noChange) {
+        await Swal.fire({
+          icon: "info",
+          title: "Không có thay đổi",
+          text: "Bạn chưa thay đổi trường nào.",
+          didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+        });
+        return;
+      }
+    }
+
+    // Tên địa giới phục vụ build fullAddress/payload
+    const cityName     = getCityNameByCode(m.cityCode)        || m.cityName || "";
+    const districtName = getDistrictNameByCode(m.districtCode) || m.districtName || "";
+    const wardName     = getWardNameByCode(m.wardCode)        || m.wardName || "";
+
     const data = {
       customerId: customerId,
-      fullName: addressBeingEdited.fullName,
-      numberPhone: addressBeingEdited.numberPhone,
-      fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
-      ${getDistrictNameByCode(addressBeingEdited.districtCode)}, ${getCityNameByCode(addressBeingEdited.cityCode)}`,
-      default: addressBeingEdited.default,
-      detailAddress: addressBeingEdited.detailAddress,
-      wardName: getWardNameByCode(addressBeingEdited.wardCode) || addressBeingEdited.wardName,
-      districtName: getDistrictNameByCode(addressBeingEdited.districtCode) || addressBeingEdited.districtName,
-      cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
+      fullName: m.fullName,
+      numberPhone: m.numberPhone,
+      fullAddress: `${m.detailAddress}, ${wardName}, ${districtName}, ${cityName}`,
+      default: !!m.default,
+      detailAddress: m.detailAddress,
+      wardName: wardName,
+      districtName: districtName,
+      cityName: cityName,
     };
 
-    console.log("📦 Dữ liệu gửi đi:", data);
-
-    const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
+    const response = await fetch(`http://localhost:8080/address/update/${m.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("⚠️ Response status:", response.status);
-      console.error("📩 Response body:", errorText);
-      throw new Error('Cập nhật địa chỉ thất bại');
+      throw new Error(errorText || 'Cập nhật địa chỉ thất bại');
     }
 
     await fetchAddressList();
     closeUpdateAddressOverlay();
+
+    await Swal.fire({
+      icon: "success",
+      title: "Cập nhật địa chỉ thành công",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
-
+    await Swal.fire({
+      icon: "error",
+      title: "Có lỗi xảy ra",
+      text: err?.message || "Không thể cập nhật địa chỉ.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   }
 };
-
 const fetchAddressList = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/address/showById/${customerId}`);
@@ -369,7 +414,7 @@ const findCustomerByAccountId = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/customer/findByAccountId/${customerId}`);
     CustomerData.value = response.data[0];
-    console.log("Thông tin khách hàng:", response.data);
+
   } catch (err) {
     console.error("Lỗi tìm kiếm khách hàng:", err);
   }
@@ -408,15 +453,14 @@ const createMoMoPayment = async () => {
 // Mapping phương thức thanh toán sang ID trong DB
 const paymentMethodMapping = {
   CASH: 1,
-  MOMO: 2,
-  QR: 3
+  MOMO: 2
 };
 
 
 
 const billCode = ref(`HD${Date.now()}`)  // ví dụ: "HD1721810123980"
 // Hàm tạo billPayload động
-const generateBillPayload = () => {
+const generateBillPayload = (override = {}) => {
   const _subTotal = subTotal.value
   const _discountAmount = discountAmount.value || 0 // lấy từ computed
   const _shippingFee = shippingFee.value
@@ -468,7 +512,7 @@ const generateBillPayload = () => {
     modifiedBy: null,
     modifiedDate: today,
     note: note.value,
-    statusPayment: "CHUA_THANH_TOAN",
+    statusPayment: "Chưa thanh toán",
     subTotal: _subTotal,
     discountAmount: _discountAmount,
     shippingFee: _shippingFee,
@@ -478,7 +522,7 @@ const generateBillPayload = () => {
   }
 }
 
-const qrJustCreated = ref(false);
+// const qrJustCreated = ref(false);
 
 const createBill = async () => {
   // ✅ Hiển thị popup loading bằng Swal
@@ -493,15 +537,15 @@ const createBill = async () => {
   });
 
   localStorage.setItem("paymentSuccessFlag", "1");
-  console.log("Đã lưu flag paymentSuccessFlag = 1 vào localStorage");
-  if (selectedPaymentMethod.value === 'QR') {
-    amount.value = grandTotal.value;
-    addInfo.value = billCode.value;
-    await createQR();           // tạo QR
-    qrJustCreated.value = true;
-    Swal.close();
-    return;                     // chưa gửi đơn hàng
-  }
+
+  // if (selectedPaymentMethod.value === 'QR') {
+  //   amount.value = grandTotal.value;
+  //   addInfo.value = billCode.value;
+  //   await createQR();           // tạo QR
+  //   qrJustCreated.value = true;
+  //   Swal.close();
+  //   return;                     // chưa gửi đơn hàng
+  // }
   if (selectedPaymentMethod.value === 'MOMO') {
     await new Promise(resolve => setTimeout(resolve, 5000));
     await createMoMoPayment(); // 🚀 Gọi MoMo
@@ -516,8 +560,7 @@ const createBill = async () => {
 const sendBill = async () => {
   try {
     const payload = generateBillPayload();
-    const response = await axios.post("http://localhost:8080/bill/add", payload);
-    const savedBill = response.data;
+     await axios.post("http://localhost:8080/bill/add", payload);
 
 
     // Xoá cart
@@ -535,15 +578,51 @@ const sendBill = async () => {
   }
 };
 
-const handleCloseQR = async () => {
-  qrImage.value = null;
+// const handleCloseQR = async () => {
+//   // Popup xác nhận thủ công
+//   const { isConfirmed } = await Swal.fire({
+//     icon: 'question',
+//     title: 'Xác nhận đã chuyển khoản?',
+//     html: `
+//       <div class="text-start">
+//         <div class="mb-1">Vui lòng đảm bảo bạn đã chuyển đúng:</div>
+//         <ul style="margin-left:1rem;">
+//           <li>Số tiền: <b>${formatCurrency(amount.value)}</b></li>
+//           <li>Nội dung chuyển khoản: <b>${addInfo.value}</b></li>
+//         </ul>
+//         <div class="small text-muted mt-2">
+//           Lưu ý: có thể mất vài phút để hệ thống đối soát.
+//         </div>
+//       </div>
+//     `,
+//     showCancelButton: true,
+//     confirmButtonText: 'Tôi đã chuyển',
+//     cancelButtonText: 'Để tôi kiểm tra lại',
+//     reverseButtons: true,
+//     focusCancel: true,
+//     didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+//   });
 
-  // Nếu vừa tạo QR xong, thì giờ mới tạo đơn hàng
-  if (qrJustCreated.value) {
-    qrJustCreated.value = false;
-    await sendBill();
-  }
-};
+//   if (!isConfirmed) return;
+
+//   // Ẩn QR
+//   qrImage.value = null;
+
+//   // (tuỳ chọn) nếu muốn đánh dấu “chờ xác nhận” thay vì “chưa thanh toán”
+//   // bạn có thể truyền cờ vào sendBill rồi sửa payload:
+//   // await sendBill({ manualConfirm: true });
+
+//   await sendBill();
+
+//   await Swal.fire({
+//     icon: 'success',
+//     title: 'Đã ghi nhận',
+//     text: 'Cảm ơn bạn! Đơn hàng đã được tạo. Chúng tôi sẽ xác nhận thanh toán sớm.',
+//     timer: 1600,
+//     showConfirmButton: false,
+//     didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+//   });
+// };
 
 const newAddressForm = ref(null);
 
@@ -569,14 +648,14 @@ const closeAddAddressOverlay = () => {
 };
 
 const openUpdateAddressOverlay = async (address) => {
-  console.log("🔍 Đang mở popup sửa địa chỉ:", address);
+
 
   // Tìm tỉnh/thành phố
   const city = provinces.value.find(p =>
     normalize(p.name) === normalize(address.cityName)
   );
   const cityCode = city?.code || null;
-  console.log("📍 Mã tỉnh (cityCode):", cityCode, "| Tên tỉnh:", address.cityName);
+
 
   let districtCode = null;
   let wardCode = null;
@@ -589,7 +668,7 @@ const openUpdateAddressOverlay = async (address) => {
       normalize(d.name) === normalize(address.districtName)
     );
     districtCode = district?.code || null;
-    console.log("🏙️ Mã quận (districtCode):", districtCode, "| Tên quận:", address.districtName);
+
 
     if (districtCode) {
       const wardList = await fetchWards(districtCode); // <-- CHỜ WARD THỰC SỰ TRẢ VỀ
@@ -598,9 +677,9 @@ const openUpdateAddressOverlay = async (address) => {
         const ward = wardList.find(w =>
           normalize(w.name) === normalize(address.wardName)
         );
-        console.table(wardList.map(w => ({ code: w.code, name: w.name })));
+
         wardCode = ward?.code || null;
-        console.log("🏡 Mã phường (wardCode):", wardCode, "| Tên phường:", address.wardName);
+
       } else {
         console.error("❌ wards không phải là mảng:", wardList);
       }
@@ -641,60 +720,120 @@ const formatCurrency = (value) => {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 };
 const deleteAddress = async (id) => {
-  const addressToDelete = addressList.value.find(addr => addr.id === id)
+  const item = addressList.value.find(addr => addr.id === id);
 
-  // Nếu là mặc định thì không cho xóa
-  if (addressToDelete.default) {
-    alert("❌ Không thể xoá địa chỉ mặc định.\nVui lòng chọn địa chỉ khác làm mặc định trước.")
-    return
+  if (!item) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Không tìm thấy địa chỉ",
+      text: "Địa chỉ này không tồn tại hoặc đã bị xoá.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
+    return;
   }
 
-  if (!confirm('🗑️ Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
+  // Không cho xoá địa chỉ mặc định
+  if (item.default) {
+    await Swal.fire({
+      icon: "error",
+      title: "Không thể xoá địa chỉ mặc định",
+      text: "Vui lòng chọn địa chỉ khác làm mặc định trước.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
+    return;
+  }
+
+  // Xác nhận
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    title: "Xoá địa chỉ này?",
+    html: `
+      <div class="text-start">
+        <div><strong>${item.fullName}</strong> - ${item.numberPhone}</div>
+        <div class="small text-muted mt-1">${item.fullAddress}</div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Xoá",
+    cancelButtonText: "Huỷ",
+    reverseButtons: true,
+    focusCancel: true,
+    didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+  });
+
+  if (!isConfirmed) return;
 
   try {
     await axios.delete(`http://localhost:8080/address/delete/${id}`);
     addressList.value = addressList.value.filter(addr => addr.id !== id);
-    alert("✅ Xoá địa chỉ thành công.")
+
+    await Swal.fire({
+      icon: "success",
+      title: "Đã xoá địa chỉ",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   } catch (error) {
-    console.error('❌ Lỗi khi xoá địa chỉ:', error);
-    alert("Đã xảy ra lỗi khi xoá địa chỉ.")
+    console.error("❌ Lỗi khi xoá địa chỉ:", error);
+    await Swal.fire({
+      icon: "error",
+      title: "Xoá địa chỉ thất bại",
+      text: error?.response?.data?.message || "Đã xảy ra lỗi khi xoá địa chỉ.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   }
-}
+};
 
 const qrImage = ref(null);
 const amount = ref(0);
 const addInfo = ref('')
 
-const createQR = async () => {
-  try {
-    qrImage.value = null; // reset trước
-    const res = await fetch('http://localhost:8081/api/generate-qr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bankCode: 'MB',
-        accountNo: '0337030134',
-        accountName: 'BUI VAN HIEU',
-        amount: amount.value,
-        addInfo: addInfo.value,
-        acqId: '970422'
-      })
-    });
+// const createQR = async () => {
+//   try {
+//     qrImage.value = null;
 
-    const data = await res.json();
+//     const res = await fetch('http://localhost:8081/api/generate-qr', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+//       body: JSON.stringify({
+//         bankCode: 'MB',
+//         accountNo: '0337030134',
+//         accountName: 'BUI VAN HIEU',
+//         amount: amount.value,
+//         addInfo: addInfo.value,
+//         acqId: '970422'
+//       })
+//     });
 
-    // ✅ Nếu có ảnh QR
-    if (data.qrImage) {
-      qrImage.value = data.qrImage;
-      console.log("🟢 QR Image set:", qrImage.value);
-    } else {
-      console.warn("⚠️ Không nhận được ảnh QR từ server");
-    }
+//     if (!res.ok) {
+//       const text = await res.text();
+//       throw new Error(`QR server ${res.status}: ${text}`);
+//     }
 
-  } catch (err) {
-    console.error(err);
-  }
-};
+//     const data = await res.json();
+
+//     // chấp nhận nhiều key phòng backend khác tên
+//     let img = data.qrImage || data.image || data.dataUrl || data.base64 || null;
+//     if (!img) throw new Error("Server không trả về ảnh QR.");
+
+//     if (!/^data:image\//.test(img)) {
+//       img = `data:image/png;base64,${img}`;
+//     }
+
+//     qrImage.value = img; // => v-if="qrImage" sẽ hiện popup
+//     console.log("🟢 QR Image set:", qrImage.value);
+
+//   } catch (err) {
+//     console.error(err);
+//     await Swal.fire({
+//       icon: "error",
+//       title: "Không tạo được QR",
+//       text: err?.message || "Vui lòng thử lại.",
+//       didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+//     });
+//   }
+// };
 
 onMounted(() => {
   window.addEventListener('pageshow', handlePageShow)
@@ -765,20 +904,20 @@ onUnmounted(() => {
     <h5 class="fw-semibold mt-4">Phương thức thanh toán</h5>
     <div class="border rounded bg-white p-3 mt-2">
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="CASH" id="Cash"
+        <input class="form-check-input" type="radio" name="paymentMethod" value="CASH" id="paymentCash"
           v-model="selectedPaymentMethod" checked>
         <label class="form-check-label" for="paymentCash">Thanh toán khi nhận hàng</label>
       </div>
       <div class="form-check mb-2">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="momo"
+        <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="paymentMomo"
           v-model="selectedPaymentMethod">
         <label class="form-check-label" for="paymentMomo">Ví MoMo</label>
       </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="qr"
+      <!-- <div class="form-check">
+        <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="paymentQr"
           v-model="selectedPaymentMethod">
-        <label class="form-check-label" for="paymentQR">Quét mã QR ngân hàng</label>
-      </div>
+        <label class="form-check-label" for="paymentQr">Quét mã QR ngân hàng</label>
+      </div> -->
     </div>
     <div v-if="qrImage" class="qr-popup">
       <h3>Quét mã để thanh toán</h3>
@@ -992,6 +1131,7 @@ onUnmounted(() => {
           <label class="form-label">Số điện thoại</label>
           <input type="text" class="form-control form-control-sm"
             style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+            pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
             required />
         </div>
 
@@ -1101,5 +1241,8 @@ onUnmounted(() => {
 
 .qr-popup button:hover {
   background-color: #c82333;
+}
+.swal2-container {
+  z-index: 20000 !important;
 }
 </style>

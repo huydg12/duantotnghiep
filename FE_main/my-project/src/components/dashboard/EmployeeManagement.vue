@@ -151,12 +151,12 @@ onMounted(() => {
                 <div class="mb-3">
                     <label class="form-label d-block">Vai trò</label>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="admin" value="Admin" v-model="form.role" />
+                        <input class="form-check-input" type="radio" id="admin" value="Admin" v-model="form.role" required />
                         <label class="form-check-label" for="admin">Admin</label>
                     </div>
                     <div class="form-check form-check-inline">
                         <input class="form-check-input" type="radio" id="employee" value="Employee"
-                            v-model="form.role" />
+                            v-model="form.role" required />
                         <label class="form-check-label" for="employee">Nhân viên</label>
                     </div>
                 </div>
@@ -187,7 +187,7 @@ onMounted(() => {
 
             <div class="mb-3">
                 <label class="form-label">Số điện thoại</label>
-                <input v-model="form.numberPhone" required class="form-control" />
+                <input v-model="form.numberPhone" required class="form-control" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
             </div>
 
             <div class="mb-3">

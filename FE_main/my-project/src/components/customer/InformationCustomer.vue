@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed, } from "vue";
 import axios from "axios";
-
+import Swal from 'sweetalert2'
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
 let customerId = null;
@@ -12,7 +12,7 @@ const defaultAddress = ref(null);
 const provinces = ref([]);
 const districts = ref([]);
 const wards = ref([]);
-
+const originalInfo = ref(null);
 const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
@@ -68,36 +68,102 @@ const userInfo = reactive({
 // Hàm fetch dữ liệu từ API
 const fetchUserInfo = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/customer/showInfoCustomer/${customerId}`);
-    const data = response.data;
+    const { data } = await axios.get(`http://localhost:8080/customer/showInfoCustomer/${customerId}`);
 
-    userInfo.fullName = data.fullName;
-    userInfo.gender = data.gender;
-    userInfo.email = data.email;
-    userInfo.phone = data.numberPhone; // key phải trùng với DTO
-    userInfo.birthDate = data.birthOfDate?.slice(0, 10); // cắt yyyy-MM-dd
+    const normalized = {
+      fullName: data.fullName ?? "",
+      gender:  data.gender ?? "",
+      email:   data.email ?? "",
+      phone:   data.numberPhone ?? "",
+      birthDate: data.birthOfDate ? data.birthOfDate.slice(0, 10) : ""
+    };
+
+    Object.assign(userInfo, normalized);      // đổ vào form
+    originalInfo.value = { ...normalized };   // lưu bản gốc để so sánh
   } catch (error) {
     console.error("Lỗi khi fetch thông tin khách hàng:", error);
   }
 };
 
+
 const updateUserInfo = async () => {
   try {
-    const payload = {
-      fullName: userInfo.fullName,
-      gender: userInfo.gender,
-      email: userInfo.email,
-      numberPhone: userInfo.phone,
-      birthOfDate: userInfo.birthDate
+    if (!customerId) {
+      await Swal.fire({
+        icon: "warning",
+        title: "Thiếu thông tin đăng nhập",
+        text: "Vui lòng đăng nhập lại.",
+        didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+      });
+      return;
     }
-    await axios.put(`http://localhost:8080/customer/updateInfoCustomer/${customerId}`, payload)
-    alert("Đã cập nhật thông tin!");
+
+    const s = (v) => String(v ?? "").trim();
+    const toISO = (v) => {
+      if (!v) return "";
+      const d = new Date(v);
+      return isNaN(d) ? "" : d.toISOString().slice(0, 10);
+    };
+
+    const orig = originalInfo.value || {};
+
+    // So sánh: đã validate từng trường ở chỗ khác rồi
+    const noChange =
+      s(userInfo.fullName)          === s(orig.fullName) &&
+      String(userInfo.gender ?? "") === String(orig.gender ?? "") &&
+      s(userInfo.email)             === s(orig.email) &&
+      s(userInfo.phone)             === s(orig.phone) &&
+      toISO(userInfo.birthDate)     === toISO(orig.birthDate);
+
+    if (noChange) {
+      await Swal.fire({
+        icon: "info",
+        title: "Không có thay đổi",
+        text: "Bạn chưa cập nhật trường nào.",
+        didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+      });
+      return;
+    }
+
+    const payload = {
+      fullName: s(userInfo.fullName),
+      gender: userInfo.gender,
+      email: s(userInfo.email),
+      numberPhone: s(userInfo.phone),
+      birthOfDate: toISO(userInfo.birthDate)
+    };
+
+    await axios.put(
+      `http://localhost:8080/customer/updateInfoCustomer/${customerId}`,
+      payload
+    );
+
+    // Cập nhật lại snapshot để lần sau so sánh chuẩn
+    originalInfo.value = {
+      fullName: payload.fullName,
+      gender: payload.gender,
+      email: payload.email,
+      phone: payload.numberPhone,
+      birthDate: payload.birthOfDate
+    };
+
+    await Swal.fire({
+      icon: "success",
+      title: "Cập nhật thành công",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   } catch (error) {
     console.error("Lỗi khi cập nhật thông tin khách hàng:", error);
-    alert("Cập nhật thất bại!");
+    await Swal.fire({
+      icon: "error",
+      title: "Cập nhật thất bại",
+      text: error?.response?.data?.message || error?.message || "Vui lòng thử lại.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   }
-}
-
+};
 const fetchProvinces = async () => {
   try {
     const res = await axios.get("https://provinces.open-api.vn/api/?depth=2");
@@ -237,6 +303,14 @@ const saveAddress = async () => {
 
     // Nếu cần, load lại danh sách địa chỉ
     await fetchAddressList();
+        await fetchAddressList();
+        await Swal.fire({
+      icon: "success",
+      title: "Thêm địa chỉ thành công",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
 
   } catch (error) {
     console.error(error);
@@ -292,42 +366,82 @@ const getWardNameByCode = (code) => {
 
 const updateAddress = async () => {
   try {
+    const m = addressBeingEdited;
+    const original = (addressList.value || []).find(a => a.id === m.id);
+
+    if (original) {
+      // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
+      const cityNameNew     = getCityNameByCode(m.cityCode)        || m.cityName       || original.cityName || "";
+      const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
+      const wardNameNew     = getWardNameByCode(m.wardCode)        || m.wardName       || original.wardName || "";
+
+      // So sánh TRỰC TIẾP, không normalize
+      const noChange =
+        String(m.fullName ?? "")        === String(original.fullName ?? "") &&
+        String(m.numberPhone ?? "")     === String(original.numberPhone ?? "") &&
+        String(m.detailAddress ?? "")   === String(original.detailAddress ?? "") &&
+        cityNameNew                     === (original.cityName || "") &&
+        districtNameNew                 === (original.districtName || "") &&
+        wardNameNew                     === (original.wardName || "") &&
+        (!!m.default === !!original.default);
+
+      if (noChange) {
+        await Swal.fire({
+          icon: "info",
+          title: "Không có thay đổi",
+          text: "Bạn chưa thay đổi trường nào.",
+          didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+        });
+        return;
+      }
+    }
+
+    // Tên địa giới phục vụ build fullAddress/payload
+    const cityName     = getCityNameByCode(m.cityCode)        || m.cityName || "";
+    const districtName = getDistrictNameByCode(m.districtCode) || m.districtName || "";
+    const wardName     = getWardNameByCode(m.wardCode)        || m.wardName || "";
+
     const data = {
       customerId: customerId,
-      fullName: addressBeingEdited.fullName,
-      numberPhone: addressBeingEdited.numberPhone,
-      fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
-      ${getDistrictNameByCode(addressBeingEdited.districtCode)}, ${getCityNameByCode(addressBeingEdited.cityCode)}`,
-      default: addressBeingEdited.default,
-      detailAddress: addressBeingEdited.detailAddress,
-      wardName: getWardNameByCode(addressBeingEdited.wardCode) || addressBeingEdited.wardName,
-      districtName: getDistrictNameByCode(addressBeingEdited.districtCode) || addressBeingEdited.districtName,
-      cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
+      fullName: m.fullName,
+      numberPhone: m.numberPhone,
+      fullAddress: `${m.detailAddress}, ${wardName}, ${districtName}, ${cityName}`,
+      default: !!m.default,
+      detailAddress: m.detailAddress,
+      wardName: wardName,
+      districtName: districtName,
+      cityName: cityName,
     };
 
-    console.log("📦 Dữ liệu gửi đi:", data);
-
-    const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
+    const response = await fetch(`http://localhost:8080/address/update/${m.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("⚠️ Response status:", response.status);
-      console.error("📩 Response body:", errorText);
-      throw new Error('Cập nhật địa chỉ thất bại');
+      throw new Error(errorText || 'Cập nhật địa chỉ thất bại');
     }
 
-    alert('✅ Cập nhật địa chỉ thành công!');
     await fetchAddressList();
     closeUpdateAddressOverlay();
+
+    await Swal.fire({
+      icon: "success",
+      title: "Cập nhật địa chỉ thành công",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
-    alert('❌ Cập nhật địa chỉ thất bại');
+    await Swal.fire({
+      icon: "error",
+      title: "Có lỗi xảy ra",
+      text: err?.message || "Không thể cập nhật địa chỉ.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   }
 };
 
@@ -412,16 +526,68 @@ const handleOverlayClick = (e) => {
 };
 
 const deleteAddress = async (id) => {
-  if (!confirm('Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
+  const item = addressList.value.find(addr => addr.id === id);
+
+  if (!item) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Không tìm thấy địa chỉ",
+      text: "Địa chỉ này không tồn tại hoặc đã bị xoá.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
+    return;
+  }
+
+  // Không cho xoá địa chỉ mặc định
+  if (item.default) {
+    await Swal.fire({
+      icon: "error",
+      title: "Không thể xoá địa chỉ mặc định",
+      text: "Vui lòng chọn địa chỉ khác làm mặc định trước.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
+    return;
+  }
+
+  // Xác nhận
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    title: "Xoá địa chỉ này?",
+    html: `
+      <div class="text-start">
+        <div><strong>${item.fullName}</strong> - ${item.numberPhone}</div>
+        <div class="small text-muted mt-1">${item.fullAddress}</div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Xoá",
+    cancelButtonText: "Huỷ",
+    reverseButtons: true,
+    focusCancel: true,
+    didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+  });
+
+  if (!isConfirmed) return;
 
   try {
-    console.log("ID: " + id)
     await axios.delete(`http://localhost:8080/address/delete/${id}`);
-    // Xoá thành công, cập nhật lại danh sách
     addressList.value = addressList.value.filter(addr => addr.id !== id);
+
+    await Swal.fire({
+      icon: "success",
+      title: "Đã xoá địa chỉ",
+      timer: 1500,
+      showConfirmButton: false,
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   } catch (error) {
-    console.error('Lỗi khi xoá địa chỉ:', error);
-    alert('Xoá địa chỉ thất bại. Vui lòng thử lại!');
+    console.error("❌ Lỗi khi xoá địa chỉ:", error);
+    await Swal.fire({
+      icon: "error",
+      title: "Xoá địa chỉ thất bại",
+      text: error?.response?.data?.message || "Đã xảy ra lỗi khi xoá địa chỉ.",
+      didOpen: () => { Swal.getContainer().style.zIndex = "20000"; }
+    });
   }
 };
 
@@ -677,6 +843,7 @@ onMounted(() => {
                   <label class="form-label">Số điện thoại</label>
                   <input type="text" class="form-control form-control-sm"
                     style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+                    pattern="^(0[0-9]{9})$"
                     required />
                 </div>
 
@@ -860,5 +1027,8 @@ body {
   overflow-y: auto;
   padding-right: 6px;
   /* tránh che mất scrollbar */
+}
+.swal2-container {
+  z-index: 20000 !important;
 }
 </style>
