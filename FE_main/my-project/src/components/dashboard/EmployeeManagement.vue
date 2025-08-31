@@ -170,11 +170,12 @@ onMounted(() => {
             <div class="mb-3">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-male" value="1" v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="gender-male" name="gender" value="true" v-model="form.gender" />
                     <label class="form-check-label" for="gender-male">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-female" value="0" v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="gender-female" name="gender" value="false"
+                        v-model="form.gender" />
                     <label class="form-check-label" for="gender-female">Nữ</label>
                 </div>
             </div>

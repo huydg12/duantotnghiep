@@ -1,98 +1,142 @@
 <script setup>
-import { ref, shallowRef,computed, defineAsyncComponent,onUnmounted, onMounted } from "vue";
+import { ref, shallowRef, computed, defineAsyncComponent, onUnmounted, onMounted } from "vue";
 import axios from "axios";
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/userStore'
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/userStore';
 
-const router = useRouter()
-const userStore = useUserStore()
-userStore.loadUserFromLocalStorage()
+const router = useRouter();
+const userStore = useUserStore();
+userStore.loadUserFromLocalStorage();
 
-// shallowRef để tối ưu các component => thay đổi cả component
+/* ---------------- Helpers: user & robust role detection ---------------- */
+function safeParse(json) {
+  try { return JSON.parse(json) } catch { return null }
+}
+const lsUser = safeParse(localStorage.getItem('user'));
+const currentUser = computed(() => userStore.user ?? lsUser ?? null);
+
+// Các từ khoá/ID đại diện cho quyền Admin (tuỳ backend mà bổ sung thêm)
+const ADMIN_MARKERS = [
+  'ADMIN', 'ROLE_ADMIN', 'SUPERADMIN', 'SUPER_ADMIN',
+  'OWNER', 'MANAGER', 'QUANTRI', 'QUẢN TRỊ', 'QUAN TRI'
+];
+// Nếu backend dùng roleId số/chuỗi cho admin, thêm vào đây (ví dụ 1 là admin)
+const ADMIN_IDS = new Set([1, '1']);
+
+function collectRoleTokens(u) {
+  const bag = [];
+  const push = (v) => {
+    if (v == null) return;
+    if (Array.isArray(v)) { v.forEach(push); return; }
+    if (typeof v === 'object') {
+      // Thử các key phổ biến
+      push(v.role); push(v.roleName); push(v.name); push(v.authority);
+      push(v.code); push(v.title); push(v.type); push(v.id);
+      // Quét toàn bộ values để không bỏ sót
+      Object.values(v).forEach(push);
+      return;
+    }
+    bag.push(String(v));
+  };
+
+  if (!u) return [];
+  // Các đường khả dĩ từ object user
+  push(u.role);
+  push(u.roleName);
+  push(u.userRole);
+  push(u.position);
+  push(u.type);
+  push(u.title);
+  push(u.authority);
+  push(u.authorities);   // [{authority:'ROLE_ADMIN'}]
+  push(u.roles);         // ['ADMIN'] hoặc [{name:'ADMIN'}]
+  push(u.permissions);
+  push(u.claims);
+  push(u.roleId);        // 1, '1' ...
+  if (u.isAdmin === true) bag.push('ADMIN');
+
+  return bag
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.toUpperCase());
+}
+
+function detectRole(u) {
+  const tokens = collectRoleTokens(u);
+  const isAdmin =
+    tokens.some(t => ADMIN_MARKERS.some(m => t.includes(m))) ||
+    tokens.some(t => ADMIN_IDS.has(t));
+  return isAdmin ? 'ADMIN' : 'STAFF';
+}
+
+const role = computed(() => detectRole(currentUser.value));
+const username = computed(() =>
+  currentUser.value?.username ??
+  currentUser.value?.userName ??
+  currentUser.value?.fullName ??
+  currentUser.value?.name ??
+  'User'
+);
+
+/* ---------------- Component map ---------------- */
+const componentMap = {
+  Pos: defineAsyncComponent(() => import("../dashboard/Pos.vue")),
+  ProductManagement: defineAsyncComponent(() => import("../dashboard/ProductManagement.vue")),
+  BrandManagement: defineAsyncComponent(() => import("../dashboard/BrandManagement.vue")),
+  CategoryManagement: defineAsyncComponent(() => import("../dashboard/CategoryManagement.vue")),
+  CollarManagement: defineAsyncComponent(() => import("../dashboard/CollarManagement.vue")),
+  SizeManagement: defineAsyncComponent(() => import("../dashboard/SizeManagement.vue")),
+  SoleManagement: defineAsyncComponent(() => import("../dashboard/SoleManagement.vue")),
+  ColorManagement: defineAsyncComponent(() => import("../dashboard/ColorManagement.vue")),
+  InvoiceManagement: defineAsyncComponent(() => import("../dashboard/InvoiceManagement.vue")),
+  EmployeeManagement: defineAsyncComponent(() => import("../dashboard/EmployeeManagement.vue")),
+  CustomerManagement: defineAsyncComponent(() => import("../dashboard/CustomerManagement.vue")),
+  AccountManagement: defineAsyncComponent(() => import("../dashboard/AccountManagement.vue")),
+  PromotionManagement: defineAsyncComponent(() => import("../dashboard/PromotionManagement.vue")),
+  ImportReceiptManagement: defineAsyncComponent(() => import("../dashboard/ImportReceiptManagement.vue")),
+  WarehouseManagement: defineAsyncComponent(() => import("../dashboard/WarehouseManagement.vue")),
+  StatisticsManagement: defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue")),
+  PersonalInformation: defineAsyncComponent(() => import("../dashboard/PersonalInformation.vue")),
+};
+
+/* ---------------- Role rules & guards ---------------- */
+const allowedTargetsByRole = {
+  ADMIN: 'ALL',
+  STAFF: new Set([
+    'Pos',
+    'InvoiceManagement',
+    'CustomerManagement',
+    'WarehouseManagement',
+    'PersonalInformation',
+    'logout',
+  ]),
+};
+
+function isAllowed(target) {
+  const rule = allowedTargetsByRole[role.value];
+  if (rule === 'ALL') return true;
+  return rule.has(target);
+}
+
+function firstAllowedTarget() {
+  if (role.value === 'ADMIN') return 'StatisticsManagement';
+  const candidates = ['Pos', 'InvoiceManagement', 'CustomerManagement', 'WarehouseManagement', 'PersonalInformation'];
+  return candidates.find(t => isAllowed(t)) ?? 'Pos';
+}
+
+/* ---------------- Active target & component ---------------- */
+const activeTarget = ref(firstAllowedTarget());
 const activeComponent = shallowRef(
+  componentMap[activeTarget.value] ??
   defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
 );
 
-// Ref theo dõi mục menu đang được chọn
-const activeTarget = ref("StatisticsManagement");
-
-// Map các component và dùng defineAsyncComponent
-const componentMap = {
-  Pos: defineAsyncComponent(() => import("../dashboard/Pos.vue")),
-  ProductManagement: defineAsyncComponent(() =>
-    import("../dashboard/ProductManagement.vue")
-  ),
-  BrandManagement: defineAsyncComponent(() =>
-    import("../dashboard/BrandManagement.vue")
-  ),
-  CategoryManagement: defineAsyncComponent(() =>
-    import("../dashboard/CategoryManagement.vue")
-  ),
-  CollarManagement: defineAsyncComponent(() =>
-    import("../dashboard/CollarManagement.vue")
-  ),
-  SizeManagement: defineAsyncComponent(() =>
-    import("../dashboard/SizeManagement.vue")
-  ),
-  SoleManagement: defineAsyncComponent(() =>
-    import("../dashboard/SoleManagement.vue")
-  ),
-  ColorManagement: defineAsyncComponent(() =>
-    import("../dashboard/ColorManagement.vue")
-  ),
-  InvoiceManagement: defineAsyncComponent(() =>
-    import("../dashboard/InvoiceManagement.vue")
-  ),
-  EmployeeManagement: defineAsyncComponent(() =>
-    import("../dashboard/EmployeeManagement.vue")
-  ),
-  CustomerManagement: defineAsyncComponent(() =>
-    import("../dashboard/CustomerManagement.vue")
-  ),
-  AccountManagement: defineAsyncComponent(() =>
-    import("../dashboard/AccountManagement.vue")
-  ),
-  PromotionManagement: defineAsyncComponent(() =>
-    import("../dashboard/PromotionManagement.vue")
-  ),
-  ImportReceiptManagement: defineAsyncComponent(() =>
-    import("../dashboard/ImportReceiptManagement.vue")
-  ),
-  WarehouseManagement: defineAsyncComponent(() =>
-    import("../dashboard/WarehouseManagement.vue")
-  ),
-  StatisticsManagement: defineAsyncComponent(() =>
-    import("../dashboard/StatisticsManagement.vue")
-  ),
-  PersonalInformation: defineAsyncComponent(() =>
-    import("../dashboard/PersonalInformation.vue")
-  ),
-};
-
-// Hàm thay đổi component để hiển thị
-function loadContent(target) {
-  activeComponent.value = componentMap[target]
-  activeTarget.value = target;
-}
-
-// Dữ kiệu của menu sidebar
+/* ---------------- Sidebar menu (full list) ---------------- */
 const menuItems = [
+  { id: "pos", label: "Bán hàng tại quầy", target: "Pos", icon: "fa-solid fa-cash-register" },
+  { id: "product", label: "Sản phẩm", target: "ProductManagement", icon: "fa-solid fa-box-open" },
   {
-    id: "pos",
-    label: "Bán hàng tại quầy",
-    target: "Pos",
-    icon: "fa-solid fa-cash-register",
-  },
-  {
-    id: "product",
-    label: "Sản phẩm",
-    target: "ProductManagement",
-    icon: "fa-solid fa-box-open",
-  },
-  {
-    id: "attribute",
-    label: "Thuộc tính",
-    icon: "fa-solid fa-sliders",
+    id: "attribute", label: "Thuộc tính", icon: "fa-solid fa-sliders",
     sub: [
       { label: "Hãng", target: "BrandManagement", icon: "fa-solid fa-tags" },
       { label: "Loại", target: "CategoryManagement", icon: "fa-solid fa-shapes" },
@@ -102,85 +146,55 @@ const menuItems = [
       { label: "Màu", target: "ColorManagement", icon: "fa-solid fa-palette" },
     ],
   },
-  {
-    id: "invoice",
-    label: "Hóa đơn",
-    target: "InvoiceManagement",
-    icon: "fa-solid fa-receipt",
-  },
-  {
-    id: "staff",
-    label: "Nhân viên",
-    target: "EmployeeManagement",
-    icon: "fa-solid fa-user-tie",
-  },
-  {
-    id: "customer",
-    label: "Khách hàng",
-    target: "CustomerManagement",
-    icon: "fa-solid fa-users",
-  },
-  {
-    id: "account",
-    label: "Tài khoản",
-    target: "AccountManagement",
-    icon: "fa-solid fa-user-cog",
-  },
-  {
-    id: "promotion",
-    label: "Khuyến mãi",
-    target: "PromotionManagement",
-    icon: "fa-solid fa-tag",
-  },
-  {
-    id: "importreceipt",
-    label: "Phiếu nhập",
-    target: "ImportReceiptManagement",
-    icon: "fa-solid fa-clipboard-list",
-  },
-  {
-    id: "warehouse",
-    label: "Kho",
-    target: "WarehouseManagement",
-    icon: "fa-solid fa-warehouse",
-  },
-  {
-    id: "statistic",
-    label: "Thống kê",
-    target: "StatisticsManagement",
-    icon: "fa-solid fa-chart-line",
-  },
-  {
-    id: "personal",
-    label: "Thông tin cá nhân",
-    target: "PersonalInformation",
-    icon: "fa-solid fa-id-card",
-  },
-  {
-    id: "logout",
-    label: "Đăng xuất",
-    target: "logout",
-    icon: "fa-solid fa-sign-out-alt",
-  },
+  { id: "invoice", label: "Hóa đơn", target: "InvoiceManagement", icon: "fa-solid fa-receipt" },
+  { id: "staff", label: "Nhân viên", target: "EmployeeManagement", icon: "fa-solid fa-user-tie" },
+  { id: "customer", label: "Khách hàng", target: "CustomerManagement", icon: "fa-solid fa-users" },
+  { id: "account", label: "Tài khoản", target: "AccountManagement", icon: "fa-solid fa-user-cog" },
+  { id: "promotion", label: "Khuyến mãi", target: "PromotionManagement", icon: "fa-solid fa-tag" },
+  { id: "importreceipt", label: "Phiếu nhập", target: "ImportReceiptManagement", icon: "fa-solid fa-clipboard-list" },
+  { id: "warehouse", label: "Kho", target: "WarehouseManagement", icon: "fa-solid fa-warehouse" },
+  { id: "statistic", label: "Thống kê", target: "StatisticsManagement", icon: "fa-solid fa-chart-line" },
+  { id: "personal", label: "Thông tin cá nhân", target: "PersonalInformation", icon: "fa-solid fa-id-card" },
+  { id: "logout", label: "Đăng xuất", target: "logout", icon: "fa-solid fa-sign-out-alt" },
 ];
 
-const userJson = localStorage.getItem('user')
-const user = JSON.parse(userJson)
-const username = user.username
+/* ---------------- Menu filtered by role ---------------- */
+const filteredMenuItems = computed(() => {
+  const rule = allowedTargetsByRole[role.value];
+  if (rule === 'ALL') return menuItems;
+
+  const allowed = allowedTargetsByRole[role.value];
+
+  return menuItems
+    .map(item => {
+      if (!item.sub) return item;
+      const newSubs = item.sub.filter(s => allowed.has(s.target));
+      return { ...item, sub: newSubs };
+    })
+    .filter(item => {
+      if (item.sub && item.sub.length > 0) return true;       // còn submenu hợp lệ
+      if (item.sub && item.sub.length === 0) return false;    // xoá nhóm nếu không còn gì
+      return isAllowed(item.target);                          // item thường
+    });
+});
+
+/* ---------------- Navigation handlers ---------------- */
+function loadContent(target) {
+  if (!isAllowed(target)) return;
+  activeComponent.value = componentMap[target] ?? defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"));
+  activeTarget.value = target;
+}
 
 function handleClick(target) {
   if (target === 'logout') {
-    userStore.logout()
-
-    // Điều hướng bằng replace để không quay lại được
-    router.replace("/auth/login").then(() => {
-      // Reload để clear cache nội dung đã xem
-      window.location.reload();
-    });
+    userStore.logout();
+    router.replace("/auth/login").then(() => window.location.reload());
   } else {
-    loadContent(target)
+    loadContent(target);
   }
 }
+
+/* ---------------- Bills badge logic ---------------- */
 const bills = ref([]);
 const newBillCount = computed(() => bills.value.filter(b => Number(b.STATUS) === 1).length);
 
@@ -188,27 +202,25 @@ const fetchBills = async () => {
   const { data } = await axios.get('http://localhost:8080/bill/show');
   bills.value = data.map(x => ({ ...x, STATUS: Number(x.status) }));
 };
-
 const refreshOnChanged = () => fetchBills();
 
+/* ---------------- Collapsible submenus ---------------- */
+const openMenus = ref({});
+function toggleCollapse(id) { openMenus.value[id] = !openMenus.value[id] }
+function isCollapseOpen(id) { return openMenus.value[id] }
+
+/* ---------------- Lifecycle ---------------- */
 onMounted(() => {
+  // Đảm bảo tab khởi động hợp lệ theo role
+  const start = isAllowed(activeTarget.value) ? activeTarget.value : firstAllowedTarget();
+  if (start !== activeTarget.value) loadContent(start);
+
   fetchBills();
   window.addEventListener('bill:changed', refreshOnChanged);
 });
 onUnmounted(() => {
   window.removeEventListener('bill:changed', refreshOnChanged);
 });
-
-const openMenus = ref({})
-
-function toggleCollapse(id) {
-  openMenus.value[id] = !openMenus.value[id]
-}
-
-function isCollapseOpen(id) {
-  return openMenus.value[id]
-}
-
 </script>
 
 <template>
@@ -226,13 +238,16 @@ function isCollapseOpen(id) {
         </div>
 
         <ul class="nav flex-column p-3">
-          <li v-for="item in menuItems" :key="item.id" class="nav-item">
+          <li v-for="item in filteredMenuItems" :key="item.id" class="nav-item">
+            <!-- Item thường -->
             <a v-if="!item.sub" href="#" class="nav-link" :class="{ active: activeTarget === item.target }"
               @click.prevent="handleClick(item.target)">
               <i :class="item.icon"></i> {{ item.label }}
-              <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{ newBillCount }}</span>
+              <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{ newBillCount
+                }}</span>
             </a>
 
+            <!-- Item có submenu -->
             <template v-else>
               <a href="#" class="nav-link d-flex align-items-center" @click.prevent="toggleCollapse(item.id)">
                 <i :class="item.icon"></i>
@@ -268,17 +283,18 @@ function isCollapseOpen(id) {
 <style scoped>
 @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';
 @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-/* Container của mục menu (ví dụ .nav-link trong sidebar) */
-/* đẩy badge sang phải, nằm TRONG khung */
+
+/* Container của mục menu */
 .sidebar .nav-link {
   display: flex;
   align-items: center;
 }
 
 .sidebar .nav-link .badge {
-  margin-left: auto;   /* đẩy sát phải */
-  margin-right: 0px;  /* chừa 10px trong khung */
+  margin-left: auto;
+  margin-right: 0px;
 }
+
 .sidebar {
   width: 288px;
   background-color: #212529;
@@ -324,7 +340,6 @@ function isCollapseOpen(id) {
   padding: 0.6rem 1rem 0.6rem 3rem;
   font-size: 0.9rem;
 }
-
 
 .nav-link[data-bs-toggle="collapse"] .fa-chevron-down {
   transition: transform 0.3s ease;

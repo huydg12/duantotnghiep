@@ -167,6 +167,12 @@ public class AccountService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với id: " + id));
     }
 
+    public AccountDTO updatePassword(int id, AccountDTO dto) {
+        return accountRepository.findById(id).map(account -> {
+            account.setPassword("123456");
+            return toDTO(accountRepository.save(account));
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với id: " + id));
+    }
     public void deleteById(Integer id) {
         accountRepository.deleteById(id);
     }
