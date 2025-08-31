@@ -8,19 +8,17 @@ const router = useRouter();
 const userStore = useUserStore();
 userStore.loadUserFromLocalStorage();
 
-/* ---------------- Helpers: user & robust role detection ---------------- */
 function safeParse(json) {
   try { return JSON.parse(json) } catch { return null }
 }
 const lsUser = safeParse(localStorage.getItem('user'));
 const currentUser = computed(() => userStore.user ?? lsUser ?? null);
 
-// Các từ khoá/ID đại diện cho quyền Admin (tuỳ backend mà bổ sung thêm)
 const ADMIN_MARKERS = [
   'ADMIN', 'ROLE_ADMIN', 'SUPERADMIN', 'SUPER_ADMIN',
   'OWNER', 'MANAGER', 'QUANTRI', 'QUẢN TRỊ', 'QUAN TRI'
 ];
-// Nếu backend dùng roleId số/chuỗi cho admin, thêm vào đây (ví dụ 1 là admin)
+
 const ADMIN_IDS = new Set([1, '1']);
 
 function collectRoleTokens(u) {
@@ -40,7 +38,6 @@ function collectRoleTokens(u) {
   };
 
   if (!u) return [];
-  // Các đường khả dĩ từ object user
   push(u.role);
   push(u.roleName);
   push(u.userRole);
@@ -48,11 +45,11 @@ function collectRoleTokens(u) {
   push(u.type);
   push(u.title);
   push(u.authority);
-  push(u.authorities);   // [{authority:'ROLE_ADMIN'}]
-  push(u.roles);         // ['ADMIN'] hoặc [{name:'ADMIN'}]
+  push(u.authorities);
+  push(u.roles);
   push(u.permissions);
   push(u.claims);
-  push(u.roleId);        // 1, '1' ...
+  push(u.roleId);
   if (u.isAdmin === true) bag.push('ADMIN');
 
   return bag
@@ -70,15 +67,24 @@ function detectRole(u) {
 }
 
 const role = computed(() => detectRole(currentUser.value));
-const username = computed(() =>
-  currentUser.value?.username ??
-  currentUser.value?.userName ??
-  currentUser.value?.fullName ??
-  currentUser.value?.name ??
-  'User'
-);
 
-/* ---------------- Component map ---------------- */
+const employee = ref(null);
+const name = ref('');
+
+async function fetchUser() {
+  const u = JSON.parse(localStorage.getItem("user") || "null");
+  const id = u?.employeeId ?? u?.employee?.id ?? u?.EMPLOYEE_ID ?? u?.id;
+  if (!id) return;
+
+  try {
+    const { data } = await axios.get(`http://localhost:8080/employee/showById/${id}`);
+    const payload = Array.isArray(data) ? data[0] : data; // nếu BE trả List
+    employee.value = payload;
+    name.value = payload?.fullName ?? payload?.FULL_NAME ?? payload?.name ?? 'User';
+  } catch (e) {
+    console.error("Fetch employee failed:", e);
+  }
+}
 const componentMap = {
   Pos: defineAsyncComponent(() => import("../dashboard/Pos.vue")),
   ProductManagement: defineAsyncComponent(() => import("../dashboard/ProductManagement.vue")),
@@ -99,7 +105,6 @@ const componentMap = {
   PersonalInformation: defineAsyncComponent(() => import("../dashboard/PersonalInformation.vue")),
 };
 
-/* ---------------- Role rules & guards ---------------- */
 const allowedTargetsByRole = {
   ADMIN: 'ALL',
   STAFF: new Set([
@@ -124,14 +129,12 @@ function firstAllowedTarget() {
   return candidates.find(t => isAllowed(t)) ?? 'Pos';
 }
 
-/* ---------------- Active target & component ---------------- */
 const activeTarget = ref(firstAllowedTarget());
 const activeComponent = shallowRef(
   componentMap[activeTarget.value] ??
   defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
 );
 
-/* ---------------- Sidebar menu (full list) ---------------- */
 const menuItems = [
   { id: "pos", label: "Bán hàng tại quầy", target: "Pos", icon: "fa-solid fa-cash-register" },
   { id: "product", label: "Sản phẩm", target: "ProductManagement", icon: "fa-solid fa-box-open" },
@@ -158,7 +161,6 @@ const menuItems = [
   { id: "logout", label: "Đăng xuất", target: "logout", icon: "fa-solid fa-sign-out-alt" },
 ];
 
-/* ---------------- Menu filtered by role ---------------- */
 const filteredMenuItems = computed(() => {
   const rule = allowedTargetsByRole[role.value];
   if (rule === 'ALL') return menuItems;
@@ -172,13 +174,12 @@ const filteredMenuItems = computed(() => {
       return { ...item, sub: newSubs };
     })
     .filter(item => {
-      if (item.sub && item.sub.length > 0) return true;       // còn submenu hợp lệ
-      if (item.sub && item.sub.length === 0) return false;    // xoá nhóm nếu không còn gì
-      return isAllowed(item.target);                          // item thường
+      if (item.sub && item.sub.length > 0) return true;
+      if (item.sub && item.sub.length === 0) return false;
+      return isAllowed(item.target);
     });
 });
 
-/* ---------------- Navigation handlers ---------------- */
 function loadContent(target) {
   if (!isAllowed(target)) return;
   activeComponent.value = componentMap[target] ?? defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"));
@@ -193,8 +194,6 @@ function handleClick(target) {
     loadContent(target);
   }
 }
-
-/* ---------------- Bills badge logic ---------------- */
 const bills = ref([]);
 const newBillCount = computed(() => bills.value.filter(b => Number(b.STATUS) === 1).length);
 
@@ -204,13 +203,13 @@ const fetchBills = async () => {
 };
 const refreshOnChanged = () => fetchBills();
 
-/* ---------------- Collapsible submenus ---------------- */
 const openMenus = ref({});
 function toggleCollapse(id) { openMenus.value[id] = !openMenus.value[id] }
 function isCollapseOpen(id) { return openMenus.value[id] }
 
-/* ---------------- Lifecycle ---------------- */
 onMounted(() => {
+  fetchUser()
+
   // Đảm bảo tab khởi động hợp lệ theo role
   const start = isAllowed(activeTarget.value) ? activeTarget.value : firstAllowedTarget();
   if (start !== activeTarget.value) loadContent(start);
@@ -233,7 +232,7 @@ onUnmounted(() => {
             <i class="fa-solid fa-user text-dark fa-2x"></i>
           </div>
           <h2 class="mt-3 fs-5 fw-semibold">
-            Xin chào, <span class="fw-bold">{{ username }}</span>
+            Xin chào, <span class="fw-bold">{{ name }}</span>
           </h2>
         </div>
 
@@ -244,7 +243,7 @@ onUnmounted(() => {
               @click.prevent="handleClick(item.target)">
               <i :class="item.icon"></i> {{ item.label }}
               <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{ newBillCount
-                }}</span>
+              }}</span>
             </a>
 
             <!-- Item có submenu -->
@@ -284,7 +283,6 @@ onUnmounted(() => {
 @import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';
 @import 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
 
-/* Container của mục menu */
 .sidebar .nav-link {
   display: flex;
   align-items: center;

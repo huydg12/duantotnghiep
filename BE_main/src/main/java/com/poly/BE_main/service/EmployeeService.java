@@ -1,6 +1,7 @@
 package com.poly.BE_main.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,10 @@ public class EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<EmployeeDTO> findById(Integer id) {
+        return employeeRepository.findById(id).map(this::toDTO);
+    }
+
     public EmployeeDTO create(EmployeeDTO dto) {
         Employee e = toEntity(dto);
         employeeRepository.save(e);
@@ -96,10 +101,10 @@ public class EmployeeService {
         return employeeRepository.findById(id).map(e -> {
             if (e.isActive() == true) {
                 e.setActive(false);
-            }else{
+            } else {
                 e.setActive(true);
             }
-            
+
             return toDTO(employeeRepository.save(e));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên có id: " + id));
     }

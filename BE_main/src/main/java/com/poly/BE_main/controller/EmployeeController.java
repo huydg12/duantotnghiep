@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,6 +38,13 @@ public class EmployeeController {
         return employeeService.findAll();
     }
 
+    @GetMapping("/showById/{id}")
+    public ResponseEntity<EmployeeDTO> showById(@PathVariable Integer id) {
+        return employeeService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/add")
     @Transactional
     public EmployeeDTO add(@RequestBody EmployeeCreateDTO dto) {
@@ -60,7 +68,7 @@ public class EmployeeController {
         employee.setCreatedBy(dto.getCreatedBy());
         employee.setCreatedDate(LocalDateTime.now());
         employee.setAccount(account);
-        employee =  accountService.createEmployee(employee);
+        employee = accountService.createEmployee(employee);
 
         // 3. Trả về DTO hiển thị
         EmployeeDTO response = new EmployeeDTO();
