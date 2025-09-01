@@ -522,9 +522,33 @@ const generateBillPayload = (override = {}) => {
   }
 }
 
-// const qrJustCreated = ref(false);
+const hasAddress = computed(() => {
+  const a = defaultAddress.value;
+  return !!(a && a.fullName && a.numberPhone && a.fullAddress);
+});
+
+// mở overlay + cảnh báo nếu chưa có địa chỉ
+function requireAddress() {
+  if (hasAddress.value) return true;
+
+  Swal.fire({
+    icon: 'warning',
+    title: 'Chưa có địa chỉ nhận hàng',
+    text: addressList.value.length
+      ? 'Vui lòng chọn 1 địa chỉ làm mặc định trước khi thanh toán.'
+      : 'Vui lòng thêm địa chỉ nhận hàng trước khi thanh toán.',
+    confirmButtonText: addressList.value.length ? 'Chọn / thêm địa chỉ' : 'Thêm ngay',
+    didOpen: () => { Swal.getContainer().style.zIndex = '20000' }
+  }).then(() => {
+    openAddressOverlay(); // mở popup chọn/thêm địa chỉ
+  });
+
+  return false;
+}
 
 const createBill = async () => {
+
+  if (!requireAddress()) return;
   // ✅ Hiển thị popup loading bằng Swal
   Swal.fire({
     title: 'Đang xử lý thanh toán...',
@@ -538,14 +562,7 @@ const createBill = async () => {
 
   localStorage.setItem("paymentSuccessFlag", "1");
 
-  // if (selectedPaymentMethod.value === 'QR') {
-  //   amount.value = grandTotal.value;
-  //   addInfo.value = billCode.value;
-  //   await createQR();           // tạo QR
-  //   qrJustCreated.value = true;
-  //   Swal.close();
-  //   return;                     // chưa gửi đơn hàng
-  // }
+
   if (selectedPaymentMethod.value === 'MOMO') {
     await new Promise(resolve => setTimeout(resolve, 5000));
     await createMoMoPayment(); // 🚀 Gọi MoMo
