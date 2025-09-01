@@ -13,6 +13,7 @@ const userInfo = reactive({
     phone: "",
     birthDate: ""
 });
+
 // Lấy thông tin nhân viên
 const userJson = localStorage.getItem("user");
 if (userJson) {
@@ -25,6 +26,7 @@ if (userJson) {
         console.error("❌ Lỗi khi parse userJson:", error);
     }
 }
+
 // Hàm fetch dữ liệu từ API
 const fetchUserInfo = async () => {
     try {
@@ -38,14 +40,36 @@ const fetchUserInfo = async () => {
             birthDate: data.birthOfDate ? data.birthOfDate.slice(0, 10) : ""
         };
 
-        Object.assign(userInfo, normalized);      // đổ vào form
-        originalInfo.value = { ...normalized };   // lưu bản gốc để so sánh
+        Object.assign(userInfo, normalized);
+        originalInfo.value = { ...normalized };
     } catch (error) {
         console.error("Lỗi khi fetch thông tin nhân viên:", error);
     }
 };
 
-// 👉 Hàm UPDATE (có check trống + check không đổi)
+function toBool(v) {
+    if (typeof v === "boolean") return v;
+    if (typeof v === "number") return v !== 0;
+    if (v == null) return false;
+
+    const s = String(v).trim().toLowerCase();
+    if (["true", "1", "yes", "y", "nam", "male", "m"].includes(s)) return true;
+    if (["false", "0", "no", "n", "nu", "nữ", "female", "f"].includes(s)) return false;
+
+    return s === "true";
+}
+
+function normalizeForCompare(src) {
+    const str = (x) => (x == null ? "" : String(x).trim());
+    return {
+        fullName: str(src.fullName),
+        gender: String(toBool(src.gender)),
+        email: str(src.email),
+        phone: str(src.phone),
+        birthDate: str(src.birthDate).slice(0, 10),
+    };
+}
+
 const updateUserInfo = async () => {
     try {
         if (!employeeId) {
@@ -54,7 +78,7 @@ const updateUserInfo = async () => {
         }
 
         const nothingChanged = () => {
-            if (!originalInfo.value) return false; // lần đầu chưa có bản gốc
+            if (!originalInfo.value) return false;
             const a = userInfo;
             const b = originalInfo.value;
             return (
@@ -87,6 +111,7 @@ const updateUserInfo = async () => {
         // Cập nhật lại bản gốc để lần sau so sánh
         originalInfo.value = { ...normalizeForCompare(userInfo) };
 
+         window.location.reload();
         await fetchUserInfo(); // (tuỳ chọn) load lại từ server
     } catch (error) {
         console.error("Lỗi cập nhật thông tin:", error?.response?.data || error);
@@ -137,7 +162,5 @@ onMounted(() => {
         </form>
     </div>
 </template>
-
-
 
 <style scoped></style>

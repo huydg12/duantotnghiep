@@ -33,12 +33,13 @@ public class ProductDetailService {
             String productName = (String) obj[2];
             String brandName = (String) obj[3];
             String color = (String) obj[4];
-            String collar = (String) obj[5]; // Assuming collar is at index 5
+            String collar = (String) obj[5];
             String description = (String) obj[6];
             String size = (String) obj[7];
             BigDecimal price = (BigDecimal) obj[8];
             Integer quantity = (Integer) obj[9];
             String imageString = (String) obj[10];
+            boolean isActive = (boolean) obj[11];
 
             List<String> images = (imageString != null && !imageString.isEmpty())
                     ? Arrays.asList(imageString.split(","))
@@ -55,7 +56,8 @@ public class ProductDetailService {
                     size,
                     price,
                     quantity,
-                    images);
+                    images,
+                    isActive);
         }).collect(Collectors.toList());
     }
 
@@ -82,6 +84,17 @@ public class ProductDetailService {
             p.setDescription(pUpdate.getDescription());
             p.setPrice(pUpdate.getPrice());
             p.setSize(pUpdate.getSize());
+            return productDetailRepository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
+    }
+
+     public ProductDetail updateStatus(int id, ProductDetail pUpdate) {
+        return productDetailRepository.findById(id).map(p -> {
+            if (p.isActive() == true) {
+                p.setActive(false);
+            }else{
+                p.setActive(true);
+            }
             return productDetailRepository.save(p);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
     }

@@ -22,4 +22,5 @@ public class ProductDetailDTO {
     private BigDecimal price;
     private Integer quantity;
     private List<String> images;
+    private boolean isActive;
 }

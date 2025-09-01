@@ -133,14 +133,35 @@ function getVietnamTimeWithoutSeconds() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+
+const toBoolish = (v) => {
+    if (v === true || v === 1) return true;
+    if (v === false || v === 0) return false;
+    if (v == null) return false;
+    const s = String(v).trim().toLowerCase();
+    return s === 'true' || s === '1' || s === 'active';
+};
+
+
+const isActiveRow = (row) => {
+    if (!row || typeof row !== 'object') return false;
+    const keys = ['isActive', 'active', 'status', 'is_active', 'IS_ACTIVE'];
+    for (const k of keys) {
+        if (k in row) return toBoolish(row[k]);
+    }
+
+    return true;
+};
+
+
 // API
-const fetchBrands = async () => { brands.value = (await API.get('/brand/show')).data }
-const fetchCategories = async () => { categories.value = (await API.get('/category/show')).data }
-const fetchSoles = async () => { soles.value = (await API.get('/sole/show')).data }
-const fetchSizes = async () => { sizes.value = (await API.get('/size/show')).data }
-const fetchColors = async () => { colors.value = (await API.get('/color/show')).data }
-const fetchCollars = async () => { collars.value = (await API.get('/collar/show')).data }
-const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1;}
+const fetchBrands = async () => { const { data } = await API.get('/brand/show'); brands.value = (data || []).filter(isActiveRow); };
+const fetchCategories = async () => { const { data } = await API.get('/category/show'); categories.value = (data || []).filter(isActiveRow); };
+const fetchSoles = async () => { const { data } = await API.get('/sole/show'); soles.value = (data || []).filter(isActiveRow); };
+const fetchSizes = async () => { const { data } = await API.get('/size/show'); sizes.value = (data || []).filter(isActiveRow); };
+const fetchColors = async () => { const { data } = await API.get('/color/show'); colors.value = (data || []).filter(isActiveRow); };
+const fetchCollars = async () => { const { data } = await API.get('/collar/show'); collars.value = (data || []).filter(isActiveRow); };
+const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1; }
 
 // CRUD Sản phẩm
 function resetForm() {
@@ -272,120 +293,131 @@ function editDetail(detail) {
     detailForm.id = detailIdOf(detail)
 }
 
-async function deleteDetail(id) {
-    if (!confirm('Bạn có chắc muốn xoá chi tiết này?')) return
-    try { await API.delete(`/productDetail/delete/${id}`); alert('Đã xoá sản phẩm chi tiết'); await loadProductDetails(currentProduct.value.id) }
-    catch (err) { console.error('Lỗi xoá sản phẩm chi tiết:', err); alert('Không thể xoá chi tiết sản phẩm') }
+async function changeDetailStatus(id) {
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái biến thể này?')) return;
+
+    const updatedDetail = {
+        id: id,
+    };
+
+    try {
+        await API.put(`/productDetail/updateStatus/${id}`, updatedDetail);
+        alert('Đã chuyển trạng thái biến thể');
+        await loadProductDetails(currentProduct.value.id);
+    } catch (error) {
+        console.error('Lỗi chuyển trạng thái biến thể:', error.response ? error.response.data : error.message);
+        alert('Không thể chuyển trạng thái biến thể');
+    }
 }
 
 async function saveProductDetails() {
-  if (loading.value) return
-  loading.value = true
-  try {
-    if (!currentProduct.value?.id) return
-    const isEdit = !!detailForm.id
-    const missingBase =
-      !detailForm.price || !detailForm.description ||
-      selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0
-    if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
-    if (!isEdit && selectedImages.value.length === 0) { alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.'); return }
+    if (loading.value) return
+    loading.value = true
+    try {
+        if (!currentProduct.value?.id) return
+        const isEdit = !!detailForm.id
+        const missingBase =
+            !detailForm.price || !detailForm.description ||
+            selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0
+        if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
+        if (!isEdit && selectedImages.value.length === 0) { alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.'); return }
 
-    if (isEdit) {
-      // ====== CHECK NO-CHANGE ======
-      const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {}
-      const origTriple = tripleFromRow(orig)
-      const sameSize   = Number(selectedSizes.value[0])   === Number(origTriple.sizeId)
-      const sameColor  = Number(selectedColors.value[0])  === Number(origTriple.colorId)
-      const sameCollar = Number(selectedCollars.value[0]) === Number(origTriple.collarId)
-      const samePrice  = Number(detailForm.price) === Number(orig.price)
-      const sameDesc   = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim()
+        if (isEdit) {
+            // ====== CHECK NO-CHANGE ======
+            const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {}
+            const origTriple = tripleFromRow(orig)
+            const sameSize = Number(selectedSizes.value[0]) === Number(origTriple.sizeId)
+            const sameColor = Number(selectedColors.value[0]) === Number(origTriple.colorId)
+            const sameCollar = Number(selectedCollars.value[0]) === Number(origTriple.collarId)
+            const samePrice = Number(detailForm.price) === Number(orig.price)
+            const sameDesc = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim()
 
-      const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc)
-      const needUploadImages = selectedImages.value.length > 0
+            const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc)
+            const needUploadImages = selectedImages.value.length > 0
 
-      if (!needUpdateDetail && !needUploadImages) {
-        alert('Không có thay đổi để cập nhật.')
-        return
-      }
+            if (!needUpdateDetail && !needUploadImages) {
+                alert('Không có thay đổi để cập nhật.')
+                return
+            }
 
-      // Nếu đổi bộ biến thể (size/màu/cổ) thì mới cần check trùng
-      if (!(sameSize && sameColor && sameCollar)) {
-        const targetKey = tripleKey(selectedSizes.value[0], selectedColors.value[0], selectedCollars.value[0])
-        const duplicated = productDetailList.value.some(d => {
-          const id = detailIdOf(d); if (id === detailForm.id) return false
-          const { key } = tripleFromRow(d); return key === targetKey
-        })
-        if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
-      }
+            // Nếu đổi bộ biến thể (size/màu/cổ) thì mới cần check trùng
+            if (!(sameSize && sameColor && sameCollar)) {
+                const targetKey = tripleKey(selectedSizes.value[0], selectedColors.value[0], selectedCollars.value[0])
+                const duplicated = productDetailList.value.some(d => {
+                    const id = detailIdOf(d); if (id === detailForm.id) return false
+                    const { key } = tripleFromRow(d); return key === targetKey
+                })
+                if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
+            }
 
-      // Cập nhật detail nếu có thay đổi field
-      if (needUpdateDetail) {
-        const updatedDetail = {
-          product: { id: currentProduct.value.id },
-          size: { id: selectedSizes.value[0] },
-          color: { id: selectedColors.value[0] },
-          collar: { id: selectedCollars.value[0] },
-          price: detailForm.price,
-          description: detailForm.description,
-          status: 1
+            // Cập nhật detail nếu có thay đổi field
+            if (needUpdateDetail) {
+                const updatedDetail = {
+                    product: { id: currentProduct.value.id },
+                    size: { id: selectedSizes.value[0] },
+                    color: { id: selectedColors.value[0] },
+                    collar: { id: selectedCollars.value[0] },
+                    price: detailForm.price,
+                    description: detailForm.description,
+                    status: 1
+                }
+                await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
+            }
+
+            // Nếu có chọn ảnh thì upload
+            if (needUploadImages) {
+                const filesCopy = [...selectedImages.value]
+                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+                await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
+            }
+
+            alert('Cập nhật chi tiết thành công')
+        } else {
+            // (giữ nguyên nhánh thêm mới)
+            const wantKeys = new Set(), wantTriples = []
+            for (const size of selectedSizes.value) {
+                for (const color of selectedColors.value) {
+                    for (const collar of selectedCollars.value) {
+                        const k = tripleKey(size, color, collar)
+                        if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
+                    }
+                }
+            }
+            const duplicates = [], payloads = []
+            for (const t of wantTriples) {
+                if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
+                else {
+                    payloads.push({
+                        product: { id: currentProduct.value.id },
+                        size: { id: t.size }, color: { id: t.color }, collar: { id: t.collar },
+                        price: detailForm.price, description: detailForm.description, status: 1
+                    })
+                }
+            }
+            if (payloads.length === 0) {
+                alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
+                return
+            }
+            const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
+            const successIds = []; let failed = 0
+            addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
+
+            if (selectedImages.value.length > 0 && successIds.length > 0) {
+                const filesCopy = [...selectedImages.value]
+                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+                await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
+            }
+            alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
         }
-        await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
-      }
 
-      // Nếu có chọn ảnh thì upload
-      if (needUploadImages) {
-        const filesCopy = [...selectedImages.value]
-        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-        await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
-      }
-
-      alert('Cập nhật chi tiết thành công')
-    } else {
-      // (giữ nguyên nhánh thêm mới)
-      const wantKeys = new Set(), wantTriples = []
-      for (const size of selectedSizes.value) {
-        for (const color of selectedColors.value) {
-          for (const collar of selectedCollars.value) {
-            const k = tripleKey(size, color, collar)
-            if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
-          }
-        }
-      }
-      const duplicates = [], payloads = []
-      for (const t of wantTriples) {
-        if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
-        else {
-          payloads.push({
-            product: { id: currentProduct.value.id },
-            size: { id: t.size }, color: { id: t.color }, collar: { id: t.collar },
-            price: detailForm.price, description: detailForm.description, status: 1
-          })
-        }
-      }
-      if (payloads.length === 0) {
-        alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
-        return
-      }
-      const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
-      const successIds = []; let failed = 0
-      addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
-
-      if (selectedImages.value.length > 0 && successIds.length > 0) {
-        const filesCopy = [...selectedImages.value]
-        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-        await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
-      }
-      alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
+        resetDetailForm()
+        await loadProductDetails(currentProduct.value.id)
+    } catch (err) {
+        console.error('Lỗi khi lưu chi tiết:', err)
+        alert('Không thể lưu chi tiết!')
+    } finally {
+        loading.value = false
     }
-
-    resetDetailForm()
-    await loadProductDetails(currentProduct.value.id)
-  } catch (err) {
-    console.error('Lỗi khi lưu chi tiết:', err)
-    alert('Không thể lưu chi tiết!')
-  } finally {
-    loading.value = false
-  }
 }
 
 // Hydrate ảnh
@@ -630,7 +662,7 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
             <div class="card-body row g-3">
                 <div class="col-md-4">
                     <label>Tên sản phẩm</label>
-                    <input v-model="form.productName" class="form-control"  required/>
+                    <input v-model="form.productName" class="form-control" required />
                 </div>
                 <div class="col-md-2">
                     <label>Thương hiệu</label>
@@ -699,7 +731,8 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                     <td>{{ p.description }}</td>
                     <td>
                         <button class="btn btn-warning btn-sm me-2" @click="editProduct(p)">Sửa</button>
-                        <button class="btn btn-danger btn-sm me-2" @click="changeStatus(p.id)">Chuyển trạng thái</button>
+                        <button class="btn btn-danger btn-sm me-2" @click="changeStatus(p.id)">Chuyển trạng
+                            thái</button>
                         <button class="btn btn-info btn-sm" @click="openDetailModal(p)">Chi tiết</button>
                     </td>
                 </tr>
@@ -851,6 +884,7 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                         <th>Cổ</th>
                                         <th>Giá</th>
                                         <th>Mô tả</th>
+                                        <th>Trạng thái</th>
                                         <th>Ảnh</th>
                                         <th>Hành động</th>
                                     </tr>
@@ -863,6 +897,10 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                         <td>{{ productDetail.collar }}</td>
                                         <td class="text-center">{{ productDetail.price }}</td>
                                         <td>{{ productDetail.description }}</td>
+                                        <td class="text-center">
+                                            <span v-if="productDetail.active" class="badge bg-success">Hoạt động</span>
+                                            <span v-else class="badge bg-danger">Không hoạt động</span>
+                                        </td>
                                         <td class="text-center">
                                             <div v-if="productDetail.mainImageUrl">
                                                 <img :src="productDetail.mainImageUrl" alt="Ảnh chính"
@@ -881,7 +919,9 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                             <button class="btn btn-sm btn-warning me-1"
                                                 @click="editDetail(productDetail)">Sửa</button>
                                             <button class="btn btn-sm btn-danger"
-                                                @click="deleteDetail(productDetail.productDetailId ?? productDetail.id)">Xoá</button>
+                                                @click="changeDetailStatus(productDetail.productDetailId ?? productDetail.id)">Chuyển
+                                                trạng
+                                                thái</button>
                                         </td>
                                     </tr>
                                 </tbody>

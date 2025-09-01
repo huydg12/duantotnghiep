@@ -85,6 +85,7 @@ async function fetchUser() {
     console.error("Fetch employee failed:", e);
   }
 }
+
 const componentMap = {
   Pos: defineAsyncComponent(() => import("../dashboard/Pos.vue")),
   ProductManagement: defineAsyncComponent(() => import("../dashboard/ProductManagement.vue")),
