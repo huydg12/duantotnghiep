@@ -83,25 +83,50 @@ async function openEdit(receipt) {
   showModal.value = true;
 }
 
+// THAY THẾ HOÀN TOÀN hàm addDetail hiện tại
 function addDetail() {
-  const newDetail = {
-    importReceiptId: form.id,
-    productDetailId: "",
-    quantity: 1,
-    unitPrice: 0
-  };
+  if (!Array.isArray(form.details)) form.details = [];
 
+  // ✅ Nếu đã có dòng, kiểm tra dòng cuối trước khi thêm dòng mới
+  const n = form.details.length;
+  if (n > 0) {
+    const last = form.details[n - 1];
+
+    // validateRow dùng isBlank/toNum bạn đã khai báo ở trên
+    const err = validateRow(last);
+    if (err) {
+      alert(`Dòng ${n}: ${err}`);
+      return;
+    }
+  }
+
+  // OK -> thêm dòng mới vào form
+  const newDetail = {
+    id: null,
+    importReceiptId: form.id || null,
+    productDetailId: null,
+    quantity: null,
+    unitPrice: null,
+  };
   form.details.push(newDetail);
 
-  // Gọi API sau khi thêm vào form
-  axios.post('http://localhost:8080/importReceiptDetail/create', newDetail)
-    .then(res => {
-      newDetail.id = res.data.id; // Gán lại id nếu muốn update sau này
-      console.log('Đã tạo import receipt detail:', res.data);
+  // ✅ Chỉ gọi API tạo chi tiết khi đang sửa phiếu đã có ID
+  if (isEdit.value && form.id) {
+    axios.post("http://localhost:8080/importReceiptDetail/create", {
+      importReceiptId: form.id,
+      productDetailId: newDetail.productDetailId, // hiện null, sẽ update sau khi chọn
+      quantity: newDetail.quantity,
+      unitPrice: newDetail.unitPrice,
+      totalPrice: newDetail.quantity * newDetail.unitPrice,
     })
-    .catch(err => {
-      console.error('Lỗi khi tạo:', err);
+    .then((res) => {
+      newDetail.id = res.data.id; // gán id để lần sau update
+      console.log("Đã tạo chi tiết:", res.data);
+    })
+    .catch((err) => {
+      console.error("Lỗi khi tạo chi tiết:", err);
     });
+  }
 }
 
 function removeDetail(index) {
@@ -122,55 +147,131 @@ function removeDetail(index) {
     form.details.splice(index, 1);
   }
 }
+// --- Helpers ---
 
+const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
+
+// Chặn nhập ký tự không phải số cho input type="number"
+const preventInvalidNumber = (e) => {
+  const invalidKeys = ["e", "E", "+", "-"];
+  if (invalidKeys.includes(e.key)) e.preventDefault();
+};
+
+// Sửa về giá trị hợp lệ khi rời ô (blur)
+const onQuantityBlur = (item) => {
+  const q = Math.floor(toNum(item.quantity));
+  item.quantity = Number.isFinite(q) && q > 0 ? q : 1; // min = 1
+};
+const onUnitPriceBlur = (item) => {
+  const up = toNum(item.unitPrice);
+  item.unitPrice = Number.isFinite(up) && up >= 0 ? up : 0; // min = 0
+};
+
+// Validate 1 dòng; trả về chuỗi lỗi (null nếu OK)
+const validateRow = (d) => {
+  if (isBlank(d.productDetailId)) return "Chưa chọn sản phẩm.";
+  const q = toNum(d.quantity);
+  if (!Number.isFinite(q) || q <= 0) return "Số lượng phải > 0.";
+  const up = toNum(d.unitPrice);
+  if (!Number.isFinite(up) || up < 0) return "Đơn giá không hợp lệ.";
+  return null;
+};
+
+
+
+// Helpers
+const isBlank = (v) =>
+  v === null || v === undefined || (typeof v === "string" && v.trim() === "");
+
+// ✅ Ghi chú (note) được phép để trống
 async function saveReceipt() {
-  form.totalAmount = form.details.reduce(
-    (sum, d) => sum + d.quantity * d.unitPrice,
-    0
-  );
+  // --- VALIDATION CƠ BẢN ---
+  if (!form) {
+    alert("Form rỗng.");
+    return;
+  }
+  // note: được phép để trống -> KHÔNG check trống
+
+  if (!Array.isArray(form.details) || form.details.length === 0) {
+    alert("Vui lòng thêm ít nhất 1 dòng chi tiết.");
+    return;
+  }
+
+  // Validate từng chi tiết + tính tổng
+  let computedTotal = 0;
+for (let i = 0; i < form.details.length; i++) {
+  const d = form.details[i];
+  if (isBlank(d.productDetailId)) {
+    alert(`Dòng #${i + 1}: Chưa chọn sản phẩm.`);
+    return;
+  }
+  const q = toNum(d.quantity);
+  const up = toNum(d.unitPrice);
+
+  // YÊU CẦU nhập số lượng & giá: số lượng > 0; giá > 0 (nếu muốn cho phép 0 thì đổi thành >= 0)
+  if (!Number.isFinite(q) || q <= 0) {
+    alert(`Dòng #${i + 1}: Số lượng phải > 0.`);
+    return;
+  }
+  if (!Number.isFinite(up) || up <= 0) {
+    alert(`Dòng #${i + 1}: Giá nhập phải > 0.`);
+    return;
+  }
+  computedTotal += q * up;
+}
+form.totalAmount = computedTotal;
 
   try {
     let receiptRes;
 
     if (isEdit.value) {
-      // 1. Cập nhật Receipt
-      receiptRes = await axios.put(`http://localhost:8080/importReceipt/update/${form.id}`, {
-        employeeId: form.employeeId, // ✅ thêm dòng này nếu cần
-        importReceiptCode: form.importReceiptCode,
-        importDate: form.importDate,
-        note: form.note,
-        totalAmount: form.totalAmount
-
-      });
-
+      // 1) Cập nhật Receipt
+      receiptRes = await axios.put(
+        `http://localhost:8080/importReceipt/update/${form.id}`,
+        {
+          employeeId: form.employeeId,
+          importReceiptCode: String(form.importReceiptCode).trim(),
+          importDate: form.importDate,
+          note: form.note ?? "", // ✅ note có thể để trống
+          totalAmount: form.totalAmount,
+        }
+      );
     } else {
-      // 1. Tạo mới Receipt
-      receiptRes = await axios.post(`http://localhost:8080/importReceipt/create`, {
-        employeeId: form.employeeId, // ✅ thêm dòng này
-        importReceiptCode: form.importReceiptCode,
-        importDate: form.importDate,
-        note: form.note,
-        totalAmount: form.totalAmount
-      });
+      // 1) Tạo mới Receipt
+      receiptRes = await axios.post(
+        `http://localhost:8080/importReceipt/create`,
+        {
+          employeeId: form.employeeId,
+          importReceiptCode: String(form.importReceiptCode).trim(),
+          importDate: form.importDate,
+          note: form.note ?? "", // ✅ note có thể để trống
+          totalAmount: form.totalAmount,
+        }
+      );
 
-      // 2. Gán lại ID vào form
-      form.id = receiptRes.data.id;
+      // 2) Lấy ID mới tạo
+      form.id = receiptRes?.data?.id;
     }
 
-    // Cập nhật tất cả chi tiết có sẵn id
+    // 3) Cập nhật các chi tiết có sẵn id
     for (const detail of form.details) {
       if (detail.id) {
-        await axios.put(`http://localhost:8080/importReceiptDetail/update/${detail.id}`, {
-          importReceiptId: form.id,
-          productDetailId: detail.productDetailId,
-          quantity: detail.quantity,
-          unitPrice: detail.unitPrice,
-          totalPrice: form.totalAmount
-        });
+        const q = Number(detail.quantity);
+        const up = Number(detail.unitPrice);
+        await axios.put(
+          `http://localhost:8080/importReceiptDetail/update/${detail.id}`,
+          {
+            importReceiptId: form.id,
+            productDetailId: detail.productDetailId,
+            quantity: q,
+            unitPrice: up,
+            totalPrice: q * up, // ✅ tổng từng dòng, không phải tổng phiếu
+          }
+        );
       }
+      // TODO (nếu cần): tạo mới chi tiết chưa có id (POST /importReceiptDetail/create)
     }
 
-    // Làm mới danh sách & đóng modal
     await fetchReceipts();
     closeModal();
   } catch (error) {
@@ -178,6 +279,7 @@ async function saveReceipt() {
     alert("Đã xảy ra lỗi khi lưu phiếu!");
   }
 }
+
 
 function closeModal() {
   showModal.value = false;
@@ -392,16 +494,18 @@ onMounted(() => {
                   <td style="min-width: 250px;">
                     <div class="form-control p-0">
                       <v-select v-model="item.productDetailId" :options="products" label="name" :reduce="p => p.id"
-                        class="w-100" placeholder="Chọn sản phẩm" :disabled="isViewOnly" />
+                        class="w-100" placeholder="Chọn sản phẩm" :disabled="isViewOnly" required />
                     </div>
                   </td>
                   <td>
                     <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
-                      :readonly="isViewOnly" />
+                      :readonly="isViewOnly"  min="1" step="1" @keydown="preventInvalidNumber"
+                      @blur="onQuantityBlur(item)" />
                   </td>
                   <td>
                     <input type="number" v-model.number="item.unitPrice" class="form-control form-control-sm"
-                      :readonly="isViewOnly" />
+                      :readonly="isViewOnly"  min="0" step="1" @keydown="preventInvalidNumber"
+                      @blur="onUnitPriceBlur(item)" />
                   </td>
                   <td>{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
                   <td>
@@ -412,7 +516,7 @@ onMounted(() => {
                 </tr>
               </tbody>
             </table>
-            <button class="btn btn-sm btn-outline-primary" @click="addDetail" v-if="!isViewOnly">
+            <button class="btn btn-sm btn-outline-primary" @click="addDetail" v-if="!isViewOnly" required>
               + Thêm dòng
             </button>
           </div>

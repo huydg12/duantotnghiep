@@ -28,34 +28,74 @@ const fetchPromotion = async () => {
   }
 };
 
+const originalPromotion = ref(null);
+
+// Gọi khi mở form EDIT (sau khi load dữ liệu vào form)
+function snapshotOriginal() {
+  originalPromotion.value = JSON.parse(JSON.stringify(form.value));
+}
+
+// Chuẩn hóa để so sánh (bỏ id, trim string, ép kiểu)
+const normalize = (x) => ({
+  promotionCode: (x.promotionCode ?? "").trim(),
+  name: (x.name ?? "").trim(),
+  type: Number(x.type ?? 0),
+  value: Number(x.value ?? 0),
+  startDate: (x.startDate ?? ""), // so sánh theo ngày, chưa cộng T00:00:00
+  endDate: (x.endDate ?? ""),
+  note: (x.note ?? "").trim(),
+  active: !!x.active,
+  apply_all: !!x.apply_all,
+});
+
 const savePromotion = async () => {
   try {
+    // Chỉ check “không đổi” khi đang EDIT & có snapshot
+    if (form.value.id && originalPromotion.value) {
+      const curr = normalize(form.value);
+      const prev = normalize(originalPromotion.value);
+      if (JSON.stringify(curr) === JSON.stringify(prev)) {
+        alert("Không có thay đổi nào để lưu.");
+        return;
+      }
+    }
+
     const payload = {
       ...form.value,
       startDate: form.value.startDate + "T00:00:00",
-      endDate: form.value.endDate + "T00:00:00"
+      endDate: form.value.endDate + "T00:00:00",
     };
 
     if (form.value.id) {
       await axios.put(`http://localhost:8080/promotion/update/${form.value.id}`, payload);
     } else {
-      const response = await axios.post("http://localhost:8080/promotion/add", payload);
-      form.value.id = response.data.id;
+      const res = await axios.post("http://localhost:8080/promotion/add", payload);
+      form.value.id = res.data.id;
     }
+
+    // Cập nhật lại snapshot sau khi lưu thành công
+    snapshotOriginal();
 
     await fetchPromotion();
     resetForm();
   } catch (error) {
-    console.error("Lỗi khi lưu khuyến mãi:", error); // sửa từ `err` -> `error`
+    console.error("Lỗi khi lưu khuyến mãi:", error);
   }
 };
 
 const editPromotion = (promo) => {
   form.value = {
     ...promo,
+    // chuẩn hoá để UI và snapshot nhất quán
+    type: Number(promo.type),
+    value: Number(promo.value),
     startDate: promo.startDate ? promo.startDate.substring(0, 10) : "",
-    endDate: promo.endDate ? promo.endDate.substring(0, 10) : ""
+    endDate:   promo.endDate   ? promo.endDate.substring(0, 10)   : "",
+    active: !!promo.active,
+    apply_all: !!promo.apply_all,
   };
+
+  snapshotOriginal(); // 👈 Quan trọng: gọi sau khi gán form
 };
 
 async function changeStatus(id) {

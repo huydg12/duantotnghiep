@@ -666,30 +666,31 @@ onMounted(() => {
             <div class="row g-3">
               <div class="col-md-6">
                 <label for="fullName" class="form-label">Họ tên</label>
-                <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" />
+                <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" required/>
               </div>
               <div class="col-md-6">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" />
+                  <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" required/>
                   <label class="form-check-label">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" />
+                  <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" required/>
                   <label class="form-check-label">Nữ</label>
                 </div>
               </div>
               <div class="col-md-6">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" class="form-control" v-model="userInfo.email" />
+                <input type="email" id="email" class="form-control" v-model="userInfo.email" required/>
               </div>
               <div class="col-md-6">
                 <label for="phone" class="form-label">Số điện thoại</label>
-                <input type="text" id="phone" class="form-control" v-model="userInfo.phone" />
+                <input type="text" id="phone" class="form-control" v-model="userInfo.phone" required 
+                pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
               </div>
               <div class="col-md-6">
                 <label for="birthDate" class="form-label">Ngày sinh</label>
-                <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" />
+                <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" required/>
               </div>
             </div>
             <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>

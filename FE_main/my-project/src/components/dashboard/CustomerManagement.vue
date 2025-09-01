@@ -516,11 +516,11 @@ onMounted(fetchCustomer);
       </div>
       <div class="mb-3">
         <label class="form-label">Email</label>
-        <input v-model="form.email" required class="form-control" />
+        <input v-model="form.email" type="email" required class="form-control" />
       </div>
       <div class="mb-3">
         <label class="form-label">Số điện thoại</label>
-        <input v-model="form.numberPhone" required class="form-control" />
+        <input v-model="form.numberPhone" required class="form-control"  pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Ngày sinh</label>

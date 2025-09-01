@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.poly.BE_main.dto.EmployeeCreateDTO;
 import com.poly.BE_main.dto.EmployeeDTO;
+import com.poly.BE_main.dto.InformationCustomerDTO;
+import com.poly.BE_main.dto.InformationEmployeeDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.service.AccountService;
@@ -100,5 +102,18 @@ public class EmployeeController {
     @PutMapping("/updateStatus/{id}")
     public EmployeeDTO updateStatus(@PathVariable int id, @RequestBody EmployeeDTO e) {
         return employeeService.updateStatus(id, e);
+    }
+
+    @GetMapping("/showInformationEmployee/{employeeId}")
+    public InformationEmployeeDTO findInformationEmployeeByEmployeeId(@PathVariable Integer employeeId) {
+        return employeeService.findInformationEmployeeByEmployeeId(employeeId);
+    }
+
+    @PutMapping("/updateInformation/{id}")
+    public InformationEmployeeDTO updateInfoByEmployeeId(
+            @PathVariable("id") Integer employeeId,
+            @RequestBody InformationEmployeeDTO dto) {
+
+        return employeeService.updateInformationEmployeeByEmployeeId(employeeId, dto);
     }
 }
