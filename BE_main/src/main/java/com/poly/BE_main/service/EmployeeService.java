@@ -1,22 +1,17 @@
 package com.poly.BE_main.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import com.poly.BE_main.dto.EmployeeDTO;
-import com.poly.BE_main.dto.InformationCustomerDTO;
 import com.poly.BE_main.dto.InformationEmployeeDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.repository.EmployeeRepository;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -115,41 +110,42 @@ public class EmployeeService {
             return toDTO(employeeRepository.save(e));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên có id: " + id));
     }
+
     public InformationEmployeeDTO findInformationEmployeeByEmployeeId(Integer employeeId) {
         Employee e = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Employee not found with id=" + employeeId));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Employee not found with id=" + employeeId));
 
         return new InformationEmployeeDTO(
-            e.getFullName(),
-            e.isGender(),            // nếu entity là Boolean -> Boolean.TRUE.equals(e.getGender())
-            e.getEmail(),
-            e.getNumberPhone(),
-            e.getBirthOfDate()       // nếu entity là LocalDate, trả thẳng; nếu java.sql.Date thì .toLocalDate()
+                e.getFullName(),
+                e.isGender(), // nếu entity là Boolean -> Boolean.TRUE.equals(e.getGender())
+                e.getEmail(),
+                e.getNumberPhone(),
+                e.getBirthOfDate() // nếu entity là LocalDate, trả thẳng; nếu java.sql.Date thì .toLocalDate()
         );
     }
 
     // Cập nhật theo EMPLOYEE ID
-@Transactional
-public InformationEmployeeDTO updateInformationEmployeeByEmployeeId(Integer employeeId, InformationEmployeeDTO dto) {
-    Employee e = employeeRepository.findById(employeeId)
-        .orElseThrow(() -> new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "Employee not found with id=" + employeeId));
+    @Transactional
+    public InformationEmployeeDTO updateInformationEmployeeByEmployeeId(Integer employeeId,
+            InformationEmployeeDTO dto) {
+        Employee e = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Employee not found with id=" + employeeId));
 
-    e.setFullName(dto.getFullName());
-    e.setGender(dto.isGender());
-    e.setEmail(dto.getEmail());
-    e.setNumberPhone(dto.getNumberPhone());
-    e.setBirthOfDate(dto.getBirthOfDate());
+        e.setFullName(dto.getFullName());
+        e.setGender(dto.isGender());
+        e.setEmail(dto.getEmail());
+        e.setNumberPhone(dto.getNumberPhone());
+        e.setBirthOfDate(dto.getBirthOfDate());
 
-    employeeRepository.save(e);
+        employeeRepository.save(e);
 
-    return new InformationEmployeeDTO(
-        e.getFullName(),
-        e.isGender(),
-        e.getEmail(),
-        e.getNumberPhone(),
-        e.getBirthOfDate()
-    );
-}
+        return new InformationEmployeeDTO(
+                e.getFullName(),
+                e.isGender(),
+                e.getEmail(),
+                e.getNumberPhone(),
+                e.getBirthOfDate());
+    }
 }

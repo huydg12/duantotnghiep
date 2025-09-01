@@ -262,16 +262,31 @@ const updateInventory = async (bill,newStatus) => {
   }
 };
 
+const isPositiveInt = (v) => Number.isInteger(Number(v)) && Number(v) > 0
 
+// NEW: dùng cho ô số lượng @input
+const handleQuantityChange = (detail) => {
+  let n = parseInt(detail.QUANTITY)
+  if (!Number.isFinite(n) || n < 1) n = 1
+  detail.QUANTITY = n
+}
 const lastTriggerEl = ref(null);
 
 const openModal = async (bill, ev) => {
   selectedBill.value = { ...bill };
-  lastTriggerEl.value = ev?.currentTarget || null;   // lưu nút đã mở modal
+  lastTriggerEl.value = ev?.currentTarget || null;
   await fetchBillDetails(bill.ID);
+
+  // NEW: chụp snapshot ghi chú & số lượng ban đầu để so sánh
+  selectedBill.value.oldNote = (selectedBill.value.NOTE ?? '').trim();
+  billDetails.value = billDetails.value.map(d => {
+    const q = parseInt(d.QUANTITY) || 1
+    return { ...d, QUANTITY: q, oldQuantity: q } // oldQuantity dùng để so sánh khi lưu
+  })
+
   await nextTick();
   if (!modalInstance.value) {
-    modalInstance.value = new Modal(modal.value); // { focus: true } là mặc định
+    modalInstance.value = new Modal(modal.value);
   }
   modalInstance.value.show();
 };
@@ -326,33 +341,70 @@ const cacheOldQuantity = (detail) => {
 
 const saveAllChanges = async () => {
   try {
+    // NEW: validate trống/hợp lệ chi tiết
+    if (!billDetails.value.length) {
+      alert('Hóa đơn chưa có sản phẩm.');
+      return;
+    }
+    for (const d of billDetails.value) {
+      const q = parseInt(d.QUANTITY);
+      if (!isPositiveInt(q)) {
+        alert(`Vui lòng nhập số lượng hợp lệ cho "${d.PRODUCT_NAME}".`);
+        return;
+      }
+    }
+
+    // NEW: phát hiện "không có thay đổi" (số lượng & ghi chú)
+    const noteChanged =
+      (selectedBill.value.NOTE ?? '').trim() !== (selectedBill.value.oldNote ?? '').trim();
+    const qtyChanged = billDetails.value.some(d => {
+      const now = parseInt(d.QUANTITY) || 1;
+      const before = Number.isFinite(d.oldQuantity) ? d.oldQuantity : now;
+      return now !== before;
+    });
+    if (!noteChanged && !qtyChanged) {
+      alert('Không có thay đổi nào để lưu.');
+      return;
+    }
+
     const updates = [];
     let updated = false;
-        let quantityExceedsStock = false; // Flag để kiểm tra nếu có vượt kho
+    let quantityExceedsStock = false;
+
     for (const d of billDetails.value) {
-      const oldQ = Number.isFinite(d.oldQuantity) ? d.oldQuantity : parseInt(d.QUANTITY) || 1;
+      const oldQ = Number.isFinite(d.oldQuantity) ? d.oldQuantity : (parseInt(d.QUANTITY) || 1);
       const newQ = parseInt(d.QUANTITY) || 1;
+
       if (newQ !== oldQ) {
-        updated = true; // Đánh dấu là có thay đổi
+        updated = true;
+
+        // kiểm tra tồn kho
         const invRes = await axios.get(`http://localhost:8080/inventory/getQuantity/${d.PRODUCT_DETAIL_ID}`);
         const inv = parseInt(invRes?.data?.quantityInventory) || 0;
         const max = inv + oldQ;
-              if (newQ > max) {
-        quantityExceedsStock = true;
-        alert(`Số lượng sản phẩm "${d.PRODUCT_NAME}" vượt quá số lượng tồn kho. Tồn kho hiện tại: ${inv}`);
-        break; // Dừng lại nếu có lỗi
-      }
+
+        if (newQ > max) {
+          quantityExceedsStock = true;
+          alert(`Số lượng sản phẩm "${d.PRODUCT_NAME}" vượt quá số lượng tồn kho. Tồn kho hiện tại: ${inv}`);
+          break;
+        }
 
         const safeQ = Math.min(Math.max(newQ, 1), max);
         if (safeQ !== newQ) d.QUANTITY = safeQ;
 
         updates.push(
           axios.put(`http://localhost:8080/billDetail/updateQuantity/${d.ID}`, { quantity: d.QUANTITY }),
-          axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${d.PRODUCT_DETAIL_ID}`, { quantity: d.QUANTITY, oldQuantity: oldQ })
+          axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${d.PRODUCT_DETAIL_ID}`, {
+            quantity: d.QUANTITY,
+            oldQuantity: oldQ
+          })
         );
-        d.oldQuantity = d.QUANTITY;
+        d.oldQuantity = d.QUANTITY; // cập nhật snapshot sau khi hợp lệ
       }
     }
+
+    // NEW: nếu có lỗi vượt kho → dừng ngay, KHÔNG áp dụng cập nhật dở dang
+    if (quantityExceedsStock) return;
 
     if (updates.length) {
       await Promise.all(updates);
@@ -360,13 +412,13 @@ const saveAllChanges = async () => {
 
     const patch = {};
 
-    // Chỉ cập nhật giá trị của NOTE nếu có thay đổi
-    if ((selectedBill.value.NOTE ?? "").trim() !== (selectedBill.value.oldNote ?? "").trim()) {
-      patch.note = (selectedBill.value.NOTE ?? "").trim();
+    // chỉ patch NOTE nếu đổi
+    if ((selectedBill.value.NOTE ?? '').trim() !== (selectedBill.value.oldNote ?? '').trim()) {
+      patch.note = (selectedBill.value.NOTE ?? '').trim();
       updated = true;
     }
 
-    // Cập nhật tổng tiền nếu có sự thay đổi trong số lượng hoặc thông tin liên quan
+    // nếu có thay đổi (SL/NOTE) → cập nhật tổng
     if (updated) {
       patch.subTotal = Number(subTotal.value) || 0;
       patch.grandTotal = Number(grandTotal.value) || 0;
@@ -376,15 +428,14 @@ const saveAllChanges = async () => {
       await axios.put(`http://localhost:8080/bill/updateBill/${selectedBill.value.ID}`, patch);
     }
 
-    // Đồng bộ lại dữ liệu trong bảng ngoài
+    // đồng bộ bảng ngoài
     const idx = bills.value.findIndex(b => b.ID === selectedBill.value.ID);
     if (idx !== -1) {
       bills.value[idx] = { ...bills.value[idx], ...patch };
     }
 
-    console.log("✅ Lưu thành công");
-    await fetchBills();  // Làm mới dữ liệu hóa đơn từ server
-    closeModalSafely();  // Đóng modal và xử lý focus an toàn
+    await fetchBills();
+    closeModalSafely();
   } catch (err) {
     console.error("❌ Lỗi khi lưu thay đổi:", err);
     alert("Lưu thất bại, vui lòng thử lại.");

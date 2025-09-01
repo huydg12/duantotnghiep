@@ -217,7 +217,7 @@ const saveAddress = async () => {
 
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
-    const result = await response.json();
+    
 
 
     resetAddressForm();
