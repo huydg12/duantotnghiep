@@ -16,7 +16,7 @@ const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
 const customers = ref([]);
-
+const originalCustomer = ref(null)
 
 const recipientName = ref('');
 const phoneNumber = ref('');
@@ -126,7 +126,7 @@ const saveAddress = async () => {
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
     const result = await response.json();
-    console.log('Thêm địa chỉ thành công:', result);
+    alert('Thêm địa chỉ thành công:', result);
 
     await fetchAddressList(currentCustomerId.value);
     resetAddressForm();
@@ -208,20 +208,49 @@ const getWardNameByCode = (code) => {
 
 const updateAddress = async () => {
   try {
+    const m = addressBeingEdited;
+    const original = (addressList.value || []).find(a => a.id === m.id);
+
+    if (original) {
+      // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
+      const cityNameNew = getCityNameByCode(m.cityCode) || m.cityName || original.cityName || "";
+      const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
+      const wardNameNew = getWardNameByCode(m.wardCode) || m.wardName || original.wardName || "";
+
+      // So sánh TRỰC TIẾP, không normalize
+      const noChange =
+        String(m.fullName ?? "") === String(original.fullName ?? "") &&
+        String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
+        String(m.detailAddress ?? "") === String(original.detailAddress ?? "") &&
+        cityNameNew === (original.cityName || "") &&
+        districtNameNew === (original.districtName || "") &&
+        wardNameNew === (original.wardName || "") &&
+        (!!m.default === !!original.default);
+
+      if (noChange) {
+        alert('Không có thay đổi nào.');
+        return;
+      }
+    }
+
+    // Tên địa giới phục vụ build fullAddress/payload
+    const cityName = getCityNameByCode(m.cityCode) || m.cityName || "";
+    const districtName = getDistrictNameByCode(m.districtCode) || m.districtName || "";
+    const wardName = getWardNameByCode(m.wardCode) || m.wardName || "";
+
     const data = {
-      customerId: currentCustomerId.value,
-      fullName: addressBeingEdited.fullName,
-      numberPhone: addressBeingEdited.numberPhone,
-      fullAddress: `${addressBeingEdited.detailAddress}, ${getWardNameByCode(addressBeingEdited.wardCode)}, 
-      ${getDistrictNameByCode(addressBeingEdited.districtCode)}, ${getCityNameByCode(addressBeingEdited.cityCode)}`,
-      default: addressBeingEdited.default,
-      detailAddress: addressBeingEdited.detailAddress,
-      wardName: getWardNameByCode(addressBeingEdited.wardCode) || addressBeingEdited.wardName,
-      districtName: getDistrictNameByCode(addressBeingEdited.districtCode) || addressBeingEdited.districtName,
-      cityName: getCityNameByCode(addressBeingEdited.cityCode) || addressBeingEdited.cityName,
+      customerId: customerId,
+      fullName: m.fullName,
+      numberPhone: m.numberPhone,
+      fullAddress: `${m.detailAddress}, ${wardName}, ${districtName}, ${cityName}`,
+      default: !!m.default,
+      detailAddress: m.detailAddress,
+      wardName: wardName,
+      districtName: districtName,
+      cityName: cityName,
     };
 
-    const response = await fetch(`http://localhost:8080/address/update/${addressBeingEdited.id}`, {
+    const response = await fetch(`http://localhost:8080/address/update/${m.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -229,15 +258,15 @@ const updateAddress = async () => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Cập nhật địa chỉ thất bại: ${errorText}`);
+      throw new Error(errorText || 'Cập nhật địa chỉ thất bại');
     }
 
-    await fetchAddressList(currentCustomerId.value);  // 👈 Gọi trước alert để cập nhật danh sách
-    alert('✅ Cập nhật địa chỉ thành công!');
+    await fetchAddressList();
     closeUpdateAddressOverlay();
+
+    alert('Cập nhật địa chỉ thành công');
   } catch (err) {
     console.error('❌ Lỗi cập nhật địa chỉ:', err);
-    alert('❌ Cập nhật địa chỉ thất bại');
   }
 };
 
@@ -395,12 +424,7 @@ const fetchCustomer = async () => {
 };
 
 function editCustomer(customer) {
-  console.log("=== DEBUG EDIT ===");
-  console.log("Customer object:", customer);
-  console.log("ID type:", typeof customer.id, "Value:", customer.id);
-  console.log("Gender type:", typeof customer.gender, "Value:", customer.gender);
-  console.log("Status type:", typeof customer.status, "Value:", customer.status);
-  console.log("BirthOfDate type:", typeof customer.birthOfDate, "Value:", customer.birthOfDate);
+
 
   form.value = {
     ...customer,
@@ -411,6 +435,7 @@ function editCustomer(customer) {
       : ""
   };
   isEditing.value = true;
+  originalCustomer.value = { ...toComparable(form.value) }
 }
 
 const resetForm = () => {
@@ -426,17 +451,41 @@ const resetForm = () => {
   };
   isEditing.value = false;
 };
-
+const toComparable = (x) => ({
+  fullName: (x?.fullName ?? '').trim(),
+  gender: String(x?.gender ?? ''),                 // bạn đang bind radio "true"/"false" dạng string
+  email: (x?.email ?? '').trim().toLowerCase(),
+  numberPhone: String(x?.numberPhone ?? '').replace(/\s+/g, ''),
+  birthOfDate: x?.birthOfDate ?? '',               // dạng 'YYYY-MM-DD' bạn đã set sẵn khi edit
+  accountId: x?.accountId ?? null,
+  active: typeof x?.active === 'boolean' ? x.active : (String(x?.active) === 'true')
+})
+// So sánh nông các field quan trọng
+const isSameCustomer = (a, b) => {
+  if (!a || !b) return false
+  const keys = Object.keys(a)
+  return keys.every(k => a[k] === b[k])
+}
 const saveCustomer = async () => {
   try {
     console.log('Đang lưu khách hàng:', form.value);
+
     if (isEditing.value) {
+      // === NEW: kiểm tra "không có gì thay đổi" ===
+      const before = originalCustomer.value
+      const now = toComparable(form.value)
+      if (isSameCustomer(before, now)) {
+        alert('Không có thay đổi nào để lưu.')
+        return
+      }
+
       const res = await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
       console.log('Kết quả update:', res.data);
     } else {
       const rep = await axios.post('http://localhost:8080/customer/add', form.value);
       console.log('Kết quả thêm:', rep.data);
     }
+
     await fetchCustomer();
     resetForm();
   } catch (error) {
@@ -520,7 +569,8 @@ onMounted(fetchCustomer);
       </div>
       <div class="mb-3">
         <label class="form-label">Số điện thoại</label>
-        <input v-model="form.numberPhone" required class="form-control"  pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
+        <input v-model="form.numberPhone" required class="form-control" pattern="^(0[0-9]{9})$"
+          title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
       </div>
       <div class="mb-3">
         <label class="form-label">Ngày sinh</label>
@@ -747,7 +797,7 @@ onMounted(fetchCustomer);
             <label class="form-label">Số điện thoại</label>
             <input type="text" class="form-control form-control-sm"
               style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
-              required />
+              pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" required />
           </div>
 
           <!-- Tỉnh / Thành phố -->

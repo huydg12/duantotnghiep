@@ -172,21 +172,80 @@ function resetForm() {
 }
 
 async function saveProduct() {
-    if (!form.productName) return alert('Nhập tên sản phẩm')
-    const isDup = products.value.some(p => (p.productName || '').trim().toLowerCase() === form.productName.trim().toLowerCase())
-    if (!form.id && isDup) { alert('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.'); return }
-    const payload = { ...form, createdBy: safeUserName() }
-    try {
-        if (form.id) { await API.put(`/product/update/${form.id}`, payload); alert('Cập nhật thành công') }
-        else { form.createdDate = getVietnamTimeWithoutSeconds(); await API.post('/product/add', payload); alert('Thêm sản phẩm thành công') }
-        resetForm(); await fetchProducts()
-    } catch (error) {
-        console.error('Lỗi khi lưu sản phẩm:', error)
-        alert('Có lỗi khi lưu sản phẩm')
+  // NEW: check trống cho cả thêm & sửa
+  const missing = requiredProductFields()
+  if (missing.length) {
+    alert('Vui lòng nhập: ' + missing.join(', '))
+    return
+  }
+
+  const nameNorm = form.productName.trim().toLowerCase()
+
+  // check trùng tên (khi thêm) hoặc khi đổi tên (khi sửa)
+  const isNameDup = products.value.some(p =>
+    (p.productName || '').trim().toLowerCase() === nameNorm &&
+    (!form.id || Number(p.id) !== Number(form.id))
+  )
+  if (isNameDup) {
+    alert('Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.')
+    return
+  }
+
+  const payload = { ...form, createdBy: safeUserName() }
+
+  try {
+    if (form.id) {
+      // NEW: chặn nếu không có thay đổi
+      const before = originalProduct.value
+      const now = toComparableProduct(form)
+      if (before && isSameProduct(before, now)) {
+        alert('Không có thay đổi để lưu.')
+        return
+      }
+
+      await API.put(`/product/update/${form.id}`, payload)
+      alert('Cập nhật thành công')
+    } else {
+      form.createdDate = getVietnamTimeWithoutSeconds()
+      await API.post('/product/add', payload)
+      alert('Thêm sản phẩm thành công')
     }
+
+    resetForm()
+    await fetchProducts()
+  } catch (error) {
+    console.error('Lỗi khi lưu sản phẩm:', error)
+    alert('Có lỗi khi lưu sản phẩm')
+  }
+}
+// NEW: snapshot & helpers
+const originalProduct = ref(null)
+
+const requiredProductFields = () => {
+  const missing = []
+  if (!form.productName?.trim()) missing.push('Tên sản phẩm')
+  if (form.brandId == null)      missing.push('Thương hiệu')
+  if (form.categoryId == null)   missing.push('Danh mục')
+  if (form.soleId == null)       missing.push('Đế giày')
+  if (!form.description?.trim()) missing.push('Mô tả')
+  return missing
 }
 
-function editProduct(p) { Object.assign(form, JSON.parse(JSON.stringify(p))) }
+const toComparableProduct = (x) => ({
+  productName: (x?.productName ?? '').trim().toLowerCase(),
+  brandId: x?.brandId != null ? Number(x.brandId) : null,
+  categoryId: x?.categoryId != null ? Number(x.categoryId) : null,
+  soleId: x?.soleId != null ? Number(x.soleId) : null,
+  description: (x?.description ?? '').trim()
+})
+
+const isSameProduct = (a, b) =>
+  !!a && !!b && Object.keys(a).every(k => a[k] === b[k])
+function editProduct(p) {
+  Object.assign(form, JSON.parse(JSON.stringify(p)))
+  // NEW: chụp snapshot để so sánh khi lưu
+  originalProduct.value = toComparableProduct(form)
+}
 
 async function changeStatus(id) {
     if (!confirm('Bạn có chắc muốn chuyển trạng thái sản phẩm này?')) return;

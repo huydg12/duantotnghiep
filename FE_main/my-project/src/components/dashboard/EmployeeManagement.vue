@@ -3,7 +3,21 @@ import axios from "axios";
 import { ref, computed, onMounted } from "vue";
 
 const employees = ref([]);
+const originalEmployee = ref(null)
 
+// Chỉ so sánh các field được phép sửa trong edit mode
+const toComparable = (x) => ({
+  fullName: (x?.fullName ?? '').trim(),
+  gender: String(x?.gender ?? ''),                                // radio 'true'/'false'
+  email: (x?.email ?? '').trim().toLowerCase(),
+  numberPhone: String(x?.numberPhone ?? '').replace(/\s+/g, ''),  // bỏ khoảng trắng
+  birthOfDate: String(x?.birthOfDate ?? '').slice(0, 10)          // YYYY-MM-DD
+})
+
+const isSame = (a, b) => {
+  if (!a || !b) return false
+  return Object.keys(a).every(k => a[k] === b[k])
+}
 const fetchEmployee = async () => {
     try {
         const response = await axios.get("http://localhost:8080/employee/show");
@@ -15,22 +29,33 @@ const fetchEmployee = async () => {
 };
 
 async function saveEmployee() {
-    try {
-        if (isEditing.value) {
-            await axios.put(`http://localhost:8080/employee/update/${form.value.id}`, form.value)
-        } else {
-            await axios.post('http://localhost:8080/employee/add', form.value)
-        }
-        await fetchEmployee()
-        resetForm()
-    } catch (error) {
-        console.log('Lỗi thêm nhân viên', error)
+  try {
+    if (isEditing.value) {
+      // === NEW: kiểm tra không có gì thay đổi ===
+      const before = originalEmployee.value
+      const now = toComparable(form.value)
+      if (isSame(before, now)) {
+        alert('Không có thay đổi nào để lưu.')
+        return
+      }
+
+      await axios.put(`http://localhost:8080/employee/update/${form.value.id}`, form.value)
+    } else {
+      await axios.post('http://localhost:8080/employee/add', form.value)
     }
+    await fetchEmployee()
+    resetForm()
+  } catch (error) {
+    console.log('Lỗi thêm nhân viên', error)
+  }
 }
 
 function editEmployee(employee) {
-    form.value = { ...employee }
-    isEditing.value = true
+  form.value = { ...employee }
+  isEditing.value = true
+
+  // === NEW: chụp snapshot dùng để so sánh khi lưu ===
+  originalEmployee.value = toComparable(form.value)
 }
 
 async function changeStatus(id) {
