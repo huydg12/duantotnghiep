@@ -1,11 +1,8 @@
 <script setup>
 import axios from "axios";
 import { ref, computed, onMounted, watch } from "vue";
-
-// ================== DATA ==================
 const accounts = ref([]);
 
-// ================== FETCH ==================
 const fetchAccount = async () => {
     try {
         const { data } = await axios.get("http://localhost:8080/account/show");
@@ -16,7 +13,6 @@ const fetchAccount = async () => {
     }
 };
 
-// ================== ACTIONS ==================
 async function changeStatus(id) {
     if (!confirm("Bạn có chắc muốn chuyển trạng thái tài khoản này?")) return;
     try {
@@ -36,7 +32,7 @@ async function resetPassword(id) {
     if (!confirm("Bạn có chắc muốn cập nhật mật khẩu tài khoản này?")) return;
     try {
         await axios.put(`http://localhost:8080/account/updatePassword/${id}`, { id });
-        alert("Cập nhật mật khẩu thành công");
+        alert("Cập nhật mật khẩu thành công, mật khẩu mới của tài khoản là 123456");
         await fetchAccount();
     } catch (error) {
         console.error(
@@ -47,7 +43,6 @@ async function resetPassword(id) {
     }
 }
 
-// ================== FORMATTERS ==================
 function formatDateTime(datetimeStr) {
     if (!datetimeStr) return "";
     const d = new Date(datetimeStr);
@@ -64,13 +59,11 @@ const strip = (s) =>
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
 
-const roleLabel = (r) => (r === 1 ? "admin" : r === 2 ? "khach hang" : "nhan vien");
 
-// ================== FILTER STATE ==================
 const searchQuery = ref(""); // chỉ tìm theo username
 const filters = ref({
-    roleId: "all",   // all | 1 | 2 | 3
-    status: "all",   // all | active | inactive
+    roleId: "all",
+    status: "all",
 });
 
 function clearAll() {
@@ -78,15 +71,16 @@ function clearAll() {
     filters.value = { roleId: "all", status: "all" };
 }
 
-// ================== FILTERED + PAGINATION ==================
 const filteredAccounts = computed(() => {
     const q = strip(searchQuery.value);
     const role = String(filters.value.roleId);
     const st = filters.value.status;
 
     return accounts.value.filter((acc) => {
-        // 🔎 Chỉ tìm theo username
-        const okText = !q || strip(acc?.username).includes(q);
+        const okText =
+            !q ||
+            strip(acc?.username).includes(q) ||
+            String(acc?.id ?? "").includes(q);
 
         // lọc theo vai trò
         const okRole = role === "all" || String(acc?.roleId ?? "") === role;
@@ -101,6 +95,7 @@ const filteredAccounts = computed(() => {
     });
 });
 
+
 const currentPage = ref(1);
 const pageSize = 5;
 
@@ -113,7 +108,7 @@ const paginatedAccounts = computed(() => {
     return filteredAccounts.value.slice(start, start + pageSize);
 });
 
-// 👉 Hàm phân trang (bị thiếu nên trước đó không đổi trang được)
+// Hàm phân trang
 function goToPage(page) {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
@@ -125,7 +120,6 @@ watch([searchQuery, filters], () => {
     currentPage.value = 1;
 }, { deep: true });
 
-// ================== MOUNT ==================
 onMounted(() => {
     fetchAccount();
 });
@@ -139,7 +133,7 @@ onMounted(() => {
         <div class="row g-2 align-items-end mb-3">
             <div class="col-md-5">
                 <label class="form-label small">Tìm theo tài khoản</label>
-                <input v-model="searchQuery" type="text" class="form-control" placeholder="Nhập username..." />
+                <input v-model="searchQuery" type="text" class="form-control" placeholder="Nhập id,username..." />
             </div>
 
             <div class="col-md-3">
@@ -190,7 +184,7 @@ onMounted(() => {
                     <tr v-for="account in paginatedAccounts" :key="account.id">
                         <td class="text-center">{{ account.id }}</td>
                         <td class="text-center">{{ account.username }}</td>
-                        <td class="text-center">{{ account.password }}</td>
+                        <td class="text-center">********</td>
                         <td class="text-center">{{ formatDateTime(account.createdDate) }}</td>
                         <td class="text-center">
                             <span v-if="account.isActive" class="badge bg-success">Hoạt động</span>
@@ -201,9 +195,9 @@ onMounted(() => {
                             <span v-else-if="account.roleId === 2">Khách hàng</span>
                             <span v-else>Nhân viên</span>
                         </td>
-                        <td class="text-center">
+                        <td>
                             <button class="btn btn-success btn-sm" @click="resetPassword(account.id)">
-                                Làm mới mật khẩu
+                                Làm mới
                             </button>
                             <button class="btn btn-danger btn-sm" @click="changeStatus(account.id)">
                                 Chuyển trạng Thái

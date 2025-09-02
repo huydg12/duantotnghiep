@@ -79,8 +79,10 @@ async function saveEmployee() {
                 `http://localhost:8080/employee/update/${form.value.id}`,
                 form.value
             );
+            alert("Cập nhật thành công");
         } else {
             await axios.post("http://localhost:8080/employee/add", form.value);
+            alert("Thêm mới thành công");
         }
         await fetchEmployee();
         resetForm();

@@ -509,9 +509,11 @@ const saveCustomer = async () => {
       }
 
       const res = await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
+       alert('Cập nhật thành công');
       console.log('Kết quả update:', res.data);
     } else {
       const rep = await axios.post('http://localhost:8080/customer/add', form.value);
+      alert('Thêm mới thành công');
       console.log('Kết quả thêm:', rep.data);
     }
 
@@ -532,7 +534,7 @@ const changeStatus = async (id) => {
 
   try {
     await axios.put(`http://localhost:8080/customer/updateStatus/${id}`, updateEmployee);
-    alert('Đã chuyển trạng thái khách hàng');
+    alert("Đã chuyển trạng thái khách hàng");
     await fetchCustomer();
   } catch (error) {
     console.error('Lỗi chuyển trạng thái khách hàng:', error.response ? error.response.data : error.message);
