@@ -8,10 +8,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue', 'checkout', 'applyPromo'])
 
-const updatePaid = (e) => {
-  emit('update:modelValue', Number(e.target.value))
-}
-
 const checkout = () => {
   emit('checkout')
 }

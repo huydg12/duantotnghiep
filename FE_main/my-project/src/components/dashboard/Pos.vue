@@ -291,6 +291,83 @@ const clearSelectedCustomer = () => {
     customerSelectModel.value = null;
 };
 
+// Đổi shape cho đúng DTO
+const showAddCus = ref(false)
+const newCus = ref({
+    fullName: '',
+    numberPhone: '',
+    email: '',
+    birthOfDate: '1990-01-01',
+    gender: true,
+    active: true
+})
+
+function openAddCustomer() {
+    try {
+        const q = (customerSelectModel?.value ?? '').toString().trim()
+        if (/^\d{9,11}$/.test(q)) newCus.value.numberPhone = q
+        else if (q) newCus.value.fullName = q
+    } catch { }
+    showAddCus.value = true
+}
+
+const isValidEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s || '').trim())
+const onlyDigits = (s) => String(s ?? '').replace(/\D/g, '')
+
+async function saveNewCustomer() {
+    const fullName = String(newCus.value.fullName || '').trim()
+    const email = String(newCus.value.email || '').trim()
+
+    // HỖ TRỢ CẢ 2 KEY: numberPhone ưu tiên, fallback sang phone nếu còn sót
+    const phoneRaw = newCus.value.numberPhone ?? newCus.value.phone ?? ''
+    const phoneDigits = onlyDigits(phoneRaw)
+
+    console.log('DEBUG saveNewCustomer', { fullName, email, phoneRaw, phoneDigits })
+
+    if (!fullName || !phoneDigits || !email) {
+        alert('Vui lòng nhập đầy đủ: Họ tên, SĐT và Email'); return
+    }
+    if (phoneDigits.length < 9 || phoneDigits.length > 11) {
+        alert('SĐT phải có 9–11 chữ số'); return
+    }
+    if (!isValidEmail(email)) {
+        alert('Email không hợp lệ'); return
+    }
+
+    const payload = {
+        fullName,
+        numberPhone: phoneDigits,
+        email,
+        gender: !!newCus.value.gender,
+        active: !!newCus.value.active,
+    }
+
+    const d = String(newCus.value.birthOfDate || '').trim()
+    if (d) {
+        const m = d.match(/^(\d{2})-(\d{2})-(\d{4})$/) // dd-MM-yyyy -> yyyy-MM-dd
+        payload.birthOfDate = m ? `${m[3]}-${m[2]}-${m[1]}` : d
+    }
+
+    try {
+        const { data } = await api.post('/customer/add', payload)
+        const created = data?.id ? data : { ...payload, id: Date.now() }
+        const createdNorm = normalizeCustomer(created)
+
+        customers.value.unshift(createdNorm)
+        onCustomerPicked(createdNorm)
+        customerSelectResetKey.value++
+
+        newCus.value = {
+            fullName: '', numberPhone: '', email: '',
+            birthOfDate: '1990-01-01', gender: true, active: true
+        }
+        showAddCus.value = false
+    } catch (e) {
+        console.error('Tạo khách hàng lỗi:', e.response?.status, e.response?.data || e.message)
+        alert(e?.response?.data?.message || 'Không thể tạo khách hàng mới')
+    }
+}
+
 const handleCheckout = async () => {
     const inv = currentInvoice.value;
 
@@ -312,7 +389,7 @@ const handleCheckout = async () => {
 
     const dto = {
         customerId: inv.customerId || null,
-        employeeId: user?.employeeId,
+        employeeId: user.employeeId,
         ptttId: 1,
         promotionId: inv.promotionId || null,
         billCode: `HD${Date.now()}`,
@@ -348,8 +425,8 @@ const handleCheckout = async () => {
             bfs.customerPhone,
             bfs.customer?.phone,
             bfs.customer?.phoneNumber,
-            dto.recipientPhoneNumber,   
-            phone                      
+            dto.recipientPhoneNumber,
+            phone
         );
         const itemsSrc =
             Array.isArray(bfs.billDetails) && bfs.billDetails.length
@@ -470,10 +547,18 @@ onMounted(() => {
                     <div class="card-header bg-secondary text-white fw-semibold">Khách hàng</div>
                     <div class="card-body p-3">
                         <!-- Ô tìm khách luôn trắng -->
-                        <CustomerSelect
-                            :key="currentInvoice.id + ':' + (currentInvoice.customerId ?? '') + ':' + customerSelectResetKey"
-                            :customers="customers" :modelValue="customerSelectModel"
-                            @update:modelValue="onCustomerPicked" />
+                        <div class="position-relative">
+                            <CustomerSelect
+                                :key="currentInvoice.id + ':' + (currentInvoice.customerId ?? '') + ':' + customerSelectResetKey"
+                                :customers="customers" :modelValue="customerSelectModel"
+                                @update:modelValue="onCustomerPicked" />
+                            <!-- Nút + nhỏ nổi ở mép phải ô nhập -->
+                            <button type="button" class="btn btn-outline-primary btn-sm add-cus-btn"
+                                @click="openAddCustomer" title="Thêm khách mới">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+
                         <!-- Hiển thị khách đã chọn -->
                         <div class="d-flex align-items-center mt-2 flex-wrap gap-2">
                             <div class="small mb-0">
@@ -536,6 +621,38 @@ onMounted(() => {
         <!-- Popup biến thể sản phẩm -->
         <ProductVariantModal v-if="selectedProduct" :product="selectedProduct" :variants="productVariants"
             @close="closeVariantModal" @confirm="addToInvoice" />
+
+        <!-- Modal thêm khách nhanh (thuần Vue, không cần JS của Bootstrap) -->
+        <div v-if="showAddCus" class="c-modal-backdrop" @click.self="showAddCus = false">
+            <div class="c-modal">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="m-0">Thêm khách hàng</h6>
+                    <button type="button" class="btn-close" @click="showAddCus = false"></button>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small">Họ và tên <span class="text-danger">*</span></label>
+                    <input v-model="newCus.fullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Số điện thoại <span class="text-danger">*</span></label>
+                    <input v-model="newCus.numberPhone" class="form-control" type="text" inputmode="tel"
+                        placeholder="VD: 09xxxxxxxx" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Email <span class="text-danger">*</span></label>
+                    <input v-model="newCus.email" type="email" class="form-control" placeholder="vd: abc@example.com" />
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary" @click="showAddCus = false">Hủy</button>
+                    <button class="btn btn-success" @click="saveNewCustomer">
+                        <i class="bi bi-save me-1"></i> Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -546,5 +663,33 @@ onMounted(() => {
 
 .btn-link {
     text-decoration: underline;
+}
+
+.add-cus-btn {
+    position: absolute;
+    right: .375rem;
+    top: .2rem;
+    padding: .10rem .45rem;
+    border-radius: 6px;
+    z-index: 3;
+}
+
+.c-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.c-modal {
+    width: 420px;
+    max-width: calc(100vw - 2rem);
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
 }
 </style>

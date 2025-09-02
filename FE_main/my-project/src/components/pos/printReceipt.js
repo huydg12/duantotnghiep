@@ -11,7 +11,7 @@ export async function printReceipt(bill) {
 
   // Tạo DOM tạm để render PDF
   const el = document.createElement("div");
-  el.style.width = "360px";
+  el.style.width = "500px";
   el.style.fontFamily =
     "Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
   el.innerHTML = `

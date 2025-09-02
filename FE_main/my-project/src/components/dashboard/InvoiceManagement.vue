@@ -1,7 +1,9 @@
 <script setup>
 import axios from "axios";
-import { ref, computed, onMounted, nextTick,watch } from "vue";
+import { ref, computed, onMounted, nextTick, watch } from "vue";
 import { Modal } from "bootstrap";
+import { printReceipt } from "../pos/printReceipt";
+
 // import { nextTick } from 'vue';
 const bills = ref([]);
 const selectedBill = ref(null);
@@ -20,6 +22,7 @@ const tabs = [
   { label: "Đã hủy", value: "Đã hủy" },
   // { label: "Trả hàng/Hoàn tiền", value: "Trả hàng/Hoàn tiền" }
 ];
+
 const TAB_TO_STATUS = {
   all: null,
   "Chờ xác nhận": [1],
@@ -28,12 +31,14 @@ const TAB_TO_STATUS = {
   "Hoàn thành": [4],
   "Đã hủy": [5],
 };
+
 const parseToMs = (d) => {
   if (d == null) return 0;
   if (typeof d === "number") return d < 1e12 ? d * 1000 : d; // giây->ms
   const t = Date.parse(d);
   return Number.isNaN(t) ? 0 : t;
 };
+
 const pendingCount = computed(() =>
   (bills.value || []).filter(b => Number(b.STATUS) === 1).length
 );
@@ -46,6 +51,7 @@ const appliedTab = computed(() => {
   }
   return currentTab.value;
 });
+
 const filteredOrders = computed(() => {
   const q = (searchQuery.value || "").trim().toLowerCase();
   const statuses = TAB_TO_STATUS[appliedTab.value]; // null = all
@@ -70,6 +76,7 @@ const filteredOrders = computed(() => {
 
   return arr;
 });
+
 // Hàm kiểm tra khớp ô tìm kiếm (giữ nguyên cách thầy đang filter)
 const matchesSearch = (bill, q) => {
   const items = Array.isArray(bill?.items) ? bill.items : [];
@@ -138,11 +145,13 @@ watch(
     }, 200);
   }
 );
+
 const mapBillData = (data) => {
   return data.map((item) => ({
     ID: item.id,
     CODE: item.code,
     PTTT_ID: item.ptttId,
+    EMPLOYEE_ID: item.employeeId,
     CREATED_DATE: item.createdDate,
     RECIPIENT_NAME: item.recipientName,
     RECIPIENT_PHONE_NUMBER: item.recipientPhoneNumber,
@@ -165,6 +174,7 @@ const fetchBills = async () => {
   try {
     const response = await axios.get("http://localhost:8080/bill/show");
     bills.value = mapBillData(response.data);
+    console.log(bills.value)
     setDefaultTab(); // ✅
   } catch (error) {
     console.log("Lỗi lấy hoá đơn", error);
@@ -211,7 +221,7 @@ const updateBillStatus = async (bill, newStatus) => {
 
 const updateBillStatus4 = async (bill, newStatus) => {
   try {
-    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus,statusPayment: "Đã thanh toán"  });
+    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus, statusPayment: "Đã thanh toán" });
     // Cập nhật lạc quan trên UI
     bill.STATUS = newStatus;
     // (tuỳ chọn) refresh danh sách:
@@ -221,7 +231,7 @@ const updateBillStatus4 = async (bill, newStatus) => {
     alert("Cập nhật trạng thái thất bại");
   }
 };
-const updateInventory = async (bill,newStatus) => {
+const updateInventory = async (bill, newStatus) => {
   try {
     // Lấy các sản phẩm trong hóa đơn
     const response = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
@@ -232,7 +242,7 @@ const updateInventory = async (bill,newStatus) => {
       console.error("❌ Không có sản phẩm trong hóa đơn");
       return;
     }
-        await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
+    await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
       status: bill.STATUS
     });
     // Duyệt qua từng sản phẩm trong hóa đơn để cập nhật lại kho
@@ -249,11 +259,11 @@ const updateInventory = async (bill,newStatus) => {
       // Gửi yêu cầu API để cập nhật số lượng trong kho (sử dụng phương thức UDQuantity)
       await axios.put(
         `http://localhost:8080/inventory/updateQuantity/${productDetailId}`, {
-          quantity: quantityToUpdate // Trả lại số lượng vào kho
-        });
-          await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });
-          // Cập nhật lạc quan trên UI
-          bill.STATUS = newStatus;  
+        quantity: quantityToUpdate // Trả lại số lượng vào kho
+      });
+      await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });
+      // Cập nhật lạc quan trên UI
+      bill.STATUS = newStatus;
       console.log(`✅ Đã cập nhật kho cho sản phẩm ID: ${productDetailId} với số lượng: ${quantityToUpdate}`);
       window.dispatchEvent(new CustomEvent('bill:changed'));
     }
@@ -261,6 +271,84 @@ const updateInventory = async (bill,newStatus) => {
     console.error("Lỗi khi cập nhật kho hoặc thay đổi trạng thái hóa đơn:", error);
   }
 };
+
+const employee = ref(null);
+const employeeName = ref('—');
+
+async function fetchEmployeeNameForBill(bill) {
+  try {
+    // lấy employeeId từ bill tại thời điểm click
+    const id =
+      bill?.EMPLOYEE_ID ??
+      bill?.employeeId ??
+      bill?.employeeID ??
+      bill?.employee?.id;
+
+    if (!id) {
+      employee.value = null;
+      employeeName.value = '—';
+      return null;
+    }
+
+    const { data } = await axios.get(`http://localhost:8080/employee/showById/${id}`);
+    const payload = Array.isArray(data) ? data[0] : data;
+
+    employee.value = payload || null;
+    employeeName.value =
+      payload?.fullName ?? payload?.FULL_NAME ?? payload?.name ?? '—';
+
+    console.log('employeeName:', employeeName.value);
+    return employeeName.value;
+  } catch (e) {
+    console.error("Fetch employee failed:", e);
+    employee.value = null;
+    employeeName.value = '—';
+    return null;
+  }
+}
+
+
+const toVND = (n) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
+    .format(Number(n || 0));
+
+const printInvoice = async (bill) => {
+  try {
+    // Lấy chi tiết hoá đơn
+    const { data } = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
+    const details = mapBillDetailData(data); // đã có sẵn trong file của bạn
+    const name = await fetchEmployeeNameForBill(bill);
+
+    // Build payload theo schema của printReceipt
+    const payload = {
+      billCode: bill.CODE,
+      createdAt: bill.CREATED_DATE,
+      employeeName: name,
+      customerName: bill.RECIPIENT_NAME,
+      customerPhone: bill.RECIPIENT_PHONE_NUMBER,
+      items: details.map(d => ({
+        productName: d.PRODUCT_NAME,
+        color: d.COLOR,
+        size: d.SIZE,
+        quantity: d.QUANTITY,
+        // Giá & thành tiền định dạng sẵn để in đẹp
+        price: toVND(d.PRICE),
+        lineTotal: toVND((Number(d.PRICE) || 0) * (Number(d.QUANTITY) || 0)),
+      })),
+      // Tổng tiền: ưu tiên dùng từ bill (đã tính sẵn)
+      subTotal: toVND(bill.SUB_TOTAL),
+      discountAmount: toVND(bill.DISCOUNT_AMOUNT),
+      grandTotal: toVND(bill.GRAND_TOTAL),
+      // (tuỳ chọn) paid, change nếu bạn muốn hiển thị
+    };
+
+    await printReceipt(payload); // ✅ Mở tab mới với PDF
+  } catch (e) {
+    console.error("In hoá đơn lỗi:", e);
+    alert("Không thể in hoá đơn. Vui lòng thử lại.");
+  }
+};
+
 
 const isPositiveInt = (v) => Number.isInteger(Number(v)) && Number(v) > 0
 
@@ -301,12 +389,6 @@ const closeModalSafely = () => {
   lastTriggerEl.value?.focus?.();
 };
 
-
-
-
-
-
-
 const formatCurrency = (value) => {
   const num = parseFloat(value) || 0;
   return new Intl.NumberFormat("vi-VN", {
@@ -330,9 +412,6 @@ const grandTotal = computed(
 );
 
 const isPaid = computed(() => selectedBill.value?.STATUS >= 3);
-
-
-
 
 const cacheOldQuantity = (detail) => {
   if (!detail) return;
@@ -441,24 +520,24 @@ const saveAllChanges = async () => {
     alert("Lưu thất bại, vui lòng thử lại.");
   }
 };
-function blockMinus(e) { if (e.key === '-' || e.key === 'e') { e.preventDefault() }}
-    // Hàm chuyển đổi trạng thái từ số sang chữ
-    const getStatusText = (status) => {
-      const statusMap = {
-        1: "Chờ xác nhận",
-        2: "Đã xác nhận",
-        3: "Đang giao",
-        4: "Hoàn thành",
-        5: "Đã hủy",
-      };
-      return statusMap[status] || "Không xác định"; // Trả về nếu không có trạng thái phù hợp
-    };
+function blockMinus(e) { if (e.key === '-' || e.key === 'e') { e.preventDefault() } }
+// Hàm chuyển đổi trạng thái từ số sang chữ
+const getStatusText = (status) => {
+  const statusMap = {
+    1: "Chờ xác nhận",
+    2: "Đã xác nhận",
+    3: "Đang giao",
+    4: "Hoàn thành",
+    5: "Đã hủy",
+  };
+  return statusMap[status] || "Không xác định"; // Trả về nếu không có trạng thái phù hợp
+};
 
-    const PTTT_LABELS = {
-      1: 'Thanh toán khi nhận hàng',
-      2: 'Thanh toán MoMo',
-      3: 'Thanh toán qua QR'
-    };
+const PTTT_LABELS = {
+  1: 'Thanh toán khi nhận hàng',
+  2: 'Thanh toán MoMo',
+  3: 'Thanh toán qua QR'
+};
 onMounted(() => {
   fetchBills();
 });
@@ -467,28 +546,18 @@ onMounted(() => {
 <template>
   <div class="container mt-5">
     <h2 class="mb-4">Quản lý Hóa Đơn</h2>
-        <!-- Tabs -->
+    <!-- Tabs -->
     <div class="tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.value"
-        class="tab"
+      <button v-for="tab in tabs" :key="tab.value" class="tab"
         :class="{ active: currentTab === tab.value, disabled: isTabDisabled(tab.value) }"
-        :disabled="isTabDisabled(tab.value)"
-        :title="isTabDisabled(tab.value) ? 'Không có đơn trong mục này' : ''"
-        @click="handleTabClick(tab.value)"
-      >
+        :disabled="isTabDisabled(tab.value)" :title="isTabDisabled(tab.value) ? 'Không có đơn trong mục này' : ''"
+        @click="handleTabClick(tab.value)">
         {{ tab.label }}
       </button>
     </div>
-        <!-- Ô tìm kiếm -->
+    <!-- Ô tìm kiếm -->
     <div class="mb-3">
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        class="form-control" 
-        placeholder="Tìm kiếm theo mã hóa đơn..."
-      />
+      <input v-model="searchQuery" type="text" class="form-control" placeholder="Tìm kiếm theo mã hóa đơn..." />
     </div>
 
     <table class="table table-bordered table-hover">
@@ -505,8 +574,7 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="bill in paginatedOrders"
-          :key="bill.ID">
+        <tr v-for="bill in paginatedOrders" :key="bill.ID">
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
@@ -520,7 +588,7 @@ onMounted(() => {
 
             <!-- Ở đây chỉ là các nút, KHÔNG có thêm <td> -->
             <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-secondary me-1" @click="updateInventory(bill, 2)">
-              xác nhận
+              Xác nhận
             </button>
             <button v-if="+bill.STATUS === 2" class="btn btn-sm btn-warning me-1" @click="updateBillStatus(bill, 3)">
               Đang giao
@@ -531,11 +599,15 @@ onMounted(() => {
             <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-danger me-1" @click="updateBillStatus(bill, 5)">
               Huỷ
             </button>
+
+            <button class="btn btn-sm btn-outline-dark me-1" @click="printInvoice(bill)">
+              In hoá đơn
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
-        <!-- Phân trang -->
+    <!-- Phân trang -->
     <div v-if="totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
         ‹
@@ -611,8 +683,8 @@ onMounted(() => {
                   <!-- ✅ Số lượng có nút tăng/giảm -->
                   <td>
                     <input type="number" v-model="detail.QUANTITY" min="1"
-                      class="form-control form-control-sm text-center" style="width: 60px;" @keydown="blockMinus" @focus="cacheOldQuantity(detail)" @input="handleQuantityChange(detail)"
-                      :readonly="isPaid" />
+                      class="form-control form-control-sm text-center" style="width: 60px;" @keydown="blockMinus"
+                      @focus="cacheOldQuantity(detail)" @input="handleQuantityChange(detail)" :readonly="isPaid" />
                   </td>
                   <td>{{ formatCurrency(detail.PRICE) }}</td>
                   <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>
@@ -661,8 +733,10 @@ onMounted(() => {
 .tab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  pointer-events: auto; /* vẫn cho hover để thấy title */
+  pointer-events: auto;
+  /* vẫn cho hover để thấy title */
 }
+
 img {
   border-radius: 4px;
 }
@@ -671,6 +745,7 @@ option:disabled {
   background-color: #f8f9fa;
   color: #999;
 }
+
 .tabs {
   display: flex;
   gap: 8px;
@@ -705,6 +780,7 @@ option:disabled {
   outline: none;
   font-size: 14px;
 }
+
 /* Pagination */
 .pagination {
   display: flex;
@@ -731,5 +807,4 @@ option:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 </style>
