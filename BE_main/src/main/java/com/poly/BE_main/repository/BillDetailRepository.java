@@ -15,7 +15,7 @@ public interface BillDetailRepository extends JpaRepository<BillDetail, Integer>
     FROM BILL_DETAIL bd
     JOIN BILL b ON bd.BILL_ID = b.ID
 
-    WHERE b.STATUS_PAYMENT = 'Đã thanh toán'
+    WHERE b.STATUS = 4
     GROUP BY bd.PRODUCT_NAME
     ORDER BY totalSold DESC
     """, nativeQuery = true)

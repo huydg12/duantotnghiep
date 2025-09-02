@@ -143,76 +143,127 @@ const uniqueColors = computed(() => {
 })
 
 const selectColor = (color) => {
-  // Tìm sản phẩm đầu tiên có màu này để làm lựa chọn mặc định
-  const firstVariantOfColor = productVariants.value.find(p => p.color === color)
-  if (firstVariantOfColor) {
-    updateSelection(firstVariantOfColor)
-  }
-}
+  const variantsOfColor = productVariants.value.filter(p => p.color === color);
+  if (!variantsOfColor.length) return;
+
+  // lấy cổ đầu tiên cho màu này
+  const firstCollar = (variantsOfColor.find(v => (v.collar ?? v.colar))?.collar) ??
+                      (variantsOfColor.find(v => (v.collar ?? v.colar))?.colar) ?? '';
+  selectedCollar.value = firstCollar;
+
+  // chọn 1 biến thể khớp màu + cổ
+  const firstVariant = variantsOfColor.find(v => (v.collar ?? v.colar) === selectedCollar.value) || variantsOfColor[0];
+  updateSelection(firstVariant);
+};
 
 const selectSize = (size) => {
   const newSelectedProduct = productVariants.value.find(
-    p => p.color === selectedProduct.value.color && p.size === size
-  )
+    p =>
+      p.color === selectedProduct.value.color &&
+      (p.collar ?? p.colar) === selectedCollar.value &&
+      p.size === size
+  );
   if (newSelectedProduct) {
-    selectedProduct.value = newSelectedProduct
+    updateSelection(newSelectedProduct);
   }
-}
+};
+// thêm vào phần khai báo ref bên trên
+const selectedCollar = ref('');
+const collarsForCurrentColor = computed(() => {
+  const color = selectedProduct.value?.color;
+  const set = new Set(
+    productVariants.value
+      .filter(v => v.color === color)
+      .map(v => (v.collar ?? v.colar))
+      .filter(Boolean)
+  );
+  return [...set];
+});
+const selectCollar = (collar) => {
+  selectedCollar.value = collar;
+  const prevSize = selectedProduct.value?.size;
 
+  let v = productVariants.value.find(p =>
+    p.color === selectedProduct.value.color &&
+    (p.collar ?? p.colar) === collar &&
+    p.size === prevSize
+  );
+  if (!v) {
+    v = productVariants.value.find(p =>
+      p.color === selectedProduct.value.color &&
+      (p.collar ?? p.colar) === collar
+    );
+  }
+  if (v) updateSelection(v);
+};
 const updateSelection = (variant) => {
-  // Cập nhật sản phẩm đang được chọn
-  selectedProduct.value = variant
+  // chuẩn hoá collar/colar
+  const collarVal = variant.collar ?? variant.colar ?? '';
+  selectedProduct.value = { ...variant, collar: collarVal, colar: collarVal };
 
-  // Xử lý lại chuỗi ảnh cho phiên bản vừa chọn
-  selectedImage.value = (variant.images && variant.images[0]) || ''
-  console.log('Variant.images:', variant.images)
+  // ảnh chính
+  selectedImage.value = (variant.images && variant.images[0]) || '';
 
-  // Tìm tất cả size có sẵn cho màu hiện tại
-  const sizesForColor = productVariants.value
-    .filter(p => p.color === variant.color)
-    .map(p => p.size)
-  availableSizes.value = [...new Set(sizesForColor)]
+  // set cổ đang chọn
+  selectedCollar.value = collarVal;
+
+  // size khả dụng theo cả MÀU + CỔ hiện tại
+  const sizesFor = productVariants.value
+    .filter(p =>
+      p.color === selectedProduct.value.color &&
+      ( (p.collar ?? p.colar) === selectedCollar.value )
+    )
+    .map(p => p.size);
+  availableSizes.value = [...new Set(sizesFor)];
+};
+const isActiveFlag = (v) => {
+  if (v === 1 || v === true) return true
+  const s = String(v ?? '').trim().toLowerCase()
+  return s === '1' || s === 'true'
 }
-
 const fetchProductDetail = async () => {
-  const id = route.params.id
-
+  const id = route.params.id  // id từ URL có thể là productDetailId hoặc productId
   try {
-    // Gọi API getById để kiểm tra xem id là productDetail hay không
-    const detailRes = await axios.get(`http://localhost:8080/productDetail/findProductId/${id}`)
-    console.log("API trả về productDetailId:", detailRes.data)
-    let productId
-
-    // Nếu detailRes.data là số → chính là productId
-    if (typeof detailRes.data === "number") {
-      productId = detailRes.data
-    } else if (detailRes.data && detailRes.data.productId) {
-      productId = detailRes.data.productId
-    } else {
-      productId = id
+    // 1) Chuẩn hoá thành productId
+    let productId = id
+    try {
+      const detailRes = await axios.get(`http://localhost:8080/productDetail/findProductId/${id}`)
+      if (typeof detailRes.data === 'number') productId = detailRes.data
+      else if (detailRes.data && detailRes.data.productId) productId = detailRes.data.productId
+    } catch (e) {
+      // Nếu gọi findProductId fail thì coi id là productId
+      console.warn('findProductId fail, dùng id làm productId', e)
     }
 
-    console.log("productId sau xử lý: ", productId)
+    // 2) Lấy toàn bộ biến thể theo productId
+    const { data } = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
 
-    // Gọi API để lấy tất cả phiên bản sản phẩm theo productId
-    const response = await axios.get(`http://localhost:8080/productDetail/show/${id}`)
-    console.log("Dữ liệu API trả về: ", response.data)
+    // 3) Chuẩn hoá & CHỈ GIỮ biến thể active (IS_ACTIVE = 1)
+    const processed = (Array.isArray(data) ? data : [])
+      .map(v => {
+        const collarVal = v.collar ?? v.colar ?? v.collarName ?? '';
+        return {
+          ...v,
+          images: Array.isArray(v.images) ? v.images : [],
+          collar: collarVal,
+          colar: collarVal, // giữ tương thích chỗ cũ nếu nơi khác còn dùng "colar"
+          __active: isActiveFlag(v.isActive ?? v.active ?? v.status),
+        };
+      })
+      .filter(v => v.__active);
 
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      const processedVariants = response.data.map(variant => ({
-        ...variant,
-        images: Array.isArray(variant.images) ? variant.images : [],
-      }))
-
-      productVariants.value = processedVariants
-      console.log("Dữ liệu đã xử lý:", processedVariants)
-
-      // Nếu gọi từ cart và có productDetailId, chọn đúng productDetail đó
-      const selected = processedVariants.find(v => v.productDetailId == id) || processedVariants[0]
-      updateSelection(selected)
-    } else {
-      console.error("API không trả về dữ liệu sản phẩm hợp lệ.")
+    if (!processed.length) {
+      console.warn('Không có biến thể active để hiển thị')
+      productVariants.value = []
+      selectedProduct.value = {}
+      return
     }
+
+    productVariants.value = processed
+
+    // 4) Chọn biến thể ban đầu: đúng productDetailId nếu khớp & active, ngược lại chọn phần tử đầu
+    const picked = processed.find(v => String(v.productDetailId) === String(id)) || processed[0]
+    updateSelection(picked)
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết sản phẩm', error)
   }
@@ -235,6 +286,7 @@ const buyNow = async() => {
     brandName: selectedProduct.value.brandName,
     color: selectedProduct.value.color,
     size: selectedProduct.value.size,
+    colar: selectedProduct.value.colar,
     price: selectedProduct.value.price,
     quantity: quantity.value,
     images: selectedProduct.value.images?.[0] || ""
@@ -247,6 +299,18 @@ const buyNow = async() => {
 const selectImage = (img) => {
   selectedImage.value = img
 }
+
+const stock = computed(() => {
+  const n = Number(selectedProduct.value?.quantity ?? 0);
+  return Number.isFinite(n) && n > 0 ? n : 0;  // chuẩn hóa
+});
+
+const inStock = computed(() => stock.value > 0);
+
+const canBuy = computed(() => {
+  const q = Number(quantity.value ?? 0);
+  return inStock.value && Number.isFinite(q) && q >= 1 && q <= stock.value;
+});
 
 onMounted(() => {
   fetchProductDetail()
@@ -281,7 +345,7 @@ onMounted(() => {
         <p class="text-muted mb-2">Thương hiệu: <strong>{{ selectedProduct.brandName }}</strong> | Mã phiên bản: {{
           selectedProduct.productDetailId }}</p>
         <p class="text-danger fs-4 fw-bold mb-4">{{ selectedProduct.price }}₫</p>
-
+          
         <div class="mb-3">
           Màu sắc:
           <button v-for="color in uniqueColors" :key="color" @click="selectColor(color)" class="color-btn"
@@ -289,7 +353,18 @@ onMounted(() => {
             {{ color }}
           </button>
         </div>
-
+        <div class="mb-3">
+          Cổ:
+          <button
+            v-for="c in collarsForCurrentColor"
+            :key="c"
+            @click="selectCollar(c)"
+            class="color-btn"
+            :class="{ active: (selectedCollar === c) }"
+          >
+            {{ c }}
+          </button>
+        </div>
         <div class="mb-3">
           Kích thước:
           <button v-for="size in sizeList" :key="size" class="size-btn" :class="[
@@ -307,26 +382,26 @@ onMounted(() => {
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
           <input type="number" v-model.number="quantity" min="1" :max="selectedProduct.quantity" class="form-control"
-            @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" />
-        <small class="text-muted mt-1 d-block">
-          {{ selectedProduct.quantity === null || selectedProduct.quantity === 0 ? '0 sản phẩm có sẵn' : selectedProduct.quantity + ' sản phẩm có sẵn' }}
-        </small>
+            @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" :disabled="!inStock"/>
+          <small class="text-muted mt-1 d-block">
+            {{ !inStock ? '0 sản phẩm có sẵn' : stock + ' sản phẩm có sẵn' }}
+          </small>
         </div>
 
         <!-- Thông báo khi không thể mua -->
-        <div v-if="selectedProduct.quantity === null || selectedProduct.quantity === 0" class="text-danger fw-semibold mt-1">
+        <div v-if="!inStock" class="text-danger fw-semibold mt-1">
           Sản phẩm hiện đã hết hàng
         </div>
 
         <!-- Luôn hiển thị 2 nút nhưng disable nếu không thể mua -->
         <div class="d-flex gap-3 mb-4">
           <button class="btn btn-primary product-button fw-semibold" @click="addToCart()"
-            :disabled="quantity > selectedProduct.quantity || selectedProduct.quantity === 0">
+            :disabled="!canBuy">
             Thêm vào giỏ
           </button>
 
           <button class="btn btn-danger product-button fw-semibold" @click="buyNow()"
-            :disabled="quantity > selectedProduct.quantity || selectedProduct.quantity === 0">
+            :disabled="!canBuy">
             Mua ngay
           </button>
         </div>

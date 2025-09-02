@@ -5,7 +5,7 @@ import axios from "axios";
 
 const originalInfo = ref(null);
 let employeeId = null;
-
+let accountId = null;
 const userInfo = reactive({
     fullName: "",
     gender: "",
@@ -20,7 +20,9 @@ if (userJson) {
     try {
         const user = JSON.parse(userJson);
         employeeId = user.employeeId;
+        accountId = user.id;
         console.log("✅ Employee ID:", employeeId);
+        console.log("✅ Account ID:", accountId);
 
     } catch (error) {
         console.error("❌ Lỗi khi parse userJson:", error);
@@ -111,7 +113,7 @@ const updateUserInfo = async () => {
         // Cập nhật lại bản gốc để lần sau so sánh
         originalInfo.value = { ...normalizeForCompare(userInfo) };
 
-         window.location.reload();
+        window.location.reload();
         await fetchUserInfo(); // (tuỳ chọn) load lại từ server
     } catch (error) {
         console.error("Lỗi cập nhật thông tin:", error?.response?.data || error);
@@ -119,6 +121,79 @@ const updateUserInfo = async () => {
     }
 };
 
+// --- state hiển thị message bằng <span> ---
+const formMsg = ref({ type: "", text: "" }); // type: success|error|warning
+const setMsg = (type, text) => (formMsg.value = { type, text });
+
+// --- validate ---
+const passwordMismatch = computed(
+    () =>
+        passwordData.newPassword !== "" &&
+        passwordData.confirmPassword !== "" &&
+        passwordData.newPassword !== passwordData.confirmPassword
+);
+const tooShort = computed(
+    () => passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6
+);
+const canSubmit = computed(
+    () =>
+        !!passwordData.currentPassword &&
+        !!passwordData.newPassword &&
+        !!passwordData.confirmPassword &&
+        !passwordMismatch.value &&
+        !tooShort.value
+);
+
+const submitting = ref(false);
+
+const passwordData = reactive({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+});
+
+
+const changePassword = async () => {
+    // chỉ HIỂN THỊ THÔNG BÁO bằng span, không bật alert/swal
+    if (passwordMismatch.value) {
+        setMsg("warning", "Xác nhận mật khẩu không khớp. Vui lòng nhập lại.");
+        return;
+    }
+    if (tooShort.value) {
+        setMsg("warning", "Mật khẩu mới tối thiểu 6 ký tự.");
+        return;
+    }
+    if (!accountId) {
+        setMsg("error", "Thiếu thông tin tài khoản. Vui lòng đăng nhập lại.");
+        return;
+    }
+
+    try {
+        submitting.value = true;
+        const payload = {
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+            confirmPassword: passwordData.confirmPassword,
+        };
+        await axios.put(
+            `http://localhost:8080/account/changePassword/${accountId}`,
+            payload
+        );
+        setMsg("success", "Đổi mật khẩu thành công!");
+        // reset form
+        passwordData.currentPassword = "";
+        passwordData.newPassword = "";
+        passwordData.confirmPassword = "";
+    } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data ||
+            "Cập nhật thất bại. Vui lòng thử lại.";
+        setMsg("error", String(msg));
+    } finally {
+        submitting.value = false;
+    }
+};
 onMounted(() => {
     fetchUserInfo();
 });
@@ -159,6 +234,41 @@ onMounted(() => {
                 </div>
             </div>
             <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>
+        </form>
+    </div>
+
+    <div class="card p-4 shadow-sm">
+        <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
+        <!-- dòng thông báo tổng -->
+
+        <form @submit.prevent="changePassword">
+            <div class="mb-3">
+                <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
+                    v-model="passwordData.currentPassword" required />
+            </div>
+            <div class="mb-3">
+                <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
+                    v-model="passwordData.newPassword" required />
+                <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
+            </div>
+            <div class="mb-3">
+                <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
+                    v-model="passwordData.confirmPassword" required />
+                <!-- span không khớp -->
+                <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
+            </div>
+            <button type="submit" class="btn btn-dark" :disabled="!canSubmit || submitting">
+                {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
+            </button>
+            <div class="mb-2" v-if="formMsg.text">
+                <span :class="{
+                    'text-success': formMsg.type === 'success',
+                    'text-danger': formMsg.type === 'error',
+                    'text-warning': formMsg.type === 'warning'
+                }" class="fw-semibold">
+                    {{ formMsg.text }}
+                </span>
+            </div>
         </form>
     </div>
 </template>

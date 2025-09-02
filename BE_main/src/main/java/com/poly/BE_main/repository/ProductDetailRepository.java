@@ -44,6 +44,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                 ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
             LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID
             WHERE P.ID = :productId
+
             GROUP BY
                 P.ID, PD.ID, P.PRODUCT_NAME,
                 B.NAME, C.NAME, P.DESCRIPTION, S.EU, CL.NAME, PD.PRICE, ITR.QUANTITY, PD.IS_ACTIVE;
@@ -51,11 +52,10 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
 
     @Query(value = """
-            SELECT
-                PRODUCT_ID   AS ProductId
-            FROM PRODUCT_DETAIL
+            SELECT ID AS ProductId
+            FROM PRODUCT
             WHERE ID = :id
-                        """, nativeQuery = true)
+            """, nativeQuery = true)
     Integer findProductId(@Param("id") Integer id);
 
     @Query(value = """
