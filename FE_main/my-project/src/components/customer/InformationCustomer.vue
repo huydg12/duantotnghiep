@@ -1,7 +1,10 @@
 <script setup>
-import { ref, reactive, onMounted, computed, } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import axios from "axios";
+import { RouterLink, useRouter } from "vue-router";
 import Swal from 'sweetalert2'
+import { useUserStore } from "@/stores/userStore";
+const router = useRouter();
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
 let customerId = null;
@@ -17,7 +20,7 @@ const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
 const newAddressForm = ref(null);
-
+const userStore = useUserStore();
 const recipientName = ref('');
 const phoneNumber = ref('');
 const detailAddress = ref('');
@@ -596,28 +599,83 @@ const passwordData = reactive({
   newPassword: "",
   confirmPassword: "",
 });
+// --- state hiển thị message bằng <span> ---
+const formMsg = ref({ type: "", text: "" }); // type: success|error|warning
+const setMsg = (type, text) => (formMsg.value = { type, text });
+// --- validate ---
+const passwordMismatch = computed(
+    () =>
+        passwordData.newPassword !== "" &&
+        passwordData.confirmPassword !== "" &&
+        passwordData.newPassword !== passwordData.confirmPassword
+);
+const tooShort = computed(
+    () => passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6
+);
+const canSubmit = computed(
+    () =>
+        !!passwordData.currentPassword &&
+        !!passwordData.newPassword &&
+        !!passwordData.confirmPassword &&
+        !passwordMismatch.value &&
+        !tooShort.value
+);
 
-
+const submitting = ref(false);
 const changePassword = async () => {
-  try {
-    const payload = {
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword,
-      confirmPassword: passwordData.confirmPassword,
+    // chỉ HIỂN THỊ THÔNG BÁO bằng span, không bật alert/swal
+    if (passwordMismatch.value) {
+        setMsg("warning", "Xác nhận mật khẩu không khớp. Vui lòng nhập lại.");
+        return;
     }
-    await axios.put(`http://localhost:8080/account/changePassword/${accountId}`, payload)
-    alert("Đã cập nhật thông tin!");
-  } catch (error) {
-    console.error("Lỗi khi cập nhật thông tin khách hàng:", error);
-    alert("Cập nhật thất bại!");
-  }
-}
+    if (tooShort.value) {
+        setMsg("warning", "Mật khẩu mới tối thiểu 6 ký tự.");
+        return;
+    }
+    if (!accountId) {
+        setMsg("error", "Thiếu thông tin tài khoản. Vui lòng đăng nhập lại.");
+        return;
+    }
 
-function logout() {
-  if (confirm("Bạn có chắc muốn đăng xuất?")) {
-    alert("Đã đăng xuất");
-  }
-}
+    try {
+        submitting.value = true;
+        const payload = {
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+            confirmPassword: passwordData.confirmPassword,
+        };
+        await axios.put(
+            `http://localhost:8080/account/changePassword/${accountId}`,
+            payload
+        );
+        setMsg("success", "Đổi mật khẩu thành công!");
+        // reset form
+        passwordData.currentPassword = "";
+        passwordData.newPassword = "";
+        passwordData.confirmPassword = "";
+         handleLogout();
+    } catch (error) {
+        const msg =
+            error?.response?.data?.message ||
+            error?.response?.data ||
+            "Cập nhật thất bại. Vui lòng thử lại.";
+        setMsg("error", String(msg));
+    } finally {
+        submitting.value = false;
+    }
+};
+
+const handleLogout = () => {
+  // Xóa localStorage và store
+  userStore.logout();
+  userInfo.value = null;
+
+  // Điều hướng bằng replace để không quay lại được
+  router.replace("/auth/login").then(() => {
+    // Reload để clear cache nội dung đã xem
+    window.location.reload();
+  });
+};
 
 onMounted(() => {
   fetchUserInfo();
@@ -651,7 +709,7 @@ onMounted(() => {
                 @click.prevent="showTab('password')">Đổi mật khẩu</a>
             </li>
             <li class="nav-item mb-1">
-              <a href="#" class="nav-link text-danger" @click.prevent="logout()">Đăng xuất</a>
+              <a href="#" class="nav-link text-danger" @click.prevent="handleLogout()">Đăng xuất</a>
             </li>
           </ul>
         </div>
@@ -905,21 +963,37 @@ onMounted(() => {
         <!-- Đổi mật khẩu -->
         <div v-show="activeTab === 'password'" class="card p-4 shadow-sm">
           <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
-          <form @submit.prevent="changePassword">
+        <!-- dòng thông báo tổng -->
+
+        <form @submit.prevent="changePassword">
             <div class="mb-3">
-              <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
-                v-model="passwordData.currentPassword" required />
+                <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
+                    v-model="passwordData.currentPassword" required />
             </div>
             <div class="mb-3">
-              <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
-                v-model="passwordData.newPassword" required />
+                <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
+                    v-model="passwordData.newPassword" required />
+                <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
             </div>
             <div class="mb-3">
-              <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
-                v-model="passwordData.confirmPassword" required />
+                <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
+                    v-model="passwordData.confirmPassword" required />
+                <!-- span không khớp -->
+                <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
             </div>
-            <button type="submit" class="btn btn-dark">Đặt lại mật khẩu</button>
-          </form>
+            <button type="submit" class="btn btn-dark" :disabled="!canSubmit || submitting">
+                {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
+            </button>
+            <div class="mb-2" v-if="formMsg.text">
+                <span :class="{
+                    'text-success': formMsg.type === 'success',
+                    'text-danger': formMsg.type === 'error',
+                    'text-warning': formMsg.type === 'warning'
+                }" class="fw-semibold">
+                    {{ formMsg.text }}
+                </span>
+            </div>
+        </form>
         </div>
         
       </div>

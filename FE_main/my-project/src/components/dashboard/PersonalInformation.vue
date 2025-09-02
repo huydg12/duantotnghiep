@@ -2,7 +2,9 @@
 import { computed, ref, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
-
+import { useUserStore } from "@/stores/userStore";
+const userStore = useUserStore();
+const router = useRouter();
 const originalInfo = ref(null);
 let employeeId = null;
 let accountId = null;
@@ -28,7 +30,17 @@ if (userJson) {
         console.error("❌ Lỗi khi parse userJson:", error);
     }
 }
+const handleLogout = () => {
+  // Xóa localStorage và store
+  userStore.logout();
+  userInfo.value = null;
 
+  // Điều hướng bằng replace để không quay lại được
+  router.replace("/auth/login").then(() => {
+    // Reload để clear cache nội dung đã xem
+    window.location.reload();
+  });
+};
 // Hàm fetch dữ liệu từ API
 const fetchUserInfo = async () => {
     try {
@@ -184,6 +196,7 @@ const changePassword = async () => {
         passwordData.currentPassword = "";
         passwordData.newPassword = "";
         passwordData.confirmPassword = "";
+         handleLogout();
     } catch (error) {
         const msg =
             error?.response?.data?.message ||

@@ -1,7 +1,7 @@
 <script setup>
 import Logo from "/images/logo.png";
-import { RouterLink, RouterView, useRouter } from "vue-router";
-import { ref, computed, watch } from "vue";
+import { RouterLink, useRouter } from "vue-router";
+import { ref, watch } from "vue";
 import { useUserStore } from "@/stores/userStore";
 import { onMounted } from "vue";
 import axios from "axios";
