@@ -152,7 +152,6 @@ const isActiveRow = (row) => {
     return true;
 };
 
-
 // API
 const fetchBrands = async () => { const { data } = await API.get('/brand/show'); brands.value = (data || []).filter(isActiveRow); };
 const fetchCategories = async () => { const { data } = await API.get('/category/show'); categories.value = (data || []).filter(isActiveRow); };
@@ -405,7 +404,7 @@ async function saveProductDetails() {
                         collar: { id: t.collar },
                         price: detailForm.price,
                         description: detailForm.description,
-                        status: 1
+                        active: true
                     });
                 }
             }
