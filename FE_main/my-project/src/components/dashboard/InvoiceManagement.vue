@@ -256,9 +256,9 @@ const updateInventory = async (bill, newStatus) => {
         continue;
       }
 
-      // Gửi yêu cầu API để cập nhật số lượng trong kho (sử dụng phương thức UDQuantity)
+      // Gửi yêu cầu API để cập nhật số lượng trong kho (sử dụng phương thức updateQuantityTru)
       await axios.put(
-        `http://localhost:8080/inventory/updateQuantity/${productDetailId}`, {
+        `http://localhost:8080/inventory/updateQuantityTru/${productDetailId}`, {
         quantity: quantityToUpdate // Trả lại số lượng vào kho
       });
       await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });

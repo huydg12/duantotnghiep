@@ -69,12 +69,18 @@ function openCreate() {
 async function openEdit(receipt) {
   isEdit.value = receipt.status !== 2;
   isViewOnly.value = receipt.status === 2;
-
   Object.assign(form, JSON.parse(JSON.stringify(receipt)));
 
   try {
     const res = await axios.get(`http://localhost:8080/importReceiptDetail/showById/${receipt.id}`);
-    form.details = res.data;
+    // Chuẩn hoá field để v-select & tính tiền hoạt động ổn
+    form.details = (res.data || []).map(x => ({
+      id: x.id,
+      importReceiptId: x.importReceiptId ?? x.import_receipt_id ?? receipt.id,
+      productDetailId: x.productDetailId ?? x.product_detail_id ?? x.productDetail?.id ?? null,
+      quantity: Number(x.quantity) || 0,
+      unitPrice: Number(x.unitPrice) || 0,
+    }));
   } catch (error) {
     console.error("Lỗi lấy chi tiết phiếu nhập:", error);
     form.details = [];
@@ -87,46 +93,19 @@ async function openEdit(receipt) {
 function addDetail() {
   if (!Array.isArray(form.details)) form.details = [];
 
-  // ✅ Nếu đã có dòng, kiểm tra dòng cuối trước khi thêm dòng mới
   const n = form.details.length;
   if (n > 0) {
-    const last = form.details[n - 1];
-
-    // validateRow dùng isBlank/toNum bạn đã khai báo ở trên
-    const err = validateRow(last);
-    if (err) {
-      alert(`Dòng ${n}: ${err}`);
-      return;
-    }
+    const err = validateRow(form.details[n - 1]);
+    if (err) { alert(`Dòng ${n}: ${err}`); return; }
   }
 
-  // OK -> thêm dòng mới vào form
-  const newDetail = {
+  form.details.push({
     id: null,
-    importReceiptId: form.id || null,
+    importReceiptId: form.id ?? null,
     productDetailId: null,
-    quantity: null,
-    unitPrice: null,
-  };
-  form.details.push(newDetail);
-
-  // ✅ Chỉ gọi API tạo chi tiết khi đang sửa phiếu đã có ID
-  if (isEdit.value && form.id) {
-    axios.post("http://localhost:8080/importReceiptDetail/create", {
-      importReceiptId: form.id,
-      productDetailId: newDetail.productDetailId, // hiện null, sẽ update sau khi chọn
-      quantity: newDetail.quantity,
-      unitPrice: newDetail.unitPrice,
-      totalPrice: newDetail.quantity * newDetail.unitPrice,
-    })
-    .then((res) => {
-      newDetail.id = res.data.id; // gán id để lần sau update
-      console.log("Đã tạo chi tiết:", res.data);
-    })
-    .catch((err) => {
-      console.error("Lỗi khi tạo chi tiết:", err);
-    });
-  }
+    quantity: 1,
+    unitPrice: 0,
+  });
 }
 
 function removeDetail(index) {
@@ -186,91 +165,76 @@ const isBlank = (v) =>
 // ✅ Ghi chú (note) được phép để trống
 async function saveReceipt() {
   // --- VALIDATION CƠ BẢN ---
-  if (!form) {
-    alert("Form rỗng.");
-    return;
-  }
-  // note: được phép để trống -> KHÔNG check trống
-
   if (!Array.isArray(form.details) || form.details.length === 0) {
     alert("Vui lòng thêm ít nhất 1 dòng chi tiết.");
     return;
   }
 
-  // Validate từng chi tiết + tính tổng
-  let computedTotal = 0;
-for (let i = 0; i < form.details.length; i++) {
-  const d = form.details[i];
-  if (isBlank(d.productDetailId)) {
-    alert(`Dòng #${i + 1}: Chưa chọn sản phẩm.`);
-    return;
-  }
-  const q = toNum(d.quantity);
-  const up = toNum(d.unitPrice);
+  // Validate từng dòng & tính tổng
+  let total = 0;
+  for (let i = 0; i < form.details.length; i++) {
+    const d = form.details[i];
 
-  // YÊU CẦU nhập số lượng & giá: số lượng > 0; giá > 0 (nếu muốn cho phép 0 thì đổi thành >= 0)
-  if (!Number.isFinite(q) || q <= 0) {
-    alert(`Dòng #${i + 1}: Số lượng phải > 0.`);
-    return;
+    // tái dùng validateRow nếu có
+    const err = validateRow(d);
+    if (err) {
+      alert(`Dòng #${i + 1}: ${err}`);
+      return;
+    }
+
+    const q = Number(d.quantity) || 0;
+    const up = Number(d.unitPrice) || 0;
+    total += q * up;
   }
-  if (!Number.isFinite(up) || up <= 0) {
-    alert(`Dòng #${i + 1}: Giá nhập phải > 0.`);
-    return;
-  }
-  computedTotal += q * up;
-}
-form.totalAmount = computedTotal;
+  form.totalAmount = total;
 
   try {
     let receiptRes;
 
     if (isEdit.value) {
-      // 1) Cập nhật Receipt
+      // Cập nhật phiếu
       receiptRes = await axios.put(
         `http://localhost:8080/importReceipt/update/${form.id}`,
         {
           employeeId: form.employeeId,
           importReceiptCode: String(form.importReceiptCode).trim(),
           importDate: form.importDate,
-          note: form.note ?? "", // ✅ note có thể để trống
+          note: form.note ?? "",
           totalAmount: form.totalAmount,
         }
       );
     } else {
-      // 1) Tạo mới Receipt
+      // Tạo phiếu mới
       receiptRes = await axios.post(
         `http://localhost:8080/importReceipt/create`,
         {
           employeeId: form.employeeId,
           importReceiptCode: String(form.importReceiptCode).trim(),
           importDate: form.importDate,
-          note: form.note ?? "", // ✅ note có thể để trống
+          note: form.note ?? "",
           totalAmount: form.totalAmount,
         }
       );
-
-      // 2) Lấy ID mới tạo
       form.id = receiptRes?.data?.id;
     }
 
-    // 3) Cập nhật các chi tiết có sẵn id
-    for (const detail of form.details) {
-      if (detail.id) {
-        const q = Number(detail.quantity);
-        const up = Number(detail.unitPrice);
-        await axios.put(
-          `http://localhost:8080/importReceiptDetail/update/${detail.id}`,
-          {
-            importReceiptId: form.id,
-            productDetailId: detail.productDetailId,
-            quantity: q,
-            unitPrice: up,
-            totalPrice: q * up, // ✅ tổng từng dòng, không phải tổng phiếu
-          }
-        );
+    // Upsert tất cả dòng chi tiết
+    const upserts = form.details.map(async (d) => {
+      const payload = {
+        importReceiptId: form.id,
+        productDetailId: d.productDetailId,
+        quantity: Number(d.quantity) || 0,
+        unitPrice: Number(d.unitPrice) || 0,
+        totalPrice: (Number(d.quantity) || 0) * (Number(d.unitPrice) || 0),
+      };
+      if (d.id) {
+        await axios.put(`http://localhost:8080/importReceiptDetail/update/${d.id}`, payload);
+      } else {
+        const res = await axios.post(`http://localhost:8080/importReceiptDetail/create`, payload);
+        d.id = res?.data?.id; // lưu lại id mới
       }
-      // TODO (nếu cần): tạo mới chi tiết chưa có id (POST /importReceiptDetail/create)
-    }
+    });
+    await Promise.all(upserts);
 
     await fetchReceipts();
     closeModal();
@@ -320,7 +284,7 @@ async function complete(receipt) {
 
       if (checkRes.data.exists) {
         // 3a. Nếu có → cập nhật số lượng
-        await axios.put(`http://localhost:8080/inventory/updateQuantity/${detail.productDetailId}`, {
+        await axios.put(`http://localhost:8080/inventory/updateQuantityCong/${detail.productDetailId}`, {
           quantity: detail.quantity
         });
       } else {

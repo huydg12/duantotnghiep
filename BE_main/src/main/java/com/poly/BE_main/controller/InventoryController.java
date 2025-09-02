@@ -44,11 +44,19 @@ public class InventoryController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/updateQuantity/{productDetailId}")
-    public ResponseEntity<?> updateQuantity(@PathVariable("productDetailId") Integer productDetailId,
+    @PutMapping("/updateQuantityTru/{productDetailId}")
+    public ResponseEntity<?> updateQuantityTru(@PathVariable("productDetailId") Integer productDetailId,
             @RequestBody Map<String, Integer> body) {
         int quantity = body.get("quantity");
-        inventoryService.updateQuantity(productDetailId, quantity);
+        inventoryService.updateQuantityTru(productDetailId, quantity);
+        return ResponseEntity.ok().build();
+    }
+
+        @PutMapping("/updateQuantityCong/{productDetailId}")
+    public ResponseEntity<?> updateQuantityCong(@PathVariable("productDetailId") Integer productDetailId,
+            @RequestBody Map<String, Integer> body) {
+        int quantity = body.get("quantity");
+        inventoryService.updateQuantityCong(productDetailId, quantity);
         return ResponseEntity.ok().build();
     }
 

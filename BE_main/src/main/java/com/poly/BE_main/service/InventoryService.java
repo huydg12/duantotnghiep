@@ -48,7 +48,22 @@ public class InventoryService {
     }
 
     @Transactional
-    public boolean updateQuantity(int productDetailId, int addedQuantity) {
+    public boolean updateQuantityCong(int productDetailId, int addedQuantity) {
+        Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
+
+        if (optionalInventory.isPresent()) {
+            Inventory inventory = optionalInventory.get();
+            inventory.setQuantity(inventory.getQuantity() + addedQuantity);
+            inventory.setModifiedDate(LocalDateTime.now());
+            inventoryRepository.save(inventory);
+            return true;
+        }
+
+        return false; // Không tồn tại productDetailId
+    }
+
+        @Transactional
+    public boolean updateQuantityTru(int productDetailId, int addedQuantity) {
         Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 
         if (optionalInventory.isPresent()) {
