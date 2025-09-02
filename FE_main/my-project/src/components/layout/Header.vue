@@ -177,38 +177,15 @@ const goToDetail = (id) => {
                 <i class="bi bi-heart-fill text-white"></i></a></router-link>
             <span class="cart-count">{{ store.favoriteItems.length }}</span>
           </div>
-
-          <!-- Khung giỏ hàng -->
-          <div class="position-relative cart-dropdown">
             <!-- Icon giỏ hàng -->
             <div class="cart-icon">
-              <router-link to="/cart" title="Đăng nhập">
+              <router-link to="/cart" title="Giỏ hàng">
                 <i class="bi bi-bag-fill text-white" title="Giỏ hàng"></i>
               </router-link>
               <span class="cart-count">{{ store.cartItems.length }}</span>
             </div>
 
-            <!-- Popup hiện khi hover -->
-            <div class="cart-popup shadow bg-white rounded">
-              <div v-if="store.cartItems.length > 0">
-                <div v-for="item in store.cartItems.slice(0, 5)" :key="item.cartDetailId"
-                  class="d-flex align-items-center mb-2 px-2 hover-highlight"
-                  @click="goToProductDetail(item.productId)">
-                  <img :src="item.images" alt="..." class="me-2"
-                    style="width: 50px; height: 50px; object-fit: contain;" />
-                  <div class="flex-grow-1">
-                    <div class="fw-medium text-truncate" style="max-width: 220px;">{{ item.productName }}</div>
-                    <small class="text-danger">{{ formatCurrency(item.price) }} x {{ item.quantity }}</small>
-                  </div>
-                </div>
-                <hr class="my-2" />
-                <div class="d-flex justify-content-between align-items-center px-2 pb-2">
-                  <span class="text-muted small">{{ store.cartItems.length }} Sản phẩm trong Giỏ</span>
-                </div>
-              </div>
-              <div v-else class="text-center text-muted py-2">Chưa có sản phẩm</div>
-            </div>
-          </div>
+
           <!-- Nếu đã đăng nhập -->
           <div v-if="userStore.user" class="dropdown">
             <a class="text-white dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
