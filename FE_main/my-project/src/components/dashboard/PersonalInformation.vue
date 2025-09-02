@@ -213,7 +213,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="card p-4 shadow-sm">
+    <section class="space-y-4">
+        <div class="card p-4 shadow-sm">
         <h3 class="h5 mb-4">THÔNG TIN TÀI KHOẢN</h3>
         <form @submit.prevent="updateUserInfo">
             <div class="row g-3">
@@ -284,6 +285,7 @@ onMounted(() => {
             </div>
         </form>
     </div>
+    </section>
 </template>
 
 <style scoped></style>
