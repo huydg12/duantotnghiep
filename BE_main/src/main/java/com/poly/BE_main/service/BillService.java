@@ -89,6 +89,13 @@ public class BillService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
     }
 
+    public Bill updateEmployee(int id, Bill bUpdate) {
+        return billRepository.findById(id).map(i -> {
+            i.setEmployeeId(bUpdate.getEmployeeId());
+            return billRepository.save(i);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy hoá đơn có id:" + id));
+    }
+
     @Transactional
     public Bill createBill(BillDTO dto) {
         if (dto.getBillDetails() == null || dto.getBillDetails().isEmpty()) {

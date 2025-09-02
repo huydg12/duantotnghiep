@@ -231,6 +231,20 @@ const updateBillStatus4 = async (bill, newStatus) => {
     alert("Cập nhật trạng thái thất bại");
   }
 };
+
+// Lấy thông tin khách hàng
+const userJson = localStorage.getItem("user");
+let employeeId = ref(null)
+if (userJson) {
+  try {
+    const user = JSON.parse(userJson);
+    employeeId = user?.employeeId;
+    console.log("✅ Customer ID:", employeeId);
+  } catch (error) {
+    console.error("❌ Lỗi khi parse userJson:", error);
+  }
+}
+
 const updateInventory = async (bill, newStatus) => {
   try {
     // Lấy các sản phẩm trong hóa đơn
@@ -245,6 +259,7 @@ const updateInventory = async (bill, newStatus) => {
     await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {
       status: bill.STATUS
     });
+
     // Duyệt qua từng sản phẩm trong hóa đơn để cập nhật lại kho
     for (const detail of billDetails) {
       const productDetailId = detail.productDetailId;
@@ -261,8 +276,14 @@ const updateInventory = async (bill, newStatus) => {
         `http://localhost:8080/inventory/updateQuantityTru/${productDetailId}`, {
         quantity: quantityToUpdate // Trả lại số lượng vào kho
       });
+
       await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });
-      // Cập nhật lạc quan trên UI
+
+      const updateEmployee = {
+        employeeId: employeeId,
+      };
+      await axios.put(`http://localhost:8080/bill/updateEmployee/${bill.ID}`, updateEmployee);
+
       bill.STATUS = newStatus;
       console.log(`✅ Đã cập nhật kho cho sản phẩm ID: ${productDetailId} với số lượng: ${quantityToUpdate}`);
       window.dispatchEvent(new CustomEvent('bill:changed'));
@@ -600,7 +621,7 @@ onMounted(() => {
               Huỷ
             </button>
 
-            <button class="btn btn-sm btn-outline-dark me-1" @click="printInvoice(bill)">
+            <button v-if="+bill.STATUS !== 5" class="btn btn-sm btn-outline-dark me-1" @click="printInvoice(bill)">
               In hoá đơn
             </button>
           </td>

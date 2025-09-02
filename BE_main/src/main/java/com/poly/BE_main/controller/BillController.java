@@ -62,6 +62,11 @@ public class BillController {
         int status = body.get("status");
         Bill updated = billService.updateStatus(id, status);
         return ResponseEntity.ok(updated);
+    }   
+
+    @PutMapping("/updateEmployee/{id}")
+    public Bill updateEmployee(@PathVariable int id, @RequestBody Bill i) {
+        return billService.updateEmployee(id, i);
     }
 
     @PostMapping("/create")
