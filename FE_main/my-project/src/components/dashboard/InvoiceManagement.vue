@@ -13,6 +13,18 @@ const modal = ref(null);
 
 const currentTab = ref("all");
 const searchQuery = ref("");
+
+const billTypeFilter = ref("all");
+const uniqueBillTypes = computed(() =>
+  Array.from(
+    new Set(
+      (bills.value || [])
+        .map(b => String(b?.BILL_TYPE ?? "").trim())
+        .filter(v => v.length > 0)
+    )
+  )
+);
+
 const tabs = [
   { label: "Tất cả", value: "all" },
   { label: "Chờ xác nhận", value: "Chờ xác nhận" },
@@ -52,18 +64,39 @@ const appliedTab = computed(() => {
   return currentTab.value;
 });
 
+// Hàm kiểm tra khớp ô tìm kiếm + loại HĐ (dùng chung cho disable tab)
+const matchesSearch = (bill, q, typeFilter) => {
+  const items = Array.isArray(bill?.items) ? bill.items : [];
+  const searchOk =
+    !q ||
+    String(bill?.CODE ?? "").toLowerCase().includes(q) ||
+    items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
+
+  const typeLc = (typeFilter || "all").toLowerCase();
+  const billTypeLc = String(bill?.BILL_TYPE ?? "").toLowerCase();
+  const matchType = typeLc === "all" || billTypeLc === typeLc;
+
+  return searchOk && matchType;
+};
+
 const filteredOrders = computed(() => {
   const q = (searchQuery.value || "").trim().toLowerCase();
   const statuses = TAB_TO_STATUS[appliedTab.value]; // null = all
+  const typeLc = (billTypeFilter.value || "all").toLowerCase();
 
   const arr = (bills.value || []).filter((bill) => {
     const matchTab = !statuses || statuses.includes(Number(bill?.STATUS));
+
     const items = Array.isArray(bill?.items) ? bill.items : [];
     const matchSearch =
       !q ||
       String(bill?.CODE ?? "").toLowerCase().includes(q) ||
       items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
-    return matchTab && matchSearch;
+
+    const billTypeLc = String(bill?.BILL_TYPE ?? "").toLowerCase();
+    const matchType = typeLc === "all" || billTypeLc === typeLc;
+
+    return matchTab && matchSearch && matchType;
   });
 
   // Mới -> cũ (theo giây)
@@ -77,17 +110,7 @@ const filteredOrders = computed(() => {
   return arr;
 });
 
-// Hàm kiểm tra khớp ô tìm kiếm (giữ nguyên cách thầy đang filter)
-const matchesSearch = (bill, q) => {
-  const items = Array.isArray(bill?.items) ? bill.items : [];
-  return (
-    !q ||
-    String(bill?.CODE ?? "").toLowerCase().includes(q) ||
-    items.some((i) => String(i?.name ?? "").toLowerCase().includes(q))
-  );
-};
-
-// Tính “tab nào có dữ liệu (sau khi áp dụng search)”
+// Tính “tab nào có dữ liệu (sau khi áp dụng search + loại)”
 const tabAvailability = computed(() => {
   const q = (searchQuery.value || "").trim().toLowerCase();
   const map = {};
@@ -95,13 +118,13 @@ const tabAvailability = computed(() => {
     const statuses = TAB_TO_STATUS[tab.value]; // null = all
     map[tab.value] = (bills.value || []).some((bill) => {
       const inTab = !statuses || statuses.includes(Number(bill?.STATUS));
-      return inTab && matchesSearch(bill, q);
+      return inTab && matchesSearch(bill, q, billTypeFilter.value);
     });
   }
   return map;
 });
 
-// ✅ Disable tab nếu KHÔNG có bill trong tab đó (theo search hiện tại)
+// ✅ Disable tab nếu KHÔNG có bill trong tab đó (theo search hiện tại + loại)
 const isTabDisabled = (value) => !tabAvailability.value[value];
 
 const handleTabClick = (value) => {
@@ -109,18 +132,19 @@ const handleTabClick = (value) => {
   currentTab.value = value;
   currentPage.value = 1;
 };
+
 watch(pendingCount, (cnt) => {
   const noSearch = (searchQuery.value || "").trim() === "";
   if (currentTab.value === "Chờ xác nhận" && cnt === 0 && noSearch) {
     currentTab.value = "all";
   }
 });
+
 // Phân trang + bảo toàn currentPage hợp lệ
 const currentPage = ref(1);
 const pageSize = 8;
 
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredOrders.value.length / pageSize)));
-
 
 const paginatedOrders = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
@@ -128,7 +152,10 @@ const paginatedOrders = computed(() => {
 });
 
 // Reset trang khi thay đổi filter/search
-watch([currentTab, searchQuery, filteredOrders], () => {
+watch([currentTab, searchQuery, billTypeFilter], () => {
+  currentPage.value = 1;
+});
+watch(filteredOrders, () => {
   if (currentPage.value > totalPages.value) {
     currentPage.value = 1;
   }
@@ -152,6 +179,7 @@ const mapBillData = (data) => {
     CODE: item.code,
     PTTT_ID: item.ptttId,
     EMPLOYEE_ID: item.employeeId,
+    BILL_TYPE: item.billType,
     CREATED_DATE: item.createdDate,
     RECIPIENT_NAME: item.recipientName,
     RECIPIENT_PHONE_NUMBER: item.recipientPhoneNumber,
@@ -174,7 +202,7 @@ const fetchBills = async () => {
   try {
     const response = await axios.get("http://localhost:8080/bill/show");
     bills.value = mapBillData(response.data);
-    console.log(bills.value)
+    console.log(bills.value);
     setDefaultTab(); // ✅
   } catch (error) {
     console.log("Lỗi lấy hoá đơn", error);
@@ -234,7 +262,7 @@ const updateBillStatus4 = async (bill, newStatus) => {
 
 // Lấy thông tin khách hàng
 const userJson = localStorage.getItem("user");
-let employeeId = ref(null)
+let employeeId = ref(null);
 if (userJson) {
   try {
     const user = JSON.parse(userJson);
@@ -328,7 +356,6 @@ async function fetchEmployeeNameForBill(bill) {
   }
 }
 
-
 const toVND = (n) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
     .format(Number(n || 0));
@@ -370,15 +397,13 @@ const printInvoice = async (bill) => {
   }
 };
 
+const isPositiveInt = (v) => Number.isInteger(Number(v)) && Number(v) > 0;
 
-const isPositiveInt = (v) => Number.isInteger(Number(v)) && Number(v) > 0
-
-// NEW: dùng cho ô số lượng @input
 const handleQuantityChange = (detail) => {
-  let n = parseInt(detail.QUANTITY)
-  if (!Number.isFinite(n) || n < 1) n = 1
-  detail.QUANTITY = n
-}
+  let n = parseInt(detail.QUANTITY);
+  if (!Number.isFinite(n) || n < 1) n = 1;
+  detail.QUANTITY = n;
+};
 const lastTriggerEl = ref(null);
 
 const openModal = async (bill, ev) => {
@@ -389,9 +414,9 @@ const openModal = async (bill, ev) => {
   // NEW: chụp snapshot ghi chú & số lượng ban đầu để so sánh
   selectedBill.value.oldNote = (selectedBill.value.NOTE ?? '').trim();
   billDetails.value = billDetails.value.map(d => {
-    const q = parseInt(d.QUANTITY) || 1
-    return { ...d, QUANTITY: q, oldQuantity: q } // oldQuantity dùng để so sánh khi lưu
-  })
+    const q = parseInt(d.QUANTITY) || 1;
+    return { ...d, QUANTITY: q, oldQuantity: q }; // oldQuantity dùng để so sánh khi lưu
+  });
 
   await nextTick();
   if (!modalInstance.value) {
@@ -557,8 +582,8 @@ const getStatusText = (status) => {
 const PTTT_LABELS = {
   1: 'Thanh toán khi nhận hàng',
   2: 'Thanh toán MoMo',
-  3: 'Thanh toán qua QR'
 };
+
 onMounted(() => {
   fetchBills();
 });
@@ -576,9 +601,19 @@ onMounted(() => {
         {{ tab.label }}
       </button>
     </div>
-    <!-- Ô tìm kiếm -->
-    <div class="mb-3">
-      <input v-model="searchQuery" type="text" class="form-control" placeholder="Tìm kiếm theo mã hóa đơn..." />
+
+    <!-- Tìm kiếm + Loại HĐ -->
+    <div class="row g-2 align-items-center mb-3">
+      <div class="col-md-8">
+        <input v-model="searchQuery" type="text" class="form-control"
+          placeholder="Tìm kiếm theo mã hóa đơn hoặc tên sản phẩm..." />
+      </div>
+      <div class="col-md-4">
+        <select v-model="billTypeFilter" class="form-select">
+          <option value="all">Tất cả loại HĐ</option>
+          <option v-for="t in uniqueBillTypes" :key="t" :value="t">{{ t }}</option>
+        </select>
+      </div>
     </div>
 
     <table class="table table-bordered table-hover">
@@ -586,6 +621,7 @@ onMounted(() => {
         <tr>
           <th>Mã HĐ</th>
           <th>Ngày tạo</th>
+          <th>Loại HĐ</th>
           <th>Người nhận</th>
           <th>Phương thức thanh toán</th>
           <th>Trạng thái</th>
@@ -598,6 +634,7 @@ onMounted(() => {
         <tr v-for="bill in paginatedOrders" :key="bill.ID">
           <td>{{ bill.CODE }}</td>
           <td>{{ bill.CREATED_DATE }}</td>
+          <td>{{ bill.BILL_TYPE }}</td>
           <td>{{ bill.RECIPIENT_NAME }}</td>
           <td>{{ PTTT_LABELS[bill.PTTT_ID] }}</td>
           <td>{{ getStatusText(bill.STATUS) }}</td>
@@ -628,6 +665,7 @@ onMounted(() => {
         </tr>
       </tbody>
     </table>
+
     <!-- Phân trang -->
     <div v-if="totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
@@ -643,6 +681,7 @@ onMounted(() => {
         ›
       </button>
     </div>
+
     <!-- Modal -->
     <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true"
       ref="modal">
@@ -692,7 +731,6 @@ onMounted(() => {
                   <th>SL</th>
                   <th>Giá</th>
                   <th>Tổng</th>
-
                 </tr>
               </thead>
               <tbody>
@@ -709,14 +747,12 @@ onMounted(() => {
                   </td>
                   <td>{{ formatCurrency(detail.PRICE) }}</td>
                   <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>
-
                 </tr>
                 <tr v-if="billDetails.length === 0">
                   <td colspan="7" class="text-center text-muted">Không có sản phẩm nào</td>
                 </tr>
               </tbody>
             </table>
-
 
             <!-- Tổng kết -->
             <h6 class="mt-4">Tổng kết</h6>

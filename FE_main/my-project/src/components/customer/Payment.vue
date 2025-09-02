@@ -217,9 +217,6 @@ const saveAddress = async () => {
 
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
-
-
-
     resetAddressForm();
     closeAddAddressOverlay();
     await fetchAddressList();

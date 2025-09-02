@@ -230,7 +230,6 @@ onMounted(() => {
                             v-model.number="form.roleId" required />
                         <label class="form-check-label" for="employee">Nhân viên</label>
                     </div>
-                    <small class="text-muted">roleId: {{ form.roleId }}</small>
                 </div>
             </template>
 

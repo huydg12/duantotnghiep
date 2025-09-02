@@ -246,7 +246,7 @@ onMounted(() => {
   <div class="container mt-5">
     <h2 class="mb-4 text-center">Quản lý Tồn Kho</h2>
     <button class="btn btn-primary mb-3" @click="openCreate">
-      + Thêm phiếu nhập kho
+      Nhập kho
     </button>
     <!-- Tìm kiếm -->
     <div class="mb-3">
