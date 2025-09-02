@@ -123,7 +123,7 @@ const paginatedDetails = computed(() => {
 })
 const changeDetailPage = (p) => { if (p >= 1 && p <= totalDetailPages.value) detailPage.value = p }
 watch(detailQuery, () => { detailPage.value = 1; hydrateCurrentPage(false) })
-
+const asArray = (v) => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
 // User helpers
 const user = ref(JSON.parse(localStorage.getItem("user") || "{}"))
 const safeUserName = () => user.value?.fullName || 'System'
@@ -251,25 +251,25 @@ function imgBaseName(img) {
 
 // CRUD Chi tiết
 function resetDetailForm() {
-    detailForm.id = null
-    detailForm.price = null
-    detailForm.description = ''
-    selectedSizes.value = []
-    selectedColors.value = []
-    selectedCollars.value = []
-    previewUrls.value.forEach(u => URL.revokeObjectURL(u))
-    previewUrls.value = []
-    selectedImages.value = []
-    mainImageIndex.value = null
+  detailForm.id = null;
+  detailForm.price = null;
+  detailForm.description = '';
+  selectedSizes.value = [];
+  selectedColors.value = null;   // radio -> giá trị đơn
+  selectedCollars.value = null;  // radio -> giá trị đơn
+  previewUrls.value.forEach(u => URL.revokeObjectURL(u));
+  previewUrls.value = [];
+  selectedImages.value = [];
+  mainImageIndex.value = null;
 }
 
 function editDetail(detail) {
-    selectedSizes.value = [detail.size?.id ?? getIdByName(sizes.value, detail.size)]
-    selectedColors.value = [detail.color?.id ?? getIdByName(colors.value, detail.color)]
-    selectedCollars.value = [detail.collar?.id ?? getIdByName(collars.value, detail.collar)]
-    detailForm.price = detail.price
-    detailForm.description = detail.description
-    detailForm.id = detailIdOf(detail)
+  selectedSizes.value   = [detail.size?.id   ?? getIdByName(sizes.value,   detail.size)];
+  selectedColors.value  =  (detail.color?.id ?? getIdByName(colors.value,  detail.color));  // <= giá trị đơn
+  selectedCollars.value =  (detail.collar?.id?? getIdByName(collars.value, detail.collar)); // <= giá trị đơn
+  detailForm.price = detail.price;
+  detailForm.description = detail.description;
+  detailForm.id = detailIdOf(detail);
 }
 
 async function deleteDetail(id) {
@@ -279,112 +279,130 @@ async function deleteDetail(id) {
 }
 
 async function saveProductDetails() {
-  if (loading.value) return
-  loading.value = true
+  if (loading.value) return;
+  loading.value = true;
   try {
-    if (!currentProduct.value?.id) return
-    const isEdit = !!detailForm.id
+    if (!currentProduct.value?.id) return;
+
+    const isEdit = !!detailForm.id;
+
+    // 🔧 Chuẩn hoá thành mảng để dùng chung cho cả radio (1 giá trị) và checkbox (nhiều)
+    const sizesArr   = asArray(selectedSizes.value);
+    const colorsArr  = asArray(selectedColors.value);
+    const collarsArr = asArray(selectedCollars.value);
+
     const missingBase =
       !detailForm.price || !detailForm.description ||
-      selectedSizes.value.length === 0 || selectedColors.value.length === 0 || selectedCollars.value.length === 0
-    if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
-    if (!isEdit && selectedImages.value.length === 0) { alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.'); return }
+      sizesArr.length === 0 || colorsArr.length === 0 || collarsArr.length === 0;
+    if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return; }
+
+    if (!isEdit && selectedImages.value.length === 0) {
+      alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.');
+      return;
+    }
 
     if (isEdit) {
       // ====== CHECK NO-CHANGE ======
-      const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {}
-      const origTriple = tripleFromRow(orig)
-      const sameSize   = Number(selectedSizes.value[0])   === Number(origTriple.sizeId)
-      const sameColor  = Number(selectedColors.value[0])  === Number(origTriple.colorId)
-      const sameCollar = Number(selectedCollars.value[0]) === Number(origTriple.collarId)
-      const samePrice  = Number(detailForm.price) === Number(orig.price)
-      const sameDesc   = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim()
+      const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {};
+      const origTriple = tripleFromRow(orig);
 
-      const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc)
-      const needUploadImages = selectedImages.value.length > 0
+      const sameSize   = Number(sizesArr[0])   === Number(origTriple.sizeId);
+      const sameColor  = Number(colorsArr[0])  === Number(origTriple.colorId);
+      const sameCollar = Number(collarsArr[0]) === Number(origTriple.collarId);
+      const samePrice  = Number(detailForm.price) === Number(orig.price);
+      const sameDesc   = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim();
+
+      const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc);
+      const needUploadImages = selectedImages.value.length > 0;
 
       if (!needUpdateDetail && !needUploadImages) {
-        alert('Không có thay đổi để cập nhật.')
-        return
+        alert('Không có thay đổi để cập nhật.');
+        return;
       }
 
-      // Nếu đổi bộ biến thể (size/màu/cổ) thì mới cần check trùng
+      // Nếu đổi bộ biến thể thì check trùng
       if (!(sameSize && sameColor && sameCollar)) {
-        const targetKey = tripleKey(selectedSizes.value[0], selectedColors.value[0], selectedCollars.value[0])
+        const targetKey = tripleKey(sizesArr[0], colorsArr[0], collarsArr[0]);
         const duplicated = productDetailList.value.some(d => {
-          const id = detailIdOf(d); if (id === detailForm.id) return false
-          const { key } = tripleFromRow(d); return key === targetKey
-        })
-        if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
+          const id = detailIdOf(d); if (id === detailForm.id) return false;
+          const { key } = tripleFromRow(d); return key === targetKey;
+        });
+        if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return; }
       }
 
-      // Cập nhật detail nếu có thay đổi field
+      // Cập nhật detail nếu có thay đổi
       if (needUpdateDetail) {
         const updatedDetail = {
           product: { id: currentProduct.value.id },
-          size: { id: selectedSizes.value[0] },
-          color: { id: selectedColors.value[0] },
-          collar: { id: selectedCollars.value[0] },
+          size:   { id: sizesArr[0] },
+          color:  { id: colorsArr[0] },
+          collar: { id: collarsArr[0] },
           price: detailForm.price,
           description: detailForm.description,
           status: 1
-        }
-        await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
+        };
+        await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail);
       }
 
-      // Nếu có chọn ảnh thì upload
       if (needUploadImages) {
-        const filesCopy = [...selectedImages.value]
-        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-        await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
+        const filesCopy = [...selectedImages.value];
+        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1;
+        await uploadImages(detailForm.id, filesCopy, mainIdxCopy);
       }
 
-      alert('Cập nhật chi tiết thành công')
+      alert('Cập nhật chi tiết thành công');
     } else {
-      // (giữ nguyên nhánh thêm mới)
-      const wantKeys = new Set(), wantTriples = []
-      for (const size of selectedSizes.value) {
-        for (const color of selectedColors.value) {
-          for (const collar of selectedCollars.value) {
-            const k = tripleKey(size, color, collar)
-            if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
+      // ====== THÊM MỚI ======
+      const wantKeys = new Set(), wantTriples = [];
+      for (const size of sizesArr) {
+        for (const color of colorsArr) {
+          for (const collar of collarsArr) {
+            const k = tripleKey(size, color, collar);
+            if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }); }
           }
         }
       }
-      const duplicates = [], payloads = []
+
+      const duplicates = [], payloads = [];
       for (const t of wantTriples) {
-        if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
+        if (existingDetailKeySet.value.has(t.key)) duplicates.push(t);
         else {
           payloads.push({
             product: { id: currentProduct.value.id },
-            size: { id: t.size }, color: { id: t.color }, collar: { id: t.collar },
-            price: detailForm.price, description: detailForm.description, status: 1
-          })
+            size:   { id: t.size },
+            color:  { id: t.color },
+            collar: { id: t.collar },
+            price: detailForm.price,
+            description: detailForm.description,
+            status: 1
+          });
         }
       }
+
       if (payloads.length === 0) {
-        alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
-        return
+        alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.');
+        return;
       }
-      const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
-      const successIds = []; let failed = 0
-      addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
+
+      const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)));
+      const successIds = []; let failed = 0;
+      addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++; });
 
       if (selectedImages.value.length > 0 && successIds.length > 0) {
-        const filesCopy = [...selectedImages.value]
-        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
-        await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
+        const filesCopy = [...selectedImages.value];
+        const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1;
+        await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)));
       }
-      alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
+      alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`);
     }
 
-    resetDetailForm()
-    await loadProductDetails(currentProduct.value.id)
+    resetDetailForm();
+    await loadProductDetails(currentProduct.value.id);
   } catch (err) {
-    console.error('Lỗi khi lưu chi tiết:', err)
-    alert('Không thể lưu chi tiết!')
+    console.error('Lỗi khi lưu chi tiết:', err);
+    alert('Không thể lưu chi tiết!');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 

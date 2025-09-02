@@ -45,7 +45,7 @@ const discountAmount = computed(() => {
   if (!selectedPromotion.value) return 0;
 
   const promo = selectedPromotion.value;
-  const totalBeforeDiscount = subTotal.value + shippingFee.value;
+  const totalBeforeDiscount = subTotal.value;
 
   if (promo.type === 1) {
     // Giảm theo phần trăm
@@ -89,7 +89,7 @@ const applyPromotionCode = () => {
 
     return (
       p.promotionCode.toLowerCase() === code &&
-      p.status === 1 &&
+      p.active === true &&
       start <= now &&
       end >= now
     );
