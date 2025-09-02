@@ -37,7 +37,7 @@ public class SizeService {
         return sizeRepository.findById(id).map(s -> {
             if (s.isActive() == true) {
                 s.setActive(false);
-            }else{
+            } else {
                 s.setActive(true);
             }
             return sizeRepository.save(s);

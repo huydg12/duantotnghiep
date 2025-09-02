@@ -38,7 +38,7 @@ public class CategoryService {
         return categoryRepository.findById(id).map(s -> {
             if (s.isActive() == true) {
                 s.setActive(false);
-            }else{
+            } else {
                 s.setActive(true);
             }
             return categoryRepository.save(s);

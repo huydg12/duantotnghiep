@@ -181,13 +181,13 @@ onMounted(() => {
 
               <template v-else-if="viewMode === 'year'">
                 <input type="number" v-model="selectedYear" placeholder="YYYY" min="2000" max="2100"
-                       class="form-control" style="max-width: 160px" />
+                  class="form-control" style="max-width: 160px" />
               </template>
               <template v-else>
-                  <input type="date" v-model="startDate" class="form-control" style="max-width: 200px" />
-                  <span>→</span>
-                  <input type="date" v-model="endDate" class="form-control" style="max-width: 200px" />
-            </template>
+                <input type="date" v-model="startDate" class="form-control" style="max-width: 200px" />
+                <span>→</span>
+                <input type="date" v-model="endDate" class="form-control" style="max-width: 200px" />
+              </template>
 
               <button class="btn btn-success" @click="calculate">Tính</button>
             </div>
@@ -220,8 +220,8 @@ onMounted(() => {
     </div>
 
     <!-- BẢNG NGÀY -->
-     <h3 class="text-primary m-0">Dữ liệu 5 ngày gần nhất</h3>
-     <br>
+    <h3 class="text-primary m-0">Dữ liệu 5 ngày gần nhất</h3>
+    <br>
     <div v-if="loading" class="text-muted mb-2">Đang tải dữ liệu…</div>
 
     <table class="table table-bordered text-center align-middle table-hover">
@@ -234,21 +234,21 @@ onMounted(() => {
         </tr>
       </thead>
 
-    <tbody>
-      <tr v-for="(row, idx) in dailyRevenueLast5" :key="row.createDate + '-' + idx"
-          class="row-click" @click="pickDay(row)">
-        <td>{{ idx + 1 }}</td>
-        <td>{{ row.createDate }}</td>
-        <td class="fw-semibold">{{ row.billCount }}</td>
-        <td class="fw-semibold">{{ formatCurrency(row.totalStatistic) }}</td>
-      </tr>
-      <tr v-if="!loading && dailyRevenueLast5.length === 0">
-        <td colspan="4">Không có dữ liệu</td>
-      </tr>
-    </tbody>
+      <tbody>
+        <tr v-for="(row, idx) in dailyRevenueLast5" :key="row.createDate + '-' + idx" class="row-click"
+          @click="pickDay(row)">
+          <td>{{ idx + 1 }}</td>
+          <td>{{ row.createDate }}</td>
+          <td class="fw-semibold">{{ row.billCount }}</td>
+          <td class="fw-semibold">{{ formatCurrency(row.totalStatistic) }}</td>
+        </tr>
+        <tr v-if="!loading && dailyRevenueLast5.length === 0">
+          <td colspan="4">Không có dữ liệu</td>
+        </tr>
+      </tbody>
     </table>
 
-        <!-- BẢNG TOP 5 SẢN PHẨM BÁN CHẠY -->
+    <!-- BẢNG TOP 5 SẢN PHẨM BÁN CHẠY -->
     <h3 class="text-primary m-0 mt-5">🔥 Top 5 sản phẩm bán chạy nhất</h3>
     <br>
     <div v-if="loadingTop5" class="text-muted mb-2">Đang tải dữ liệu…</div>
@@ -273,11 +273,17 @@ onMounted(() => {
       </tbody>
     </table>
 
-   
+
   </div>
 </template>
 
 <style scoped>
-.table td, .table th { vertical-align: middle; }
-.row-click { cursor: pointer; }
+.table td,
+.table th {
+  vertical-align: middle;
+}
+
+.row-click {
+  cursor: pointer;
+}
 </style>

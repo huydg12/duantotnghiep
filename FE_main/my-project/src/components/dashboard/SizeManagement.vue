@@ -64,20 +64,20 @@ function editSize(size) {
 }
 
 async function changeStatus(id) {
-    if (!confirm('Bạn có chắc muốn chuyển trạng thái kích cỡ này?')) return;
+  if (!confirm('Bạn có chắc muốn chuyển trạng thái kích cỡ này?')) return;
 
-    const updateSize = {
-        id: id,
-    };
+  const updateSize = {
+    id: id,
+  };
 
-    try {
-        await axios.put(`http://localhost:8080/size/updateStatus/${id}`, updateSize)
-        alert('Đã chuyển trạng thái kích cỡ');
-        await fetchSize();
-    } catch (error) {
-        console.error('Lỗi chuyển trạng thái kích cỡ:', error.response ? error.response.data : error.message);
-        alert('Không thể chuyển trạng thái kích cỡ');
-    }
+  try {
+    await axios.put(`http://localhost:8080/size/updateStatus/${id}`, updateSize)
+    alert('Đã chuyển trạng thái kích cỡ');
+    await fetchSize();
+  } catch (error) {
+    console.error('Lỗi chuyển trạng thái kích cỡ:', error.response ? error.response.data : error.message);
+    alert('Không thể chuyển trạng thái kích cỡ');
+  }
 }
 
 onMounted(() => {
@@ -166,23 +166,9 @@ onMounted(() => {
   min-height: 300px;
 }
 
-.custom-pagination .page-link {
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  color: #007bff;
-  border-radius: 6px;
-  margin: 0 10px;
-}
-
-.custom-pagination .page-link:hover {
-  background-color: #e2e6ea;
-  color: #0056b3;
-}
-
-.custom-pagination .page-item.active .page-link {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-  font-weight: bold;
+.pagination .active .page-link {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
 }
 </style>

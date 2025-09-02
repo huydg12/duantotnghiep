@@ -3,11 +3,12 @@ import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import Swal from 'sweetalert2'
 
 // Store và router
 const store = useCartFavoriteStore();
 const router = useRouter();
-import Swal from 'sweetalert2'
+
 // Reactive
 const products = ref([]);
 const allProducts = ref([]);
@@ -15,7 +16,7 @@ const showToast = ref(false);
 const showRemoveToast = ref(false);
 const favoriteProductIds = ref(new Set());
 const favoriteMap = ref(new Map());
-const recentlyRemovedId = ref(null); // 👈 để hiệu ứng icon
+const recentlyRemovedId = ref(null);
 let customerId = null;
 
 // Lấy thông tin khách hàng
@@ -26,7 +27,7 @@ if (userJson) {
     customerId = user.customerId;
     console.log("✅ Customer ID:", customerId);
 
-    // ✅ Kiểm tra role để chuyển trang nếu là ADMIN hoặc EMPLOYEE
+    // Kiểm tra role để chuyển trang nếu là ADMIN hoặc EMPLOYEE
     if (user.roleId === 1 || user.roleId === 3) {
       router.replace("/manage");
     }
@@ -35,12 +36,10 @@ if (userJson) {
   }
 }
 
-// Điều hướng trang chi tiết sản phẩm
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`);
 };
 
-// Lấy danh sách yêu thích từ backend
 const fetchFavorites = async () => {
   if (!customerId) return;
   try {
@@ -55,7 +54,7 @@ const fetchFavorites = async () => {
 // Xử lý thêm/xóa yêu thích
 const toggleFavorite = async (productId) => {
   if (!customerId) {
-        await Swal.fire({
+    await Swal.fire({
       icon: 'warning',
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',
@@ -89,6 +88,7 @@ const toggleFavorite = async (productId) => {
         customerId,
         productId
       });
+
       const newFavoriteId = res.data.favoriteId || res.data.id;
       favoriteMap.value.set(productId, newFavoriteId);
       favoriteProductIds.value.add(productId);
@@ -99,7 +99,6 @@ const toggleFavorite = async (productId) => {
       }, 3000);
     }
 
-    // Cập nhật lại store
     await store.fetchFavoriteItems(customerId);
 
   } catch (err) {
@@ -147,9 +146,6 @@ const productsByBrand = computed(() => {
     p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase()
   );
 });
-
-
-
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("vi-VN", {
@@ -210,7 +206,6 @@ onMounted(() => {
                 <p class="product-price mt-1">
                   {{ formatCurrency(product.price) }}
                 </p>
-                <!-- <button class="btn btn-buy mt-auto"@click="goToDetail(product.productId)">Xem chi tiết</button> -->
               </div>
             </div>
           </div>
@@ -222,46 +217,49 @@ onMounted(() => {
       </div>
     </section>
 
-<section id="tat-ca-san-pham" class="py-5">
-  <div class="container-xl">
-    <div class="text-center mb-5 section-title">
-      <h2>Sản Phẩm Theo Hãng</h2>
-      <span class="divider"></span>
-      <p class="mt-3 mx-auto">
-        Khám phá những đôi giày nổi bật từ các thương hiệu đình đám.
-      </p>
-    </div>
+    <section id="tat-ca-san-pham" class="py-5">
+      <div class="container-xl">
+        <div class="text-center mb-5 section-title">
+          <h2>Sản Phẩm Theo Hãng</h2>
+          <span class="divider"></span>
+          <p class="mt-3 mx-auto">
+            Khám phá những đôi giày nổi bật từ các thương hiệu đình đám.
+          </p>
+        </div>
 
-    <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
-      <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
-      <button class="btn" :class="{ active: selectedBrand === 'adidas' }" @click="selectBrand('adidas')">Adidas</button>
-      <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
-      <button class="btn" :class="{ active: selectedBrand === 'converse' }" @click="selectBrand('converse')">Converse</button>
-      <button class="btn" :class="{ active: selectedBrand === 'new balance' }" @click="selectBrand('new balance')">New Balance</button>
-    </div>
+        <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
+          <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
+          <button class="btn" :class="{ active: selectedBrand === 'adidas' }"
+            @click="selectBrand('adidas')">Adidas</button>
+          <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
+          <button class="btn" :class="{ active: selectedBrand === 'converse' }"
+            @click="selectBrand('converse')">Converse</button>
+          <button class="btn" :class="{ active: selectedBrand === 'new balance' }"
+            @click="selectBrand('new balance')">New Balance</button>
+        </div>
 
-    <div id="product-list-container">
-      <div class="row g-4">
-        <div class="col-6 col-md-3" v-for="product in displayedProducts" :key="product.productId">
-          <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
-            <!-- Icon yêu thích -->
-            <i class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition" :class="{
-              'fas text-danger scale-up': favoriteMap.has(product.productId),
-              'far text-secondary': !favoriteMap.has(product.productId)
-            }" @click.stop="toggleFavorite(product.productId)"></i>
-            <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
-            <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-              :alt="product.productName" />
-            <div class="card-body text-center">
-              <h6 class="card-title">{{ product.productName }}</h6>
-              <p class="product-price">{{ formatCurrency(product.price) }}</p>
+        <div id="product-list-container">
+          <div class="row g-4">
+            <div class="col-6 col-md-3" v-for="product in displayedProducts" :key="product.productId">
+              <div class="card h-100 product-card" @click="goToDetail(product.productId)" style="cursor: pointer;">
+                <!-- Icon yêu thích -->
+                <i class="fa-heart fa position-absolute top-0 end-0 m-2 favorite-icon transition" :class="{
+                  'fas text-danger scale-up': favoriteMap.has(product.productId),
+                  'far text-secondary': !favoriteMap.has(product.productId)
+                }" @click.stop="toggleFavorite(product.productId)"></i>
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+                <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
+                  :alt="product.productName" />
+                <div class="card-body text-center">
+                  <h6 class="card-title">{{ product.productName }}</h6>
+                  <p class="product-price">{{ formatCurrency(product.price) }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
   </main>
   <!-- Toast thông báo thêm vào giỏ thành công -->
   <div v-if="showToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
@@ -366,7 +364,6 @@ onMounted(() => {
   color: var(--color-light) !important;
 }
 
-/*  Filter Section */
 .filter-buttons .btn {
   background-color: #000;
   color: var(--color-light);

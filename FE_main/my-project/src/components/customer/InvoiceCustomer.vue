@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed,reactive, onMounted, watch } from "vue";
+import { ref, computed, reactive, onMounted, watch } from "vue";
 import axios from 'axios';
 import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
 import { Modal } from "bootstrap";
@@ -24,7 +24,7 @@ const isLoading = ref(false);
 const errorMsg = ref("");
 
 let customerId = ref(null);
-let cartId = ref(null); 
+let cartId = ref(null);
 const cancelReasons = [
   'Đặt nhầm sản phẩm',
   'Không muốn mua nữa',
@@ -46,13 +46,13 @@ const isOtherSelected = computed(() => selectedReasons.value.includes('Khác'))
 
 // Mở modal huỷ đơn
 const openCancelModal = (order) => {
-    // Log dữ liệu order và order.items để kiểm tra
+  // Log dữ liệu order và order.items để kiểm tra
   console.log("Order Data:", order);
   console.log("Order Items:", order.items);
   const resolvedBillId =
-    order?.billId ?? 
-    order?.id ?? 
-    order?.BILL_ID ?? 
+    order?.billId ??
+    order?.id ??
+    order?.BILL_ID ??
     order?.items?.[0]?.billId ?? null
 
   if (!Number.isFinite(Number(resolvedBillId))) {
@@ -119,12 +119,12 @@ const updateLocalBill = () => {
 const updateInventory = async () => {
   try {
     const order = orders.value.find(order => order.id === cancelBillId.value);
-  if (!order || !order.items || order.items.length === 0) {
-    console.error("❌ Không tìm thấy sản phẩm trong đơn hàng");
-    return;
-  }
-  console.log("Found order:", order); // In ra để kiểm tra đúng order
-console.log("Order items:", order.items); // In ra để kiểm tra các sản phẩm
+    if (!order || !order.items || order.items.length === 0) {
+      console.error("❌ Không tìm thấy sản phẩm trong đơn hàng");
+      return;
+    }
+    console.log("Found order:", order); // In ra để kiểm tra đúng order
+    console.log("Order items:", order.items); // In ra để kiểm tra các sản phẩm
     // Duyệt qua các sản phẩm trong đơn hàng
     for (const item of order.items) {
       const productDetailId = item.productDetailId;
@@ -194,7 +194,7 @@ const submitCancel = async () => {
 
     // Cập nhật UI local (sử dụng các mảng orders/paginatedOrders)
     updateLocalBill()
-        // Cập nhật số lượng kho cho từng sản phẩm trong Bill Detail
+    // Cập nhật số lượng kho cho từng sản phẩm trong Bill Detail
     await updateInventory()
     Swal.fire('Đã huỷ đơn', 'Cảm ơn bạn đã cho biết lý do.', 'success')
     closeCancelModal()
@@ -853,7 +853,7 @@ const deleteAddress = async (id) => {
 
 onMounted(() => {
   fetchOrder();
-    if (customerId) {
+  if (customerId) {
 
     fetchAddressList();
   }
@@ -928,53 +928,52 @@ onMounted(() => {
           <button v-if="order.status === 'Hoàn Thành'" type="button" class="btn btn-primary" @click="addToCart(order)">
             Mua lại
           </button>
-          <button v-if="order.status === 'Chờ xác nhận'" type="button" class="btn btn-danger" @click="openCancelModal(order)">
+          <button v-if="order.status === 'Chờ xác nhận'" type="button" class="btn btn-danger"
+            @click="openCancelModal(order)">
             Huỷ đơn
           </button>
           <button class="btn btn-outline" @click="openModal(order)">Xem chi tiết</button>
         </div>
       </div>
     </div>
-      <!-- Modal Huỷ đơn -->
-  <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 id="cancelOrderLabel" class="modal-title">Chọn lý do huỷ đơn</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" :disabled="isCancelSubmitting"></button>
-        </div>
+    <!-- Modal Huỷ đơn -->
+    <div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 id="cancelOrderLabel" class="modal-title">Chọn lý do huỷ đơn</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" :disabled="isCancelSubmitting"></button>
+          </div>
 
-        <div class="modal-body">
+          <div class="modal-body">
             <p class="mb-2 text-muted">Bạn có thể chọn nhiều lý do:</p>
 
             <div class="form-check" v-for="(reason, idx) in cancelReasons" :key="idx">
-              <input class="form-check-input"
-                    type="checkbox"
-                    :id="'cancel-reason-'+idx"
-                    :value="reason"
-                    v-model="selectedReasons">
-              <label class="form-check-label" :for="'cancel-reason-'+idx">{{ reason }}</label>
+              <input class="form-check-input" type="checkbox" :id="'cancel-reason-' + idx" :value="reason"
+                v-model="selectedReasons">
+              <label class="form-check-label" :for="'cancel-reason-' + idx">{{ reason }}</label>
             </div>
 
             <!-- Ô "Khác" chỉ hiện khi đã tick Khác -->
             <div class="mt-3" v-if="isOtherSelected">
               <label class="form-label">Lý do khác</label>
               <textarea class="form-control" rows="3" v-model.trim="otherReason"
-                        placeholder="Mô tả chi tiết lý do huỷ..."></textarea>
+                placeholder="Mô tả chi tiết lý do huỷ..."></textarea>
               <div class="form-text">* Bắt buộc nhập nếu chọn “Khác”.</div>
             </div>
           </div>
 
-        <div class="modal-footer">
-          <button class="btn btn-outline-secondary" data-bs-dismiss="modal" :disabled="isCancelSubmitting">Đóng</button>
-          <button class="btn btn-danger" @click="submitCancel" :disabled="isCancelSubmitting">
-            <span v-if="isCancelSubmitting" class="spinner-border spinner-border-sm me-1"></span>
-            Xác nhận huỷ
-          </button>
+          <div class="modal-footer">
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal"
+              :disabled="isCancelSubmitting">Đóng</button>
+            <button class="btn btn-danger" @click="submitCancel" :disabled="isCancelSubmitting">
+              <span v-if="isCancelSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+              Xác nhận huỷ
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
     <!-- Phân trang -->
     <div v-if="totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
@@ -1010,7 +1009,8 @@ onMounted(() => {
                   {{ selectedInvoice.receiverAddress }}
                 </div>
                 <div class="col-md-3 text-end">
-                  <button v-if="selectedInvoice.status === 'Chờ xác nhận'" @click="openAddressOverlay" class="btn btn-outline-primary btn-sm">Thay đổi</button>
+                  <button v-if="selectedInvoice.status === 'Chờ xác nhận'" @click="openAddressOverlay"
+                    class="btn btn-outline-primary btn-sm">Thay đổi</button>
                 </div>
               </div>
             </div>
@@ -1049,7 +1049,7 @@ onMounted(() => {
                   <!-- ✅ Số lượng có nút tăng/giảm -->
                   <td>
                     <input type="number" v-model="detail.quantity" min="1"
-                      class="form-control form-control-sm text-center" style="width: 60px;" :readonly="true"/>
+                      class="form-control form-control-sm text-center" style="width: 60px;" :readonly="true" />
                   </td>
                   <td>{{ formatCurrency(detail.price) }}</td>
                   <td>{{ formatCurrency(detail.price * detail.quantity) }}</td>
@@ -1084,238 +1084,239 @@ onMounted(() => {
 
           <div class="modal-footer">
             <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-            <button v-if="statusInvoice === 'Chờ xác nhận'" class="btn btn-success"
-              @click="">Lưu</button>
+            <button v-if="statusInvoice === 'Chờ xác nhận'" class="btn btn-success" @click="">Lưu</button>
           </div>
 
         </div>
       </div>
 
-<!-- Popup chọn địa chỉ -->
-<div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
-    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
-  <div class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
-    style="max-width: 600px; height: 70vh;" @click.stop>
-    <!-- Header: cố định -->
-    <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
-      <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Đóng"
-        @click="closeAddressOverlay"></button>
-    </div>
-
-    <!-- Body: cuộn -->
-    <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
-      <form @submit.prevent="confirmAddressSelection">
-        <!-- Danh sách địa chỉ -->
-        <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
-          <div class="mb-2">
-            <strong>{{ address.fullName }}</strong><br />
-            <span class="text-muted small">{{ address.numberPhone }}</span><br />
-            <span class="small">{{ address.fullAddress }}</span>
+      <!-- Popup chọn địa chỉ -->
+      <div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
+        class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+        <div class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
+          style="max-width: 600px; height: 70vh;" @click.stop>
+          <!-- Header: cố định -->
+          <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
+            <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Đóng"
+              @click="closeAddressOverlay"></button>
           </div>
 
-          <!-- Khung chọn địa chỉ -->
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <div class="form-check">
-              <input class="form-check-input" type="radio" :id="'address-' + address.id" 
-                v-model="selectedAddress" 
-                :value="address.id">
-              <label class="form-check-label" :for="'address-' + address.id">Chọn địa chỉ</label>
-            </div>
+          <!-- Body: cuộn -->
+          <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
+            <form @submit.prevent="confirmAddressSelection">
+              <!-- Danh sách địa chỉ -->
+              <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
+                <div class="mb-2">
+                  <strong>{{ address.fullName }}</strong><br />
+                  <span class="text-muted small">{{ address.numberPhone }}</span><br />
+                  <span class="small">{{ address.fullAddress }}</span>
+                </div>
 
-            <!-- Bên phải: nút Cập nhật và Lưu -->
-            <div class="d-flex gap-2">
-              <span class="text-primary text-decoration-underline small" role="button"
-                @click="openUpdateAddressOverlay(address)">
-                Cập nhật
-              </span>
-              <span class="text-danger text-decoration-underline small" role="button"
-                @click="deleteAddress(address.id)">
-                Xoá
-              </span>
-            </div>
+                <!-- Khung chọn địa chỉ -->
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" :id="'address-' + address.id" v-model="selectedAddress"
+                      :value="address.id">
+                    <label class="form-check-label" :for="'address-' + address.id">Chọn địa chỉ</label>
+                  </div>
+
+                  <!-- Bên phải: nút Cập nhật và Lưu -->
+                  <div class="d-flex gap-2">
+                    <span class="text-primary text-decoration-underline small" role="button"
+                      @click="openUpdateAddressOverlay(address)">
+                      Cập nhật
+                    </span>
+                    <span class="text-danger text-decoration-underline small" role="button"
+                      @click="deleteAddress(address.id)">
+                      Xoá
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Footer: cố định -->
+          <div class="p-4 border-top bg-white position-sticky bottom-0 z-2">
+            <button type="button" class="btn btn-outline-primary w-100" @click="saveSelectedAddress">
+              Lưu thay đổi
+            </button>
+            <button type="button" class="btn btn-success w-100 mt-2" @click="openAddAddressOverlay">
+              + Thêm Địa Chỉ Mới
+            </button>
           </div>
         </div>
-      </form>
-    </div>
-
-    <!-- Footer: cố định -->
-    <div class="p-4 border-top bg-white position-sticky bottom-0 z-2">
-      <button type="button" class="btn btn-outline-primary w-100" @click="saveSelectedAddress">
-        Lưu thay đổi
-      </button>
-      <button type="button" class="btn btn-success w-100 mt-2" @click="openAddAddressOverlay">
-        + Thêm Địa Chỉ Mới
-      </button>
-    </div>
-  </div>
-</div>
-  <!-- Popup thêm địa chỉ -->
-  <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
-    class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
-    <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
-      <div class="p-3"> <!-- Giảm padding -->
-        <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
-
-        <!-- Nút X -->
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
-          @click="closeAddAddressOverlay"></button>
-
-        <form @submit.prevent="saveAddress">
-          <!-- Họ và tên -->
-          <div class="mb-2">
-            <label class="form-label">Họ và tên người nhận</label>
-            <input type="text" class="form-control form-control-sm" placeholder="Nhập họ tên" v-model="recipientName"
-              required />
-          </div>
-
-          <!-- Số điện thoại -->
-          <div class="mb-2">
-            <label class="form-label">Số điện thoại</label>
-            <input type="tel" class="form-control form-control-sm" placeholder="Nhập số điện thoại"
-              v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
-              required />
-          </div>
-
-          <!-- Tỉnh / Thành phố -->
-          <div class="mb-2">
-            <label class="form-label">Tỉnh / Thành phố</label>
-            <select class="form-select form-select-sm" required v-model="selectedProvinceCode"
-              @change="fetchDistricts(selectedProvinceCode)">
-              <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
-              <option v-for="province in provinces" :key="province.code" :value="province.code">
-                {{ province.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Quận / Huyện -->
-          <div class="mb-2">
-            <label class="form-label">Quận / Huyện</label>
-            <select class="form-select form-select-sm" required v-model="selectedDistrictCode"
-              @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
-              <option value="" disabled selected>-- Chọn quận/huyện --</option>
-              <option v-for="district in districts" :key="district.code" :value="district.code">
-                {{ district.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Phường / Xã -->
-          <div class="mb-2">
-            <label class="form-label">Phường / Xã</label>
-            <select class="form-select form-select-sm" required v-model="selectedWardCode" :disabled="!wards.length">
-              <option value="" disabled selected>-- Chọn phường/xã --</option>
-              <option v-for="ward in wards" :key="ward.code" :value="ward.code">
-                {{ ward.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Địa chỉ chi tiết -->
-          <div class="mb-3">
-            <label class="form-label">Địa chỉ chi tiết</label>
-            <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập địa chỉ cụ thể"
-              v-model="detailAddress" required></textarea>
-          </div>
-
-          <!-- Nút lưu -->
-          <div class="text-end">
-            <button type="submit" class="btn btn-sm btn-primary">Lưu địa chỉ</button>
-          </div>
-        </form>
       </div>
+      <!-- Popup thêm địa chỉ -->
+      <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
+        class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+        <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
+          <div class="p-3"> <!-- Giảm padding -->
+            <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
+
+            <!-- Nút X -->
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+              @click="closeAddAddressOverlay"></button>
+
+            <form @submit.prevent="saveAddress">
+              <!-- Họ và tên -->
+              <div class="mb-2">
+                <label class="form-label">Họ và tên người nhận</label>
+                <input type="text" class="form-control form-control-sm" placeholder="Nhập họ tên"
+                  v-model="recipientName" required />
+              </div>
+
+              <!-- Số điện thoại -->
+              <div class="mb-2">
+                <label class="form-label">Số điện thoại</label>
+                <input type="tel" class="form-control form-control-sm" placeholder="Nhập số điện thoại"
+                  v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
+                  required />
+              </div>
+
+              <!-- Tỉnh / Thành phố -->
+              <div class="mb-2">
+                <label class="form-label">Tỉnh / Thành phố</label>
+                <select class="form-select form-select-sm" required v-model="selectedProvinceCode"
+                  @change="fetchDistricts(selectedProvinceCode)">
+                  <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
+                  <option v-for="province in provinces" :key="province.code" :value="province.code">
+                    {{ province.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Quận / Huyện -->
+              <div class="mb-2">
+                <label class="form-label">Quận / Huyện</label>
+                <select class="form-select form-select-sm" required v-model="selectedDistrictCode"
+                  @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
+                  <option value="" disabled selected>-- Chọn quận/huyện --</option>
+                  <option v-for="district in districts" :key="district.code" :value="district.code">
+                    {{ district.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Phường / Xã -->
+              <div class="mb-2">
+                <label class="form-label">Phường / Xã</label>
+                <select class="form-select form-select-sm" required v-model="selectedWardCode"
+                  :disabled="!wards.length">
+                  <option value="" disabled selected>-- Chọn phường/xã --</option>
+                  <option v-for="ward in wards" :key="ward.code" :value="ward.code">
+                    {{ ward.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Địa chỉ chi tiết -->
+              <div class="mb-3">
+                <label class="form-label">Địa chỉ chi tiết</label>
+                <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập địa chỉ cụ thể"
+                  v-model="detailAddress" required></textarea>
+              </div>
+
+              <!-- Nút lưu -->
+              <div class="text-end">
+                <button type="submit" class="btn btn-sm btn-primary">Lưu địa chỉ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Popup cập nhật địa chỉ -->
+      <div v-if="showUpdateAddressOverlay"
+        class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+        style="z-index: 9999">
+        <div class="bg-white p-3 rounded shadow position-relative w-100"
+          style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
+          <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
+
+          <!-- Nút X -->
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
+            @click="closeUpdateAddressOverlay"></button>
+
+          <form @submit.prevent="updateAddress">
+            <!-- Họ tên -->
+            <div class="mb-2">
+              <label class="form-label">Họ và tên</label>
+              <input type="text" class="form-control form-control-sm"
+                style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName"
+                required />
+            </div>
+
+            <!-- Số điện thoại -->
+            <div class="mb-2">
+              <label class="form-label">Số điện thoại</label>
+              <input type="text" class="form-control form-control-sm"
+                style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+                required />
+            </div>
+
+            <!-- Tỉnh / Thành phố -->
+            <div class="mb-2">
+              <label class="form-label">Tỉnh / Thành phố</label>
+              <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
+                required v-model="addressBeingEdited.cityCode" @change="handleCityChange">
+                <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
+                <option v-for="province in provinces" :key="province.code" :value="province.code">
+                  {{ province.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Quận / Huyện -->
+            <div class="mb-2">
+              <label class="form-label">Quận / Huyện</label>
+              <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
+                required v-model="addressBeingEdited.districtCode" @change="handleDistrictChange"
+                :disabled="!districts.length">
+                <option disabled value="">-- Chọn quận/huyện --</option>
+                <option v-for="district in districts" :key="district.code" :value="district.code">
+                  {{ district.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Phường / Xã -->
+            <div class="mb-2">
+              <label class="form-label">Phường / Xã</label>
+              <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
+                required v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
+                <option disabled value="">-- Chọn phường/xã --</option>
+                <option v-for="ward in wards" :key="ward.code" :value="ward.code">
+                  {{ ward.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Địa chỉ chi tiết -->
+            <div class="mb-3 mt-2">
+              <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
+              <textarea class="form-control form-control-sm" rows="2" style="font-size: 0.7rem; padding: 4px 8px;"
+                placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
+            </div>
+
+            <div class="text-end">
+              <button type="submit" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 4px 12px;">
+                Lưu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+
     </div>
-  </div>
-
-
-  <!-- Popup cập nhật địa chỉ -->
-  <div v-if="showUpdateAddressOverlay"
-    class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-    style="z-index: 9999">
-    <div class="bg-white p-3 rounded shadow position-relative w-100"
-      style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
-      <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
-
-      <!-- Nút X -->
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
-        @click="closeUpdateAddressOverlay"></button>
-
-      <form @submit.prevent="updateAddress">
-        <!-- Họ tên -->
-        <div class="mb-2">
-          <label class="form-label">Họ và tên</label>
-          <input type="text" class="form-control form-control-sm"
-            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName" required />
-        </div>
-
-        <!-- Số điện thoại -->
-        <div class="mb-2">
-          <label class="form-label">Số điện thoại</label>
-          <input type="text" class="form-control form-control-sm"
-            style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
-            required />
-        </div>
-
-        <!-- Tỉnh / Thành phố -->
-        <div class="mb-2">
-          <label class="form-label">Tỉnh / Thành phố</label>
-          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
-            v-model="addressBeingEdited.cityCode" @change="handleCityChange">
-            <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
-            <option v-for="province in provinces" :key="province.code" :value="province.code">
-              {{ province.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Quận / Huyện -->
-        <div class="mb-2">
-          <label class="form-label">Quận / Huyện</label>
-          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
-            v-model="addressBeingEdited.districtCode" @change="handleDistrictChange" :disabled="!districts.length">
-            <option disabled value="">-- Chọn quận/huyện --</option>
-            <option v-for="district in districts" :key="district.code" :value="district.code">
-              {{ district.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Phường / Xã -->
-        <div class="mb-2">
-          <label class="form-label">Phường / Xã</label>
-          <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" required
-            v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
-            <option disabled value="">-- Chọn phường/xã --</option>
-            <option v-for="ward in wards" :key="ward.code" :value="ward.code">
-              {{ ward.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Địa chỉ chi tiết -->
-        <div class="mb-3 mt-2">
-          <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
-          <textarea class="form-control form-control-sm" rows="2" style="font-size: 0.7rem; padding: 4px 8px;"
-            placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
-        </div>
-
-        <div class="text-end">
-          <button type="submit" class="btn btn-sm btn-primary" style="font-size: 0.7rem; padding: 4px 12px;">
-            Lưu
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 
 
 
-    </div>
 
-
-
-    
   </div>
 </template>
 
@@ -1527,5 +1528,4 @@ onMounted(() => {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 </style>

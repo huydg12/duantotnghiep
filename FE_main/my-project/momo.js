@@ -179,7 +179,6 @@ momo.post("/callback", async (req, res) => {
       console.log("🔎 Payload gửi về Java:", billPayload);
       console.log("✅ Đã lưu đơn hàng vào CSDL:", savedBill);
 
-
       for (const item of cartItems) {
         if (item.cartDetailId) {
           await axios.delete(

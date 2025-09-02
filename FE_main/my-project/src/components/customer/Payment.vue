@@ -217,13 +217,13 @@ const saveAddress = async () => {
 
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
-    
+
 
 
     resetAddressForm();
     closeAddAddressOverlay();
     await fetchAddressList();
-        await Swal.fire({
+    await Swal.fire({
       icon: "success",
       title: "Thêm địa chỉ thành công",
       timer: 1500,
@@ -323,18 +323,18 @@ const updateAddress = async () => {
 
     if (original) {
       // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
-      const cityNameNew     = getCityNameByCode(m.cityCode)        || m.cityName       || original.cityName || "";
+      const cityNameNew = getCityNameByCode(m.cityCode) || m.cityName || original.cityName || "";
       const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
-      const wardNameNew     = getWardNameByCode(m.wardCode)        || m.wardName       || original.wardName || "";
+      const wardNameNew = getWardNameByCode(m.wardCode) || m.wardName || original.wardName || "";
 
       // So sánh TRỰC TIẾP, không normalize
       const noChange =
-        String(m.fullName ?? "")        === String(original.fullName ?? "") &&
-        String(m.numberPhone ?? "")     === String(original.numberPhone ?? "") &&
-        String(m.detailAddress ?? "")   === String(original.detailAddress ?? "") &&
-        cityNameNew                     === (original.cityName || "") &&
-        districtNameNew                 === (original.districtName || "") &&
-        wardNameNew                     === (original.wardName || "") &&
+        String(m.fullName ?? "") === String(original.fullName ?? "") &&
+        String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
+        String(m.detailAddress ?? "") === String(original.detailAddress ?? "") &&
+        cityNameNew === (original.cityName || "") &&
+        districtNameNew === (original.districtName || "") &&
+        wardNameNew === (original.wardName || "") &&
         (!!m.default === !!original.default);
 
       if (noChange) {
@@ -349,9 +349,9 @@ const updateAddress = async () => {
     }
 
     // Tên địa giới phục vụ build fullAddress/payload
-    const cityName     = getCityNameByCode(m.cityCode)        || m.cityName || "";
+    const cityName = getCityNameByCode(m.cityCode) || m.cityName || "";
     const districtName = getDistrictNameByCode(m.districtCode) || m.districtName || "";
-    const wardName     = getWardNameByCode(m.wardCode)        || m.wardName || "";
+    const wardName = getWardNameByCode(m.wardCode) || m.wardName || "";
 
     const data = {
       customerId: customerId,
@@ -577,7 +577,7 @@ const createBill = async () => {
 const sendBill = async () => {
   try {
     const payload = generateBillPayload();
-     await axios.post("http://localhost:8080/bill/add", payload);
+    await axios.post("http://localhost:8080/bill/add", payload);
 
 
     // Xoá cart
@@ -588,7 +588,7 @@ const sendBill = async () => {
     }
     sessionStorage.removeItem("checkoutItems");
 
-      window.location.href = "/invoicecustomer";  // Chuyển về trang invoicecustomer
+    window.location.href = "/invoicecustomer";  // Chuyển về trang invoicecustomer
 
   } catch (err) {
     console.error("Lỗi tạo đơn hàng:", err);
@@ -1148,8 +1148,7 @@ onUnmounted(() => {
           <label class="form-label">Số điện thoại</label>
           <input type="text" class="form-control form-control-sm"
             style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
-            pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
-            required />
+            pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" required />
         </div>
 
         <!-- Tỉnh / Thành phố -->
@@ -1259,6 +1258,7 @@ onUnmounted(() => {
 .qr-popup button:hover {
   background-color: #c82333;
 }
+
 .swal2-container {
   z-index: 20000 !important;
 }

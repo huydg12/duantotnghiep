@@ -1,77 +1,117 @@
 <script setup>
 import axios from "axios";
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 
 const employees = ref([]);
-const originalEmployee = ref(null)
+const originalEmployee = ref(null);
 
-// Chỉ so sánh các field được phép sửa trong edit mode
+const filters = ref({
+    q: "",
+    accountId: "",
+    status: "all",
+});
+
+
+const norm = (s) => String(s ?? "").toLowerCase().trim();
+
+
 const toComparable = (x) => ({
-  fullName: (x?.fullName ?? '').trim(),
-  gender: String(x?.gender ?? ''),                                // radio 'true'/'false'
-  email: (x?.email ?? '').trim().toLowerCase(),
-  numberPhone: String(x?.numberPhone ?? '').replace(/\s+/g, ''),  // bỏ khoảng trắng
-  birthOfDate: String(x?.birthOfDate ?? '').slice(0, 10)          // YYYY-MM-DD
-})
+    fullName: (x?.fullName ?? "").trim(),
+    gender: String(x?.gender ?? ""),
+    email: (x?.email ?? "").trim().toLowerCase(),
+    numberPhone: String(x?.numberPhone ?? "").replace(/\s+/g, ""),
+    birthOfDate: String(x?.birthOfDate ?? "").slice(0, 10),
+});
 
 const isSame = (a, b) => {
-  if (!a || !b) return false
-  return Object.keys(a).every(k => a[k] === b[k])
-}
+    if (!a || !b) return false;
+    return Object.keys(a).every((k) => a[k] === b[k]);
+};
+
 const fetchEmployee = async () => {
     try {
-        const response = await axios.get("http://localhost:8080/employee/show");
-        employees.value = response.data;
+        const { data } = await axios.get("http://localhost:8080/employee/show");
+        employees.value = data;
         console.log(employees.value);
     } catch (error) {
         console.log("Lỗi hiển thị", error);
     }
 };
 
-async function saveEmployee() {
-  try {
-    if (isEditing.value) {
-      // === NEW: kiểm tra không có gì thay đổi ===
-      const before = originalEmployee.value
-      const now = toComparable(form.value)
-      if (isSame(before, now)) {
-        alert('Không có thay đổi nào để lưu.')
-        return
-      }
 
-      await axios.put(`http://localhost:8080/employee/update/${form.value.id}`, form.value)
-    } else {
-      await axios.post('http://localhost:8080/employee/add', form.value)
+const filteredEmployees = computed(() => {
+    const q = norm(filters.value.q);
+    const acc = String(filters.value.accountId ?? "").trim();
+    const st = filters.value.status;
+
+    return employees.value.filter((e) => {
+        const text = [e.fullName, e.email, e.numberPhone]
+            .map(norm)
+            .join(" ");
+        const okText = q === "" || text.includes(q);
+
+        const okAcc = acc === "" || String(e.accountId ?? "") === acc;
+
+        const okStatus =
+            st === "all" ||
+            (st === "active" && e.active === true) ||
+            (st === "inactive" && e.active === false);
+
+        return okText && okAcc && okStatus;
+    });
+});
+
+const currentPage = ref(1);
+watch(filters, () => {
+    currentPage.value = 1;
+}, { deep: true });
+
+async function saveEmployee() {
+    try {
+        if (isEditing.value) {
+            const before = originalEmployee.value;
+            const now = toComparable(form.value);
+            if (isSame(before, now)) {
+                alert("Không có thay đổi nào để lưu.");
+                return;
+            }
+            await axios.put(
+                `http://localhost:8080/employee/update/${form.value.id}`,
+                form.value
+            );
+        } else {
+            await axios.post("http://localhost:8080/employee/add", form.value);
+        }
+        await fetchEmployee();
+        resetForm();
+    } catch (error) {
+        console.log("Lỗi thêm nhân viên", error);
     }
-    await fetchEmployee()
-    resetForm()
-  } catch (error) {
-    console.log('Lỗi thêm nhân viên', error)
-  }
 }
 
 function editEmployee(employee) {
-  form.value = { ...employee }
-  isEditing.value = true
-
-  // === NEW: chụp snapshot dùng để so sánh khi lưu ===
-  originalEmployee.value = toComparable(form.value)
+    form.value = { ...employee };
+    isEditing.value = true;
+    originalEmployee.value = toComparable(form.value);
 }
 
 async function changeStatus(id) {
-    if (!confirm('Bạn có chắc muốn chuyển trạng thái nhân viên này?')) return;
+    if (!confirm("Bạn có chắc muốn chuyển trạng thái nhân viên này?")) return;
 
-    const updateEmployee = {
-        id: id,
-    };
-
+    const updateEmployee = { id };
     try {
-        await axios.put(`http://localhost:8080/employee/updateStatus/${id}`, updateEmployee)
-        alert('Đã chuyển trạng thái nhân viên');
+        await axios.put(
+            `http://localhost:8080/employee/updateStatus/${id}`,
+            updateEmployee
+        );
+        alert("Đã chuyển trạng thái nhân viên");
         await fetchEmployee();
     } catch (error) {
-        console.error('Lỗi chuyển trạng thái nhân viên:', error.response ? error.response.data : error.message);
-        alert('Không thể chuyển trạng thái nhân viên');
+        console.error(
+            "Lỗi chuyển trạng thái nhân viên:",
+            error.response ? error.response.data : error.message
+        );
+        alert("Không thể chuyển trạng thái nhân viên");
     }
 }
 
@@ -104,7 +144,7 @@ const form = ref({
     accountId: null,
     username: "",
     password: "",
-    role: "",
+    roleId: null,
     fullName: "",
     gender: true,
     email: "",
@@ -116,14 +156,15 @@ const form = ref({
 });
 
 const isEditing = ref(false);
-const currentPage = ref(1);
-const pageSize = 5;
 
-const totalPages = computed(() => Math.ceil(employees.value.length / pageSize));
+const pageSize = 5;
+const totalPages = computed(() =>
+    Math.max(1, Math.ceil(filteredEmployees.value.length / pageSize))
+);
 
 const paginatedEmployees = computed(() => {
     const start = (currentPage.value - 1) * pageSize;
-    return employees.value.slice(start, start + pageSize);
+    return filteredEmployees.value.slice(start, start + pageSize);
 });
 
 function resetForm() {
@@ -132,7 +173,7 @@ function resetForm() {
         accountId: null,
         username: "",
         password: "",
-        role: "",
+        roleId: null,
         fullName: "",
         gender: true,
         email: "",
@@ -143,6 +184,10 @@ function resetForm() {
         createdDate: "",
     };
     isEditing.value = false;
+}
+
+function clearFilters() {
+    filters.value = { q: "", accountId: "", status: "all" };
 }
 
 function goToPage(page) {
@@ -176,14 +221,16 @@ onMounted(() => {
                 <div class="mb-3">
                     <label class="form-label d-block">Vai trò</label>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="admin" value="Admin" v-model="form.role" required />
+                        <input class="form-check-input" type="radio" id="admin" name="role" :value="1"
+                            v-model.number="form.roleId" required />
                         <label class="form-check-label" for="admin">Admin</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" id="employee" value="Employee"
-                            v-model="form.role" required />
+                        <input class="form-check-input" type="radio" id="employee" name="role" :value="2"
+                            v-model.number="form.roleId" required />
                         <label class="form-check-label" for="employee">Nhân viên</label>
                     </div>
+                    <small class="text-muted">roleId: {{ form.roleId }}</small>
                 </div>
             </template>
 
@@ -195,11 +242,12 @@ onMounted(() => {
             <div class="mb-3">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-male" name="gender" value="true" v-model="form.gender" />
+                    <input class="form-check-input" type="radio" id="gender-male" name="gender" :value="true"
+                        v-model="form.gender" />
                     <label class="form-check-label" for="gender-male">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" id="gender-female" name="gender" value="false"
+                    <input class="form-check-input" type="radio" id="gender-female" name="gender" :value="false"
                         v-model="form.gender" />
                     <label class="form-check-label" for="gender-female">Nữ</label>
                 </div>
@@ -212,7 +260,8 @@ onMounted(() => {
 
             <div class="mb-3">
                 <label class="form-label">Số điện thoại</label>
-                <input v-model="form.numberPhone" required class="form-control" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
+                <input v-model="form.numberPhone" required class="form-control" pattern="^(0[0-9]{9})$"
+                    title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
             </div>
 
             <div class="mb-3">
@@ -229,6 +278,36 @@ onMounted(() => {
                 </button>
             </div>
         </form>
+
+        <!-- Filters -->
+        <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-4">
+                <label class="form-label small">Tìm nhanh</label>
+                <input v-model="filters.q" class="form-control" placeholder="Tìm theo tên, email, SĐT..." />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small">Account ID</label>
+                <input v-model.trim="filters.accountId" class="form-control" placeholder="VD: 101" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small">Trạng thái</label>
+                <select v-model="filters.status" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="active">Hoạt động</option>
+                    <option value="inactive">Không hoạt động</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-secondary w-100" @click="clearFilters">
+                    Xoá lọc
+                </button>
+            </div>
+        </div>
+
+        <p class="text-muted small">Tổng: {{ filteredEmployees.length }} nhân viên</p>
 
         <!-- Table -->
         <div class="table-container table-responsive">
@@ -253,7 +332,7 @@ onMounted(() => {
                         <td class="text-center">{{ employee.id }}</td>
                         <td class="text-center">{{ employee.accountId }}</td>
                         <td class="text-center">{{ employee.fullName }}</td>
-                        <td class="text-center">{{ employee.gender === true ? 'Nam' : 'Nữ' }}</td>
+                        <td class="text-center">{{ employee.gender === true ? "Nam" : "Nữ" }}</td>
                         <td class="text-center">{{ employee.email }}</td>
                         <td class="text-center">{{ employee.numberPhone }}</td>
                         <td class="text-center">{{ formatDateTime(employee.birthOfDate) }}</td>
@@ -263,17 +342,13 @@ onMounted(() => {
                         </td>
                         <td class="text-center">{{ employee.createdBy }}</td>
                         <td class="text-center">{{ formatDateTime(employee.createdDate) }}</td>
-                        <td class="text-center">
-                            <button class="btn btn-success btn-sm" @click="editEmployee(employee)">
-                                Sửa
-                            </button>
-                            <button class="btn btn-danger btn-sm" @click="changeStatus(employee.id)">
-                                Chuyển trạng thái
-                            </button>
+                        <td>
+                            <button class="btn btn-success btn-sm" @click="editEmployee(employee)">Sửa</button>
+                            <button class="btn btn-danger btn-sm" @click="changeStatus(employee.id)">Chuyển trạng
+                                thái</button>
                         </td>
                     </tr>
                 </tbody>
-
             </table>
         </div>
 
@@ -304,23 +379,9 @@ onMounted(() => {
     min-height: 300px;
 }
 
-.custom-pagination .page-link {
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    color: #007bff;
-    border-radius: 6px;
-    margin: 0 10px;
-}
-
-.custom-pagination .page-link:hover {
-    background-color: #e2e6ea;
-    color: #0056b3;
-}
-
-.custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-    font-weight: bold;
+.pagination .active .page-link {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
 }
 </style>

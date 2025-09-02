@@ -11,7 +11,7 @@ const router = useRouter();
 const cartItems = ref([]);
 const selectedItems = ref([]);
 
-// Lấy customerId từ localStorage (dữ liệu user lưu khi đăng nhập)
+// Lấy customerId từ localStorage
 let customerId = null;
 const userJson = localStorage.getItem("user");
 
@@ -79,6 +79,7 @@ const validateQuantity = (item) => {
     item.quantity = item.quantityInventory;
   }
 };
+
 function blockMinus(e) {
   if (e.key === '-' || e.key === 'e' || e.key === '+') {
     e.preventDefault()
@@ -86,19 +87,17 @@ function blockMinus(e) {
 }
 
 async function updateQuantity(cartDetailId, quantity) {
-
   try {
     await axios.put(`http://localhost:8080/cartDetail/updateQuantityByCartDetailID/${cartDetailId}`, {
       quantity: quantity,
     });
-    // Bạn có thể thêm thông báo hoặc cập nhật giao diện tại đây nếu cần
   } catch (error) {
     console.error("Lỗi khi cập nhật số lượng:", error);
     alert("Cập nhật số lượng thất bại.");
   }
 }
 
-// ✅ Chỉ tính tổng tiền của sản phẩm được chọn
+// Chỉ tính tổng tiền của sản phẩm được chọn
 const totalPrice = computed(() => {
   return cartItems.value.reduce((total, item) => {
     if (selectedItems.value.includes(item.cartDetailId)) {
@@ -135,13 +134,13 @@ function handleCheckout() {
     }));
   console.log("Sản phẩm đã chọn để thanh toán:", dataToPay);
 
-  // ✅ Lưu vào sessionStorage
+  // Lưu vào sessionStorage
   sessionStorage.setItem("checkoutItems", JSON.stringify(dataToPay));
 
-  // 👉 Điều hướng sang trang thanh toán
   router.push("/payment");
 }
-// Tính toán trạng thái "chọn tất cả"
+
+// Tính toán trạng thái "Chọn tất cả"
 const isAllSelected = computed(() => {
   return cartItems.value.length > 0 && selectedItems.value.length === cartItems.value.length;
 });
@@ -154,6 +153,7 @@ const toggleSelectAll = () => {
     selectedItems.value = cartItems.value.map(item => item.cartDetailId);
   }
 };
+
 function goToProductDetail(productDetailId) {
   router.push(`/productdetail/${productDetailId}`);
   console.log("sp chi tiết: " + productDetailId);
@@ -177,7 +177,7 @@ function goToProductDetail(productDetailId) {
     <div v-if="cartItems && cartItems.length > 0">
       <div id="cartItems">
         <div v-for="item in cartItems" :key="item.cartDetailId" class="row align-items-center g-3 mb-4 cart-item">
-          <!-- ✅ Checkbox -->
+          <!-- Checkbox -->
           <div class="col-1 text-center">
             <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input" />
           </div>
@@ -209,7 +209,7 @@ function goToProductDetail(productDetailId) {
         </div>
       </div>
 
-      <!-- ✅ Tổng tiền của sản phẩm được chọn -->
+      <!-- Tổng tiền của sản phẩm được chọn -->
       <div class="border-top pt-4 mt-4">
         <h5 class="text-end fw-semibold">
           Tổng cộng:
@@ -278,7 +278,6 @@ function goToProductDetail(productDetailId) {
 
 .cart-item:hover {
   background-color: rgba(0, 0, 0, 0.03);
-  /* hoặc đổi thành màu khác nếu muốn */
 }
 
 .toast {

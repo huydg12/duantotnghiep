@@ -68,7 +68,6 @@ public class ProductDetailController {
         return productDetailService.updateStatus(id, p);
     }
 
-
     @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable int id) {
         productDetailService.deleteById(id);

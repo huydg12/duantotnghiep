@@ -10,26 +10,26 @@ import com.poly.BE_main.model.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query(value = """
-        SELECT
-            P.ID AS productId,
-            P.PRODUCT_NAME AS productName,
-            B.NAME AS brandName,
-            PD.PRICE AS price,
-            MAX(CASE WHEN I.IS_MAIN = 1 THEN I.URL END) AS image1,
-            MAX(CASE WHEN I.IS_MAIN = 0 THEN I.URL END) AS image2
-        FROM PRODUCT P
-        JOIN BRAND B ON P.BRAND_ID = B.ID
-        CROSS APPLY (         -- <— đổi OUTER APPLY thành CROSS APPLY
-            SELECT TOP 1 *
-            FROM PRODUCT_DETAIL PD
-            WHERE PD.PRODUCT_ID = P.ID
-            AND PD.IS_ACTIVE = 1          -- chỉ lấy biến thể active (nếu cần)
-            ORDER BY PD.ID
-        ) PD
-        LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
-        WHERE P.IS_ACTIVE = 1
-        GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE;
-            """, nativeQuery = true)
+            SELECT
+                P.ID AS productId,
+                P.PRODUCT_NAME AS productName,
+                B.NAME AS brandName,
+                PD.PRICE AS price,
+                MAX(CASE WHEN I.IS_MAIN = 1 THEN I.URL END) AS image1,
+                MAX(CASE WHEN I.IS_MAIN = 0 THEN I.URL END) AS image2
+            FROM PRODUCT P
+            JOIN BRAND B ON P.BRAND_ID = B.ID
+            CROSS APPLY (         -- <— đổi OUTER APPLY thành CROSS APPLY
+                SELECT TOP 1 *
+                FROM PRODUCT_DETAIL PD
+                WHERE PD.PRODUCT_ID = P.ID
+                AND PD.IS_ACTIVE = 1          -- chỉ lấy biến thể active (nếu cần)
+                ORDER BY PD.ID
+            ) PD
+            LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = PD.ID
+            WHERE P.IS_ACTIVE = 1
+            GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE;
+                """, nativeQuery = true)
     List<Object[]> findAllProductsWithImages();
 
     @Query(value = """

@@ -177,13 +177,13 @@ const goToDetail = (id) => {
                 <i class="bi bi-heart-fill text-white"></i></a></router-link>
             <span class="cart-count">{{ store.favoriteItems.length }}</span>
           </div>
-            <!-- Icon giỏ hàng -->
-            <div class="cart-icon">
-              <router-link to="/cart" title="Giỏ hàng">
-                <i class="bi bi-bag-fill text-white" title="Giỏ hàng"></i>
-              </router-link>
-              <span class="cart-count">{{ store.cartItems.length }}</span>
-            </div>
+          <!-- Icon giỏ hàng -->
+          <div class="cart-icon">
+            <router-link to="/cart" title="Giỏ hàng">
+              <i class="bi bi-bag-fill text-white" title="Giỏ hàng"></i>
+            </router-link>
+            <span class="cart-count">{{ store.cartItems.length }}</span>
+          </div>
 
 
           <!-- Nếu đã đăng nhập -->

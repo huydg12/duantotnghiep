@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, reactive, onUnmounted } from 'vue';
+import { ref, onMounted, computed, reactive, onUnmounted, watch } from 'vue';
 import axios from 'axios';
 
 const currentCustomerId = ref(null);
@@ -16,7 +16,7 @@ const selectedProvinceCode = ref(null);
 const selectedDistrictCode = ref(null);
 const selectedWardCode = ref(null);
 const customers = ref([]);
-const originalCustomer = ref(null)
+const originalCustomer = ref(null);
 
 const recipientName = ref('');
 const phoneNumber = ref('');
@@ -43,7 +43,7 @@ const normalize = (str) => {
     .trim();
 };
 
-// ✅ Lấy danh sách tỉnh/thành phố (và districts cấp 2 luôn)
+// Lấy danh sách tỉnh/thành phố
 const fetchProvinces = async () => {
   try {
     const res = await axios.get("https://provinces.open-api.vn/api/?depth=2");
@@ -53,7 +53,7 @@ const fetchProvinces = async () => {
   }
 };
 
-// ✅ Lấy danh sách quận/huyện từ mã tỉnh
+// Lấy danh sách quận/huyện từ mã tỉnh
 const fetchDistricts = async (cityCode) => {
   try {
     const res = await axios.get(`https://provinces.open-api.vn/api/p/${cityCode}?depth=2`);
@@ -70,10 +70,10 @@ const fetchWards = async (districtCode) => {
     const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
     const data = response.data;
 
-    // ✅ Gán vào wards riêng (nếu cần hiển thị ngoài UI)
+    // Gán vào wards riêng (nếu cần hiển thị ngoài UI)
     wards.value = data.wards || [];
 
-    // ✅ Đồng thời cập nhật lại vào đúng district trong provinces
+    // Đồng thời cập nhật lại vào đúng district trong provinces
     for (const city of provinces.value) {
       const district = city.districts?.find(d => d.code === districtCode);
       if (district) {
@@ -126,7 +126,8 @@ const saveAddress = async () => {
     if (!response.ok) throw new Error('Lỗi khi thêm địa chỉ!');
 
     const result = await response.json();
-    alert('Thêm địa chỉ thành công:', result);
+    console.log('Thêm địa chỉ thành công:', result);
+    alert('Thêm địa chỉ thành công');
 
     await fetchAddressList(currentCustomerId.value);
     resetAddressForm();
@@ -148,6 +149,7 @@ const handleDistrictChange = () => {
   addressBeingEdited.wardCode = '';
   fetchWards(addressBeingEdited.districtCode);
 };
+
 const setAsDefault = async (address) => {
   try {
     const response = await fetch(`http://localhost:8080/address/set-default/${address.id}`, {
@@ -159,17 +161,16 @@ const setAsDefault = async (address) => {
       throw new Error('Lỗi khi đặt địa chỉ mặc định');
     }
 
-    // ✅ Gọi lại fetchAddressList để cập nhật UI
+    // Gọi lại fetchAddressList để cập nhật UI
     await fetchAddressList(currentCustomerId.value);
 
-
-    // ✅ Optional: Hiển thị thông báo
+    // Optional: Hiển thị thông báo
     alert('Đã chọn địa chỉ làm mặc định!');
   } catch (error) {
     console.error('Lỗi khi đặt mặc định:', error);
     alert('Không thể đặt địa chỉ làm mặc định!');
   }
-}
+};
 
 const resetAddressForm = () => {
   recipientName.value = '';
@@ -212,12 +213,11 @@ const updateAddress = async () => {
     const original = (addressList.value || []).find(a => a.id === m.id);
 
     if (original) {
-      // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
+      // Lấy tên địa giới từ code
       const cityNameNew = getCityNameByCode(m.cityCode) || m.cityName || original.cityName || "";
       const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
       const wardNameNew = getWardNameByCode(m.wardCode) || m.wardName || original.wardName || "";
 
-      // So sánh TRỰC TIẾP, không normalize
       const noChange =
         String(m.fullName ?? "") === String(original.fullName ?? "") &&
         String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
@@ -239,7 +239,7 @@ const updateAddress = async () => {
     const wardName = getWardNameByCode(m.wardCode) || m.wardName || "";
 
     const data = {
-      customerId: customerId,
+      customerId: currentCustomerId.value,
       fullName: m.fullName,
       numberPhone: m.numberPhone,
       fullAddress: `${m.detailAddress}, ${wardName}, ${districtName}, ${cityName}`,
@@ -261,7 +261,7 @@ const updateAddress = async () => {
       throw new Error(errorText || 'Cập nhật địa chỉ thất bại');
     }
 
-    await fetchAddressList();
+    await fetchAddressList(currentCustomerId.value); // ✅ truyền id vào
     closeUpdateAddressOverlay();
 
     alert('Cập nhật địa chỉ thành công');
@@ -278,8 +278,6 @@ const fetchAddressList = async (id) => {
     // Gán địa chỉ mặc định nếu có
     defaultAddress.value = addressList.value.find(addr => addr.default === true);
 
-    // Đóng overlay nếu muốn
-    // closeAddAddressOverlay();
   } catch (error) {
     console.error('Lỗi khi lấy địa chỉ:', error);
   }
@@ -291,7 +289,7 @@ const newAddressForm = ref(null);
 const openAddressOverlay = (id) => {
   currentCustomerId.value = id;
   fetchAddressList(id);          // gọi API lấy địa chỉ
-  showAddressOverlay.value = true;      // (nếu bạn dùng overlay)
+  showAddressOverlay.value = true;
 };
 
 // Đóng popup chọn địa chỉ
@@ -334,7 +332,7 @@ const openUpdateAddressOverlay = async (address) => {
     console.log("🏙️ Mã quận (districtCode):", districtCode, "| Tên quận:", address.districtName);
 
     if (districtCode) {
-      const wardList = await fetchWards(districtCode); // <-- CHỜ WARD THỰC SỰ TRẢ VỀ
+      const wardList = await fetchWards(districtCode);
 
       if (Array.isArray(wardList)) {
         const ward = wardList.find(w =>
@@ -384,7 +382,7 @@ const deleteAddress = async (id) => {
   if (!confirm('Bạn có chắc chắn muốn xoá địa chỉ này?')) return;
 
   try {
-    console.log("ID: " + id)
+    console.log("ID: " + id);
     await axios.delete(`http://localhost:8080/address/delete/${id}`);
     // Xoá thành công, cập nhật lại danh sách
     addressList.value = addressList.value.filter(addr => addr.id !== id);
@@ -413,6 +411,38 @@ const isEditing = ref(false);
 const currentPage = ref(1);
 const pageSize = 5;
 
+const search = reactive({
+  keyword: "",     // tên / email / SĐT / accountId
+  gender: "all",   // 'all' | 'true' | 'false'
+  status: "all",   // 'all' | 'true' | 'false'  (active)
+});
+
+const filteredCustomers = computed(() => {
+  const kw = normalize(String(search.keyword || ""));
+  return (customers.value || []).filter((c) => {
+    const haystacks = [
+      String(c?.fullName ?? ""),
+      String(c?.email ?? ""),
+      String(c?.numberPhone ?? ""),
+    ].map((v) => normalize(v));
+
+    const matchKw = !kw || haystacks.some((v) => v.includes(kw));
+    const matchGender =
+      search.gender === "all" || String(c?.gender) === search.gender;
+    const matchStatus =
+      search.status === "all" || String(c?.active) === search.status;
+
+    return matchKw && matchGender && matchStatus;
+  });
+});
+
+// Khi thay đổi tìm kiếm thì quay về trang 1
+watch(
+  () => [search.keyword, search.gender, search.status],
+  () => { currentPage.value = 1; },
+  { deep: true }
+);
+
 // CRUD khách hàng
 const fetchCustomer = async () => {
   try {
@@ -424,8 +454,6 @@ const fetchCustomer = async () => {
 };
 
 function editCustomer(customer) {
-
-
   form.value = {
     ...customer,
     gender: customer.gender != null ? String(customer.gender) : "0", // mặc định Nam
@@ -435,7 +463,7 @@ function editCustomer(customer) {
       : ""
   };
   isEditing.value = true;
-  originalCustomer.value = { ...toComparable(form.value) }
+  originalCustomer.value = { ...toComparable(form.value) };
 }
 
 const resetForm = () => {
@@ -451,32 +479,33 @@ const resetForm = () => {
   };
   isEditing.value = false;
 };
+
 const toComparable = (x) => ({
   fullName: (x?.fullName ?? '').trim(),
-  gender: String(x?.gender ?? ''),                 // bạn đang bind radio "true"/"false" dạng string
+  gender: String(x?.gender ?? ''),
   email: (x?.email ?? '').trim().toLowerCase(),
   numberPhone: String(x?.numberPhone ?? '').replace(/\s+/g, ''),
-  birthOfDate: x?.birthOfDate ?? '',               // dạng 'YYYY-MM-DD' bạn đã set sẵn khi edit
+  birthOfDate: x?.birthOfDate ?? '',
   accountId: x?.accountId ?? null,
   active: typeof x?.active === 'boolean' ? x.active : (String(x?.active) === 'true')
-})
-// So sánh nông các field quan trọng
+});
+
 const isSameCustomer = (a, b) => {
-  if (!a || !b) return false
-  const keys = Object.keys(a)
-  return keys.every(k => a[k] === b[k])
-}
+  if (!a || !b) return false;
+  const keys = Object.keys(a);
+  return keys.every(k => a[k] === b[k]);
+};
+
 const saveCustomer = async () => {
   try {
     console.log('Đang lưu khách hàng:', form.value);
 
     if (isEditing.value) {
-      // === NEW: kiểm tra "không có gì thay đổi" ===
-      const before = originalCustomer.value
-      const now = toComparable(form.value)
+      const before = originalCustomer.value;
+      const now = toComparable(form.value);
       if (isSameCustomer(before, now)) {
-        alert('Không có thay đổi nào để lưu.')
-        return
+        alert('Không có thay đổi nào để lưu.');
+        return;
       }
 
       const res = await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
@@ -499,12 +528,10 @@ const saveCustomer = async () => {
 const changeStatus = async (id) => {
   if (!confirm('Bạn có chắc muốn chuyển trạng thái khách hàng này?')) return;
 
-  const updateEmployee = {
-    id: id,
-  };
+  const updateEmployee = { id };
 
   try {
-    await axios.put(`http://localhost:8080/customer/updateStatus/${id}`, updateEmployee)
+    await axios.put(`http://localhost:8080/customer/updateStatus/${id}`, updateEmployee);
     alert('Đã chuyển trạng thái khách hàng');
     await fetchCustomer();
   } catch (error) {
@@ -515,6 +542,7 @@ const changeStatus = async (id) => {
 
 const formatDateTime = (str) => {
   const d = new Date(str);
+  if (isNaN(d.getTime())) return '';
   return `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
 };
 
@@ -527,11 +555,12 @@ function getVietnamDateTimeLocalFormat() {
   return vietnamTime.toISOString().slice(0, 16);
 }
 
-// Phân trang
-const totalPages = computed(() => Math.ceil(customers.value.length / pageSize));
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredCustomers.value.length / pageSize))
+);
 const paginatedCustomers = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  return customers.value.slice(start, start + pageSize);
+  return filteredCustomers.value.slice(start, start + pageSize);
 });
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
@@ -582,6 +611,45 @@ onMounted(fetchCustomer);
       </div>
     </form>
 
+    <!-- Tìm kiếm / Lọc -->
+    <div class="border p-3 rounded bg-white mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-sm-5">
+          <label class="form-label small">Từ khóa</label>
+          <input v-model="search.keyword" class="form-control" placeholder="Tìm theo tên, email, SĐT..." />
+        </div>
+
+        <div class="col-sm-3">
+          <label class="form-label small">Giới tính</label>
+          <select v-model="search.gender" class="form-select">
+            <option value="all">Tất cả</option>
+            <option value="true">Nam</option>
+            <option value="false">Nữ</option>
+          </select>
+        </div>
+
+        <div class="col-sm-3">
+          <label class="form-label small">Trạng thái</label>
+          <select v-model="search.status" class="form-select">
+            <option value="all">Tất cả</option>
+            <option value="true">Hoạt động</option>
+            <option value="false">Không hoạt động</option>
+          </select>
+        </div>
+
+        <div class="col-sm-1 d-flex">
+          <button type="button" class="btn btn-outline-secondary ms-auto"
+            @click="search.keyword = ''; search.gender = 'all'; search.status = 'all'">
+            Xóa
+          </button>
+        </div>
+      </div>
+
+      <p class="text-muted small mb-0 mt-2">
+        Tìm thấy {{ filteredCustomers.length }} khách hàng.
+      </p>
+    </div>
+
     <!-- Bảng khách hàng -->
     <table class="table table-bordered table-hover align-middle">
       <thead class="table-secondary text-center">
@@ -613,7 +681,7 @@ onMounted(fetchCustomer);
             </span>
           </td>
           <td class="text-center">{{ formatDateTime(customer.createdDate) }}</td>
-          <td class="text-center">
+          <td>
             <button class="btn btn-info btn-sm me-2" @click="openAddressOverlay(customer.id)">Xem địa chỉ</button>
             <button class="btn btn-success btn-sm me-2" @click="editCustomer(customer)">Sửa</button>
             <button class="btn btn-danger btn-sm" @click="changeStatus(customer.id)">Chuyển trạng thái</button>
@@ -650,7 +718,7 @@ onMounted(fetchCustomer);
         </div>
 
         <!-- Body: cuộn -->
-        <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1"> <!-- 👈 Cuộn tại đây -->
+        <div class="px-4 pt-3 pb-2 overflow-auto flex-grow-1">
           <form @submit.prevent="confirmAddressSelection">
             <!-- Danh sách địa chỉ -->
             <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
@@ -692,11 +760,12 @@ onMounted(fetchCustomer);
         </div>
       </div>
     </div>
+
     <!-- Popup thêm địa chỉ -->
     <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
       class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
       <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
-        <div class="p-3"> <!-- Giảm padding -->
+        <div class="p-3">
           <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
 
           <!-- Nút X -->
@@ -769,7 +838,6 @@ onMounted(fetchCustomer);
         </div>
       </div>
     </div>
-
 
     <!-- Popup cập nhật địa chỉ -->
     <div v-if="showUpdateAddressOverlay"
@@ -855,7 +923,6 @@ onMounted(fetchCustomer);
   </div>
 </template>
 
-
 <style scoped>
 .table-container {
   min-height: 300px;
@@ -884,19 +951,9 @@ onMounted(fetchCustomer);
   overflow-y: auto;
 }
 
-.custom-pagination .page-link {
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 6px;
-  margin: 0 5px;
-}
-
-.custom-pagination .page-link:hover {
-  background-color: #e9ecef;
-}
-
-.custom-pagination .page-item.active .page-link {
-  background-color: #007bff;
-  color: white;
+.pagination .active .page-link {
+  background-color: #198754;
+  border-color: #198754;
+  color: #fff;
 }
 </style>

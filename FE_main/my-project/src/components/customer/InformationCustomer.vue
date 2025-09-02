@@ -4,11 +4,14 @@ import axios from "axios";
 import { RouterLink, useRouter } from "vue-router";
 import Swal from 'sweetalert2'
 import { useUserStore } from "@/stores/userStore";
+
 const router = useRouter();
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
+
 let customerId = null;
 let accountId = null
+
 const userJson = localStorage.getItem("user");
 const addressList = ref([]);
 const defaultAddress = ref(null);
@@ -75,9 +78,9 @@ const fetchUserInfo = async () => {
 
     const normalized = {
       fullName: data.fullName ?? "",
-      gender:  data.gender ?? "",
-      email:   data.email ?? "",
-      phone:   data.numberPhone ?? "",
+      gender: data.gender ?? "",
+      email: data.email ?? "",
+      phone: data.numberPhone ?? "",
       birthDate: data.birthOfDate ? data.birthOfDate.slice(0, 10) : ""
     };
 
@@ -112,11 +115,11 @@ const updateUserInfo = async () => {
 
     // So sánh: đã validate từng trường ở chỗ khác rồi
     const noChange =
-      s(userInfo.fullName)          === s(orig.fullName) &&
+      s(userInfo.fullName) === s(orig.fullName) &&
       String(userInfo.gender ?? "") === String(orig.gender ?? "") &&
-      s(userInfo.email)             === s(orig.email) &&
-      s(userInfo.phone)             === s(orig.phone) &&
-      toISO(userInfo.birthDate)     === toISO(orig.birthDate);
+      s(userInfo.email) === s(orig.email) &&
+      s(userInfo.phone) === s(orig.phone) &&
+      toISO(userInfo.birthDate) === toISO(orig.birthDate);
 
     if (noChange) {
       await Swal.fire({
@@ -167,6 +170,7 @@ const updateUserInfo = async () => {
     });
   }
 };
+
 const fetchProvinces = async () => {
   try {
     const res = await axios.get("https://provinces.open-api.vn/api/?depth=2");
@@ -192,10 +196,10 @@ const fetchWards = async (districtCode) => {
     const response = await axios.get(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
     const data = response.data;
 
-    // ✅ Gán vào wards riêng (nếu cần hiển thị ngoài UI)
+    // Gán vào wards riêng (nếu cần hiển thị ngoài UI)
     wards.value = data.wards || [];
 
-    // ✅ Đồng thời cập nhật lại vào đúng district trong provinces
+    // Đồng thời cập nhật lại vào đúng district trong provinces
     for (const city of provinces.value) {
       const district = city.districts?.find(d => d.code === districtCode);
       if (district) {
@@ -219,7 +223,6 @@ const fetchAddressList = async () => {
     // Gán default address
     defaultAddress.value = addressList.value.find(addr => addr.default === true);
 
-    // 👉 Đóng popup và reset form
     closeAddAddressOverlay();
   } catch (error) {
     console.error('Lỗi khi lấy địa chỉ:', error);
@@ -237,10 +240,8 @@ const setAsDefault = async (address) => {
       throw new Error('Lỗi khi đặt địa chỉ mặc định');
     }
 
-    // ✅ Gọi lại fetchAddressList để cập nhật UI
     await fetchAddressList();
 
-    // ✅ Optional: Hiển thị thông báo
     alert('Đã chọn địa chỉ làm mặc định!');
   } catch (error) {
     console.error('Lỗi khi đặt mặc định:', error);
@@ -306,8 +307,9 @@ const saveAddress = async () => {
 
     // Nếu cần, load lại danh sách địa chỉ
     await fetchAddressList();
-        await fetchAddressList();
-        await Swal.fire({
+    await fetchAddressList();
+
+    await Swal.fire({
       icon: "success",
       title: "Thêm địa chỉ thành công",
       timer: 1500,
@@ -374,18 +376,18 @@ const updateAddress = async () => {
 
     if (original) {
       // Lấy tên địa giới từ code (fallback sang tên cũ nếu có)
-      const cityNameNew     = getCityNameByCode(m.cityCode)        || m.cityName       || original.cityName || "";
+      const cityNameNew = getCityNameByCode(m.cityCode) || m.cityName || original.cityName || "";
       const districtNameNew = getDistrictNameByCode(m.districtCode) || m.districtName || original.districtName || "";
-      const wardNameNew     = getWardNameByCode(m.wardCode)        || m.wardName       || original.wardName || "";
+      const wardNameNew = getWardNameByCode(m.wardCode) || m.wardName || original.wardName || "";
 
       // So sánh TRỰC TIẾP, không normalize
       const noChange =
-        String(m.fullName ?? "")        === String(original.fullName ?? "") &&
-        String(m.numberPhone ?? "")     === String(original.numberPhone ?? "") &&
-        String(m.detailAddress ?? "")   === String(original.detailAddress ?? "") &&
-        cityNameNew                     === (original.cityName || "") &&
-        districtNameNew                 === (original.districtName || "") &&
-        wardNameNew                     === (original.wardName || "") &&
+        String(m.fullName ?? "") === String(original.fullName ?? "") &&
+        String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
+        String(m.detailAddress ?? "") === String(original.detailAddress ?? "") &&
+        cityNameNew === (original.cityName || "") &&
+        districtNameNew === (original.districtName || "") &&
+        wardNameNew === (original.wardName || "") &&
         (!!m.default === !!original.default);
 
       if (noChange) {
@@ -400,9 +402,9 @@ const updateAddress = async () => {
     }
 
     // Tên địa giới phục vụ build fullAddress/payload
-    const cityName     = getCityNameByCode(m.cityCode)        || m.cityName || "";
+    const cityName = getCityNameByCode(m.cityCode) || m.cityName || "";
     const districtName = getDistrictNameByCode(m.districtCode) || m.districtName || "";
-    const wardName     = getWardNameByCode(m.wardCode)        || m.wardName || "";
+    const wardName = getWardNameByCode(m.wardCode) || m.wardName || "";
 
     const data = {
       customerId: customerId,
@@ -599,70 +601,74 @@ const passwordData = reactive({
   newPassword: "",
   confirmPassword: "",
 });
-// --- state hiển thị message bằng <span> ---
+
+// state hiển thị message bằng <span> 
 const formMsg = ref({ type: "", text: "" }); // type: success|error|warning
 const setMsg = (type, text) => (formMsg.value = { type, text });
-// --- validate ---
+
+// validate 
 const passwordMismatch = computed(
-    () =>
-        passwordData.newPassword !== "" &&
-        passwordData.confirmPassword !== "" &&
-        passwordData.newPassword !== passwordData.confirmPassword
+  () =>
+    passwordData.newPassword !== "" &&
+    passwordData.confirmPassword !== "" &&
+    passwordData.newPassword !== passwordData.confirmPassword
 );
+
 const tooShort = computed(
-    () => passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6
+  () => passwordData.newPassword.length > 0 && passwordData.newPassword.length < 6
 );
+
 const canSubmit = computed(
-    () =>
-        !!passwordData.currentPassword &&
-        !!passwordData.newPassword &&
-        !!passwordData.confirmPassword &&
-        !passwordMismatch.value &&
-        !tooShort.value
+  () =>
+    !!passwordData.currentPassword &&
+    !!passwordData.newPassword &&
+    !!passwordData.confirmPassword &&
+    !passwordMismatch.value &&
+    !tooShort.value
 );
 
 const submitting = ref(false);
-const changePassword = async () => {
-    // chỉ HIỂN THỊ THÔNG BÁO bằng span, không bật alert/swal
-    if (passwordMismatch.value) {
-        setMsg("warning", "Xác nhận mật khẩu không khớp. Vui lòng nhập lại.");
-        return;
-    }
-    if (tooShort.value) {
-        setMsg("warning", "Mật khẩu mới tối thiểu 6 ký tự.");
-        return;
-    }
-    if (!accountId) {
-        setMsg("error", "Thiếu thông tin tài khoản. Vui lòng đăng nhập lại.");
-        return;
-    }
 
-    try {
-        submitting.value = true;
-        const payload = {
-            currentPassword: passwordData.currentPassword,
-            newPassword: passwordData.newPassword,
-            confirmPassword: passwordData.confirmPassword,
-        };
-        await axios.put(
-            `http://localhost:8080/account/changePassword/${accountId}`,
-            payload
-        );
-        setMsg("success", "Đổi mật khẩu thành công!");
-        // reset form
-        passwordData.currentPassword = "";
-        passwordData.newPassword = "";
-        passwordData.confirmPassword = "";
-         handleLogout();
-    } catch (error) {
-        const msg =
-            error?.response?.data?.message ||
-            error?.response?.data ||
-            "Cập nhật thất bại. Vui lòng thử lại.";
-        setMsg("error", String(msg));
-    } finally {
-        submitting.value = false;
-    }
+const changePassword = async () => {
+  if (passwordMismatch.value) {
+    setMsg("warning", "Xác nhận mật khẩu không khớp. Vui lòng nhập lại.");
+    return;
+  }
+  if (tooShort.value) {
+    setMsg("warning", "Mật khẩu mới tối thiểu 6 ký tự.");
+    return;
+  }
+  if (!accountId) {
+    setMsg("error", "Thiếu thông tin tài khoản. Vui lòng đăng nhập lại.");
+    return;
+  }
+
+  try {
+    submitting.value = true;
+    const payload = {
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+      confirmPassword: passwordData.confirmPassword,
+    };
+    await axios.put(
+      `http://localhost:8080/account/changePassword/${accountId}`,
+      payload
+    );
+    setMsg("success", "Đổi mật khẩu thành công!");
+    // reset form
+    passwordData.currentPassword = "";
+    passwordData.newPassword = "";
+    passwordData.confirmPassword = "";
+    handleLogout();
+  } catch (error) {
+    const msg =
+      error?.response?.data?.message ||
+      error?.response?.data ||
+      "Cập nhật thất bại. Vui lòng thử lại.";
+    setMsg("error", String(msg));
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const handleLogout = () => {
@@ -724,31 +730,31 @@ onMounted(() => {
             <div class="row g-3">
               <div class="col-md-6">
                 <label for="fullName" class="form-label">Họ tên</label>
-                <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" required/>
+                <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" required />
               </div>
               <div class="col-md-6">
                 <label class="form-label d-block">Giới tính</label>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" required/>
+                  <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" required />
                   <label class="form-check-label">Nam</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" required/>
+                  <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" required />
                   <label class="form-check-label">Nữ</label>
                 </div>
               </div>
               <div class="col-md-6">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" class="form-control" v-model="userInfo.email" required/>
+                <input type="email" id="email" class="form-control" v-model="userInfo.email" required />
               </div>
               <div class="col-md-6">
                 <label for="phone" class="form-label">Số điện thoại</label>
-                <input type="text" id="phone" class="form-control" v-model="userInfo.phone" required 
-                pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
+                <input type="text" id="phone" class="form-control" v-model="userInfo.phone" required
+                  pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
               </div>
               <div class="col-md-6">
                 <label for="birthDate" class="form-label">Ngày sinh</label>
-                <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" required/>
+                <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" required />
               </div>
             </div>
             <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>
@@ -902,8 +908,7 @@ onMounted(() => {
                   <label class="form-label">Số điện thoại</label>
                   <input type="text" class="form-control form-control-sm"
                     style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
-                    pattern="^(0[0-9]{9})$"
-                    required />
+                    pattern="^(0[0-9]{9})$" required />
                 </div>
 
                 <!-- Tỉnh / Thành phố -->
@@ -963,39 +968,39 @@ onMounted(() => {
         <!-- Đổi mật khẩu -->
         <div v-show="activeTab === 'password'" class="card p-4 shadow-sm">
           <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
-        <!-- dòng thông báo tổng -->
+          <!-- dòng thông báo tổng -->
 
-        <form @submit.prevent="changePassword">
+          <form @submit.prevent="changePassword">
             <div class="mb-3">
-                <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
-                    v-model="passwordData.currentPassword" required />
+              <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
+                v-model="passwordData.currentPassword" required />
             </div>
             <div class="mb-3">
-                <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
-                    v-model="passwordData.newPassword" required />
-                <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
+              <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
+                v-model="passwordData.newPassword" required />
+              <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
             </div>
             <div class="mb-3">
-                <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
-                    v-model="passwordData.confirmPassword" required />
-                <!-- span không khớp -->
-                <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
+              <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
+                v-model="passwordData.confirmPassword" required />
+              <!-- span không khớp -->
+              <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
             </div>
             <button type="submit" class="btn btn-dark" :disabled="!canSubmit || submitting">
-                {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
+              {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
             </button>
             <div class="mb-2" v-if="formMsg.text">
-                <span :class="{
-                    'text-success': formMsg.type === 'success',
-                    'text-danger': formMsg.type === 'error',
-                    'text-warning': formMsg.type === 'warning'
-                }" class="fw-semibold">
-                    {{ formMsg.text }}
-                </span>
+              <span :class="{
+                'text-success': formMsg.type === 'success',
+                'text-danger': formMsg.type === 'error',
+                'text-warning': formMsg.type === 'warning'
+              }" class="fw-semibold">
+                {{ formMsg.text }}
+              </span>
             </div>
-        </form>
+          </form>
         </div>
-        
+
       </div>
     </div>
   </div>
@@ -1104,6 +1109,7 @@ body {
   padding-right: 6px;
   /* tránh che mất scrollbar */
 }
+
 .swal2-container {
   z-index: 20000 !important;
 }

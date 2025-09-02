@@ -241,6 +241,7 @@ public class BillService {
             throw new RuntimeException("Không tìm thấy hóa đơn có id: " + billId);
         }
     }
+
     public Bill updateStatusNote(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setStatus(b.getStatus());
@@ -249,14 +250,15 @@ public class BillService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
     }
 
-        public Bill updateStatusNote4(int id, Bill b) {
+    public Bill updateStatusNote4(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setStatus(b.getStatus());
             bUpdate.setStatusPayment(b.getStatusPayment());
             return billRepository.save(bUpdate);
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
-        }
-        public Bill updateAddressByBill(int id, Bill b) {
+    }
+
+    public Bill updateAddressByBill(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setRecipientName(b.getRecipientName());
             bUpdate.setRecipientPhoneNumber(b.getRecipientPhoneNumber());
@@ -265,7 +267,7 @@ public class BillService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn có id: " + id));
     }
 
-            public Bill updateBill(int id, Bill b) {
+    public Bill updateBill(int id, Bill b) {
         return billRepository.findById(id).map(bUpdate -> {
             bUpdate.setNote(b.getNote());
             bUpdate.setSubTotal(b.getSubTotal());

@@ -38,7 +38,7 @@ public class BrandService {
         return brandRRepository.findById(id).map(b -> {
             if (b.isActive() == true) {
                 b.setActive(false);
-            }else{
+            } else {
                 b.setActive(true);
             }
             return brandRRepository.save(b);

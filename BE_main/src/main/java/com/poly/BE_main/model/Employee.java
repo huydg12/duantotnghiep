@@ -32,7 +32,7 @@ public class Employee {
     @Column(name = "FULL_NAME", length = 255)
     private String fullName;
 
-     @Column(name = "GENDER")
+    @Column(name = "GENDER")
     private boolean gender;
 
     @Column(name = "EMAIL", length = 255)

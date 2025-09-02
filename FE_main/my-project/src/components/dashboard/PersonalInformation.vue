@@ -31,15 +31,15 @@ if (userJson) {
     }
 }
 const handleLogout = () => {
-  // Xóa localStorage và store
-  userStore.logout();
-  userInfo.value = null;
+    // Xóa localStorage và store
+    userStore.logout();
+    userInfo.value = null;
 
-  // Điều hướng bằng replace để không quay lại được
-  router.replace("/auth/login").then(() => {
-    // Reload để clear cache nội dung đã xem
-    window.location.reload();
-  });
+    // Điều hướng bằng replace để không quay lại được
+    router.replace("/auth/login").then(() => {
+        // Reload để clear cache nội dung đã xem
+        window.location.reload();
+    });
 };
 // Hàm fetch dữ liệu từ API
 const fetchUserInfo = async () => {
@@ -196,7 +196,7 @@ const changePassword = async () => {
         passwordData.currentPassword = "";
         passwordData.newPassword = "";
         passwordData.confirmPassword = "";
-         handleLogout();
+        handleLogout();
     } catch (error) {
         const msg =
             error?.response?.data?.message ||
@@ -215,76 +215,78 @@ onMounted(() => {
 <template>
     <section class="space-y-4">
         <div class="card p-4 shadow-sm">
-        <h3 class="h5 mb-4">THÔNG TIN TÀI KHOẢN</h3>
-        <form @submit.prevent="updateUserInfo">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="fullName" class="form-label">Họ tên</label>
-                    <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label d-block">Giới tính</label>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender" required />
-                        <label class="form-check-label">Nam</label>
+            <h3 class="h5 mb-4">THÔNG TIN TÀI KHOẢN</h3>
+            <form @submit.prevent="updateUserInfo">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="fullName" class="form-label">Họ tên</label>
+                        <input type="text" id="fullName" class="form-control" v-model="userInfo.fullName" required />
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender" required />
-                        <label class="form-check-label">Nữ</label>
+                    <div class="col-md-6">
+                        <label class="form-label d-block">Giới tính</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" value="true" v-model="userInfo.gender"
+                                required />
+                            <label class="form-check-label">Nam</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" value="false" v-model="userInfo.gender"
+                                required />
+                            <label class="form-check-label">Nữ</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control" v-model="userInfo.email" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label">Số điện thoại</label>
+                        <input type="text" id="phone" class="form-control" v-model="userInfo.phone" required
+                            pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="birthDate" class="form-label">Ngày sinh</label>
+                        <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" required />
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" class="form-control" v-model="userInfo.email" required />
-                </div>
-                <div class="col-md-6">
-                    <label for="phone" class="form-label">Số điện thoại</label>
-                    <input type="text" id="phone" class="form-control" v-model="userInfo.phone" required
-                        pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
-                </div>
-                <div class="col-md-6">
-                    <label for="birthDate" class="form-label">Ngày sinh</label>
-                    <input type="date" id="birthDate" class="form-control" v-model="userInfo.birthDate" required />
-                </div>
-            </div>
-            <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>
-        </form>
-    </div>
+                <button type="submit" class="btn btn-dark mt-4">Cập nhật</button>
+            </form>
+        </div>
 
-    <div class="card p-4 shadow-sm">
-        <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
-        <!-- dòng thông báo tổng -->
+        <div class="card p-4 shadow-sm">
+            <h3 class="h5 mb-4">ĐỔI MẬT KHẨU</h3>
+            <!-- dòng thông báo tổng -->
 
-        <form @submit.prevent="changePassword">
-            <div class="mb-3">
-                <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
-                    v-model="passwordData.currentPassword" required />
-            </div>
-            <div class="mb-3">
-                <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
-                    v-model="passwordData.newPassword" required />
-                <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
-            </div>
-            <div class="mb-3">
-                <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
-                    v-model="passwordData.confirmPassword" required />
-                <!-- span không khớp -->
-                <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
-            </div>
-            <button type="submit" class="btn btn-dark" :disabled="!canSubmit || submitting">
-                {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
-            </button>
-            <div class="mb-2" v-if="formMsg.text">
-                <span :class="{
-                    'text-success': formMsg.type === 'success',
-                    'text-danger': formMsg.type === 'error',
-                    'text-warning': formMsg.type === 'warning'
-                }" class="fw-semibold">
-                    {{ formMsg.text }}
-                </span>
-            </div>
-        </form>
-    </div>
+            <form @submit.prevent="changePassword">
+                <div class="mb-3">
+                    <input type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" class="form-control"
+                        v-model="passwordData.currentPassword" required />
+                </div>
+                <div class="mb-3">
+                    <input type="password" id="newPassword" placeholder="Mật khẩu mới" class="form-control"
+                        v-model="passwordData.newPassword" required />
+                    <span v-if="tooShort" class="text-danger small">Mật khẩu tối thiểu 6 ký tự.</span>
+                </div>
+                <div class="mb-3">
+                    <input type="password" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" class="form-control"
+                        v-model="passwordData.confirmPassword" required />
+                    <!-- span không khớp -->
+                    <span v-if="passwordMismatch" class="text-danger small">Xác nhận mật khẩu không khớp.</span>
+                </div>
+                <button type="submit" class="btn btn-dark" :disabled="!canSubmit || submitting">
+                    {{ submitting ? "Đang xử lý..." : "Đặt lại mật khẩu" }}
+                </button>
+                <div class="mb-2" v-if="formMsg.text">
+                    <span :class="{
+                        'text-success': formMsg.type === 'success',
+                        'text-danger': formMsg.type === 'error',
+                        'text-warning': formMsg.type === 'warning'
+                    }" class="fw-semibold">
+                        {{ formMsg.text }}
+                    </span>
+                </div>
+            </form>
+        </div>
     </section>
 </template>
 

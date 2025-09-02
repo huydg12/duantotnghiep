@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted,reactive } from "vue";
+import { ref, computed, onMounted, reactive } from "vue";
 import vSelect from "vue-select";
 import "vue-select/dist/vue-select.css";
 const inventoryList = ref([]);
@@ -245,7 +245,7 @@ onMounted(() => {
 <template>
   <div class="container mt-5">
     <h2 class="mb-4 text-center">Quản lý Tồn Kho</h2>
-        <button class="btn btn-primary mb-3" @click="openCreate">
+    <button class="btn btn-primary mb-3" @click="openCreate">
       + Thêm phiếu nhập kho
     </button>
     <!-- Tìm kiếm -->
@@ -283,7 +283,7 @@ onMounted(() => {
     </table>
 
 
-        <!-- Modal -->
+    <!-- Modal -->
     <div class="modal fade show d-block" tabindex="-1" v-if="showModal" style="background-color: rgba(0, 0, 0, 0.5)">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -329,7 +329,7 @@ onMounted(() => {
                   </td>
                   <td>
                     <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
-                      :readonly="isViewOnly"  min="1" step="1" @keydown="preventInvalidNumber"
+                      :readonly="isViewOnly" min="1" step="1" @keydown="preventInvalidNumber"
                       @blur="onQuantityBlur(item)" />
                   </td>
                   <td>

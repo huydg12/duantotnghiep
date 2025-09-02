@@ -17,8 +17,6 @@ const emailSet = ref(new Set())
 const emailError = ref('')
 const normalizeEmail = (s) => String(s || '').trim().toLowerCase()
 
-
-
 async function fetchCustomers() {
   try {
     const res = await axios.get('http://localhost:8080/customer/show')
@@ -35,6 +33,7 @@ async function fetchCustomers() {
 }
 const retypePassword = ref('')
 const confirmError = ref('')
+
 // hàm so sánh
 const equals = (a, b) => String(a ?? '') === String(b ?? '')
 // tự xoá lỗi khi người dùng gõ lại
@@ -44,14 +43,12 @@ watch([() => form.password, () => form.confirmPassword], () => {
   }
 })
 
-// NEW: kiểm tra email trùng khi người dùng gõ
+
 watch(() => form.email, (val) => {
   const exists = emailSet.value.has(normalizeEmail(val))
   emailError.value = exists ? 'Email đã tồn tại' : ''
 })
 
-
-/* ===== Username duplicate (ACCOUNT) ===== */
 const accounts = ref([])
 const usernameSet = ref(new Set())
 const usernameError = ref('')
@@ -148,7 +145,7 @@ onMounted(async () => {
     <div class="mb-3">
       <label class="form-label fw-semibold">TÀI KHOẢN</label>
       <input v-model="form.username" type="Text" class="form-control" placeholder="Nhập tài khoản"
-      :aria-invalid="!!usernameError" required />
+        :aria-invalid="!!usernameError" required />
       <span v-if="usernameError" class="text-danger small d-block mt-1">{{ usernameError }}</span>
     </div>
     <div class="mb-3">

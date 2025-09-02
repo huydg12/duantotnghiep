@@ -802,7 +802,6 @@ option:disabled {
   font-size: 14px;
 }
 
-/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;

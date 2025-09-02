@@ -62,7 +62,7 @@ public class InventoryService {
         return false; // Không tồn tại productDetailId
     }
 
-        @Transactional
+    @Transactional
     public boolean updateQuantityTru(int productDetailId, int addedQuantity) {
         Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 

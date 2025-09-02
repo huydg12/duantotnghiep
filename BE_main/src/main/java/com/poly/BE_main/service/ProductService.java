@@ -49,9 +49,9 @@ public class ProductService {
 
     public Product updateStatus(int id, Product pUpdate) {
         return productRepository.findById(id).map(p -> {
-            if (p.isActive() == true ) {
+            if (p.isActive() == true) {
                 p.setActive(false);
-            }else{
+            } else {
                 p.setActive(true);
             }
             return productRepository.save(p);

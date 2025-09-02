@@ -52,7 +52,7 @@ public class InventoryController {
         return ResponseEntity.ok().build();
     }
 
-        @PutMapping("/updateQuantityCong/{productDetailId}")
+    @PutMapping("/updateQuantityCong/{productDetailId}")
     public ResponseEntity<?> updateQuantityCong(@PathVariable("productDetailId") Integer productDetailId,
             @RequestBody Map<String, Integer> body) {
         int quantity = body.get("quantity");

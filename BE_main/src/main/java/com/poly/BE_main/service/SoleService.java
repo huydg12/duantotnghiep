@@ -37,7 +37,7 @@ public class SoleService {
         return soleRepository.findById(id).map(s -> {
             if (s.isActive()) {
                 s.setActive(false);
-            }else{
+            } else {
                 s.setActive(true);
             }
             return soleRepository.save(s);

@@ -90,7 +90,7 @@ const editPromotion = (promo) => {
     type: Number(promo.type),
     value: Number(promo.value),
     startDate: promo.startDate ? promo.startDate.substring(0, 10) : "",
-    endDate:   promo.endDate   ? promo.endDate.substring(0, 10)   : "",
+    endDate: promo.endDate ? promo.endDate.substring(0, 10) : "",
     active: !!promo.active,
     apply_all: !!promo.apply_all,
   };
@@ -253,23 +253,9 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
-.custom-pagination .page-link {
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-  color: #007bff;
-  border-radius: 6px;
-  margin: 0 10px;
-}
-
-.custom-pagination .page-link:hover {
-  background-color: #e2e6ea;
-  color: #0056b3;
-}
-
-.custom-pagination .page-item.active .page-link {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
-  font-weight: bold;
+.pagination .active .page-link {
+  background-color: #198754;
+  border-color: #198754;
+  color: #fff;
 }
 </style>

@@ -62,7 +62,7 @@ public class BillController {
         int status = body.get("status");
         Bill updated = billService.updateStatus(id, status);
         return ResponseEntity.ok(updated);
-    }   
+    }
 
     @PutMapping("/updateEmployee/{id}")
     public Bill updateEmployee(@PathVariable int id, @RequestBody Bill i) {
@@ -109,27 +109,27 @@ public class BillController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi cập nhật subTotal");
         }
     }
+
     @PutMapping("/updateStatusNote/{id}")
     public ResponseEntity<Bill> updateStatusNote(
             @PathVariable int id,
-            @RequestBody Bill bill
-    ) {
+            @RequestBody Bill bill) {
         Bill updated = billService.updateStatusNote(id, bill);
         return ResponseEntity.ok(updated);
     }
+
     @PutMapping("/updateAddressByBill/{id}")
     public ResponseEntity<Bill> updateAddressByBill(
             @PathVariable int id,
-            @RequestBody Bill bill
-    ) {
+            @RequestBody Bill bill) {
         Bill updated = billService.updateAddressByBill(id, bill);
         return ResponseEntity.ok(updated);
     }
-        @PutMapping("/updateBill/{id}")
+
+    @PutMapping("/updateBill/{id}")
     public ResponseEntity<Bill> updateBill(
             @PathVariable int id,
-            @RequestBody Bill bill
-    ) {
+            @RequestBody Bill bill) {
         Bill updated = billService.updateBill(id, bill);
         return ResponseEntity.ok(updated);
     }
@@ -137,8 +137,7 @@ public class BillController {
     @PutMapping("/updateBillStatus4/{id}")
     public ResponseEntity<Bill> updateStatus4(
             @PathVariable int id,
-            @RequestBody Bill bill
-    ) {
+            @RequestBody Bill bill) {
         Bill updated = billService.updateStatusNote4(id, bill);
         return ResponseEntity.ok(updated);
     }

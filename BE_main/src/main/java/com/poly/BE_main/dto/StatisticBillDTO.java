@@ -14,5 +14,4 @@ public class StatisticBillDTO {
     private Long billCount;
     private BigDecimal totalStatistic;
 
-    
 }

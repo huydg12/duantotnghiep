@@ -26,7 +26,7 @@ if (userJson) {
 }
 
 const goToDetail = (id) => {
-  router.push(`/productdetail/${id}`) // Chuyển hướng đến trang chi tiết sản phẩm với ID
+  router.push(`/productdetail/${id}`)
 }
 
 const fetchFavorite = async () => {
@@ -42,7 +42,7 @@ const fetchFavorite = async () => {
 const deleteFavorite = async (favoriteId) => {
   try {
     await axios.delete(`http://localhost:8080/favorite/delete/${favoriteId}`);
-    await fetchFavorite() // Gọi lại danh sách yêu thích
+    await fetchFavorite()
     await store.fetchFavoriteItems(customerId);
     showRemoveToast.value = true
     setTimeout(() => {

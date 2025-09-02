@@ -106,12 +106,13 @@ public class CustomerService {
         return customerRepository.findById(id).map(c -> {
             if (c.isActive() == true) {
                 c.setActive(false);
-            }else{
+            } else {
                 c.setActive(true);
             }
             return toDTO(customerRepository.save(c));
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với id: " + id));
     }
+
     // Xoá khách hàng
     public void deleteById(Integer id) {
         customerRepository.deleteById(id);

@@ -88,11 +88,11 @@ public class ProductDetailService {
         }).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm chi tiết có id: " + id));
     }
 
-     public ProductDetail updateStatus(int id, ProductDetail pUpdate) {
+    public ProductDetail updateStatus(int id, ProductDetail pUpdate) {
         return productDetailRepository.findById(id).map(p -> {
             if (p.isActive() == true) {
                 p.setActive(false);
-            }else{
+            } else {
                 p.setActive(true);
             }
             return productDetailRepository.save(p);

@@ -37,7 +37,7 @@ public class CollarService {
         return collarRepository.findById(id).map(c -> {
             if (c.isActive() == true) {
                 c.setActive(false);
-            }else{
+            } else {
                 c.setActive(true);
             }
             return collarRepository.save(c);

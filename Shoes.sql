@@ -1284,6 +1284,6 @@ GO
 -- GROUP BY P.ID, P.PRODUCT_NAME, B.NAME, PD.PRICE
 
 
-            SELECT ID AS ProductId
-            FROM PRODUCT
-            WHERE ID = 5
+SELECT ID AS ProductId
+FROM PRODUCT
+WHERE ID = 5

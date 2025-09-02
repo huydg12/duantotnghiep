@@ -131,7 +131,7 @@ const fetchFavorites = async () => {
 
 const toggleFavorite = async (productId) => {
   if (!customerId) {
-        await Swal.fire({
+    await Swal.fire({
       icon: 'warning',
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',

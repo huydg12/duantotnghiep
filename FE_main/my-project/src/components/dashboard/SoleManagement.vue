@@ -159,23 +159,9 @@ onMounted(() => {
     min-height: 300px;
 }
 
-.custom-pagination .page-link {
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-    color: #007bff;
-    border-radius: 6px;
-    margin: 0 10px;
-}
-
-.custom-pagination .page-link:hover {
-    background-color: #e2e6ea;
-    color: #0056b3;
-}
-
-.custom-pagination .page-item.active .page-link {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
-    font-weight: bold;
+.pagination .active .page-link {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
 }
 </style>

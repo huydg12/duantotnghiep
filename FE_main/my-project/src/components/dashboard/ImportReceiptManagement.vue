@@ -104,7 +104,6 @@ function addDetail() {
     importReceiptId: form.id ?? null,
     productDetailId: null,
     quantity: 1,
-    unitPrice: 0,
   });
 }
 
@@ -151,8 +150,6 @@ const validateRow = (d) => {
   if (isBlank(d.productDetailId)) return "Chưa chọn sản phẩm.";
   const q = toNum(d.quantity);
   if (!Number.isFinite(q) || q <= 0) return "Số lượng phải > 0.";
-  const up = toNum(d.unitPrice);
-  if (!Number.isFinite(up) || up < 0) return "Đơn giá không hợp lệ.";
   return null;
 };
 
@@ -200,7 +197,6 @@ async function saveReceipt() {
           importReceiptCode: String(form.importReceiptCode).trim(),
           importDate: form.importDate,
           note: form.note ?? "",
-          totalAmount: form.totalAmount,
         }
       );
     } else {
@@ -379,7 +375,6 @@ onMounted(() => {
         <tr>
           <th>Mã phiếu</th>
           <th>Ngày nhập</th>
-          <th>Tổng tiền</th>
           <th>Trạng thái</th>
           <th>Hành động</th>
         </tr>
@@ -388,7 +383,6 @@ onMounted(() => {
         <tr v-for="receipt in receipts" :key="receipt.id">
           <td>{{ receipt.importReceiptCode }}</td>
           <td>{{ formatDate(receipt.importDate) }}</td>
-          <td>{{ formatCurrency(receipt.totalAmount) }}</td>
           <td>
             <span class="badge" :class="statusClass(receipt.status)">{{
               statusText(receipt.status)
@@ -448,8 +442,6 @@ onMounted(() => {
                 <tr>
                   <th>ID sản phẩm</th>
                   <th>Số lượng</th>
-                  <th>Giá nhập</th>
-                  <th>Thành tiền</th>
                   <th>Hành động</th>
                 </tr>
               </thead>
@@ -463,15 +455,9 @@ onMounted(() => {
                   </td>
                   <td>
                     <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
-                      :readonly="isViewOnly"  min="1" step="1" @keydown="preventInvalidNumber"
+                      :readonly="isViewOnly" min="1" step="1" @keydown="preventInvalidNumber"
                       @blur="onQuantityBlur(item)" />
                   </td>
-                  <td>
-                    <input type="number" v-model.number="item.unitPrice" class="form-control form-control-sm"
-                      :readonly="isViewOnly"  min="0" step="1" @keydown="preventInvalidNumber"
-                      @blur="onUnitPriceBlur(item)" />
-                  </td>
-                  <td>{{ formatCurrency(item.quantity * item.unitPrice) }}</td>
                   <td>
                     <button class="btn btn-sm btn-danger" @click="removeDetail(idx)" v-if="!isViewOnly">
                       Xoá

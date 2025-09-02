@@ -24,7 +24,7 @@ public class Role {
 
     @Column(name = "ROLE_NAME")
     private String roleName;
-    
+
     @Column(name = "DESCRIPTION")
     private String description;
 

@@ -33,9 +33,21 @@ const loading = ref(false)
 const productDetailModalRef = ref(null)
 const imageViewerModalRef = ref(null)
 
-// Search
-const productQuery = ref('')
-const detailQuery = ref('')
+const productFilters = ref({
+    q: '',
+    brandId: 'all',
+    categoryId: 'all',
+    soleId: 'all',
+    status: 'all',
+})
+
+const detailFilters = ref({
+    sizeId: 'all',
+    colorId: 'all',
+    collarId: 'all',
+    status: 'all',
+})
+
 const colorSearch = ref('')
 const sizeSearch = ref('')
 const collarSearch = ref('')
@@ -75,56 +87,12 @@ const form = reactive({
 })
 const detailForm = reactive({ price: '', description: '', id: null })
 
-const norm = (v) => (v ?? '').toString().toLowerCase().trim()
+// Helpers
+const norm = (v) =>
+    (v ?? '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
-// Search + Pagination sản phẩm
-const productsFiltered = computed(() => {
-    const q = norm(productQuery.value)
-    if (!q) return products.value
-    return products.value.filter(p => {
-        const inName = norm(p.productName).includes(q)
-        const inId = String(p.id ?? '').includes(q)
-        const inBrand = norm(getNameById(brands.value, p.brandId)).includes(q)
-        const inCat = norm(getNameById(categories.value, p.categoryId)).includes(q)
-        const inSole = norm(getNameById(soles.value, p.soleId)).includes(q)
-        const inDesc = norm(p.description).includes(q)
-        return inName || inId || inBrand || inCat || inSole || inDesc
-    })
-})
-const productPage = ref(1)
-const productsPerPage = 7
-const totalProductPages = computed(() => Math.max(1, Math.ceil(productsFiltered.value.length / productsPerPage)))
-const paginatedProducts = computed(() => {
-    const start = (productPage.value - 1) * productsPerPage
-    return productsFiltered.value.slice(start, start + productsPerPage)
-})
-const changeProductPage = (p) => { if (p >= 1 && p <= totalProductPages.value) productPage.value = p }
-watch(productQuery, () => { productPage.value = 1 })
+const asArray = (v) => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v])
 
-// Search + Pagination chi tiết sản phẩm
-const detailsFiltered = computed(() => {
-    const q = norm(detailQuery.value)
-    if (!q) return productDetailList.value
-    return productDetailList.value.filter(d => {
-        const s = norm(d.size?.name ?? d.size ?? '')
-        const c = norm(d.color?.name ?? d.color ?? '')
-        const co = norm(d.collar?.name ?? d.collar ?? '')
-        const desc = norm(d.description ?? '')
-        const price = norm(d.price ?? '')
-        return s.includes(q) || c.includes(q) || co.includes(q) || desc.includes(q) || price.includes(q)
-    })
-})
-const detailPage = ref(1)
-const detailsPerPage = 4
-const totalDetailPages = computed(() => Math.max(1, Math.ceil(detailsFiltered.value.length / detailsPerPage)))
-const paginatedDetails = computed(() => {
-    const start = (detailPage.value - 1) * detailsPerPage
-    return detailsFiltered.value.slice(start, start + detailsPerPage)
-})
-const changeDetailPage = (p) => { if (p >= 1 && p <= totalDetailPages.value) detailPage.value = p }
-watch(detailQuery, () => { detailPage.value = 1; hydrateCurrentPage(false) })
-const asArray = (v) => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
-// User helpers
 const user = ref(JSON.parse(localStorage.getItem("user") || "{}"))
 const safeUserName = () => user.value?.fullName || 'System'
 
@@ -134,32 +102,27 @@ function getVietnamTimeWithoutSeconds() {
 }
 
 const toBoolish = (v) => {
-    if (v === true || v === 1) return true;
-    if (v === false || v === 0) return false;
-    if (v == null) return false;
-    const s = String(v).trim().toLowerCase();
-    return s === 'true' || s === '1' || s === 'active';
-};
-
-
-const isActiveRow = (row) => {
-    if (!row || typeof row !== 'object') return false;
-    const keys = ['isActive', 'active', 'status', 'is_active', 'IS_ACTIVE'];
-    for (const k of keys) {
-        if (k in row) return toBoolish(row[k]);
-    }
-
-    return true;
-};
+    if (v === true || v === 1) return true
+    if (v === false || v === 0) return false
+    if (v == null) return false
+    const s = String(v).trim().toLowerCase()
+    return s === 'true' || s === '1' || s === 'active'
+}
+const rowActive = (row, fallback = true) => {
+    if (!row || typeof row !== 'object') return false
+    const keys = ['active', 'isActive', 'status', 'is_active', 'IS_ACTIVE']
+    for (const k of keys) if (k in row) return toBoolish(row[k])
+    return fallback
+}
 
 // API
-const fetchBrands = async () => { const { data } = await API.get('/brand/show'); brands.value = (data || []).filter(isActiveRow); };
-const fetchCategories = async () => { const { data } = await API.get('/category/show'); categories.value = (data || []).filter(isActiveRow); };
-const fetchSoles = async () => { const { data } = await API.get('/sole/show'); soles.value = (data || []).filter(isActiveRow); };
-const fetchSizes = async () => { const { data } = await API.get('/size/show'); sizes.value = (data || []).filter(isActiveRow); };
-const fetchColors = async () => { const { data } = await API.get('/color/show'); colors.value = (data || []).filter(isActiveRow); };
-const fetchCollars = async () => { const { data } = await API.get('/collar/show'); collars.value = (data || []).filter(isActiveRow); };
-const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1; }
+const fetchBrands = async () => { const { data } = await API.get('/brand/show'); brands.value = (data || []).filter(rowActive) }
+const fetchCategories = async () => { const { data } = await API.get('/category/show'); categories.value = (data || []).filter(rowActive) }
+const fetchSoles = async () => { const { data } = await API.get('/sole/show'); soles.value = (data || []).filter(rowActive) }
+const fetchSizes = async () => { const { data } = await API.get('/size/show'); sizes.value = (data || []).filter(rowActive) }
+const fetchColors = async () => { const { data } = await API.get('/color/show'); colors.value = (data || []).filter(rowActive) }
+const fetchCollars = async () => { const { data } = await API.get('/collar/show'); collars.value = (data || []).filter(rowActive) }
+const fetchProducts = async () => { products.value = (await API.get('/product/show')).data; productPage.value = 1 }
 
 // CRUD Sản phẩm
 function resetForm() {
@@ -187,30 +150,57 @@ async function saveProduct() {
 function editProduct(p) { Object.assign(form, JSON.parse(JSON.stringify(p))) }
 
 async function changeStatus(id) {
-    if (!confirm('Bạn có chắc muốn chuyển trạng thái sản phẩm này?')) return;
-
-    const updateProduct = {
-        id: id,
-    };
-
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái sản phẩm này?')) return
     try {
-        await API.put(`/product/updateStatus/${id}`, updateProduct);
-        alert('Đã chuyển trạng thái sản phẩm');
-        await fetchProducts();
+        await API.put(`/product/updateStatus/${id}`, { id })
+        alert('Đã chuyển trạng thái sản phẩm')
+        await fetchProducts()
     } catch (error) {
-        console.error('Lỗi chuyển trạng thái sản phẩm:', error.response ? error.response.data : error.message);
-        alert('Không thể chuyển trạng thái sản phẩm');
+        console.error('Lỗi chuyển trạng thái sản phẩm:', error.response ? error.response.data : error.message)
+        alert('Không thể chuyển trạng thái sản phẩm')
     }
 }
 
-// Tải chi tiết & mở modal
+const productsFiltered = computed(() => {
+    const q = norm(productFilters.value.q)
+    const b = productFilters.value.brandId
+    const c = productFilters.value.categoryId
+    const s = productFilters.value.soleId
+    const st = productFilters.value.status
+
+    return products.value.filter(p => {
+        const okText = !q || norm(p.productName).includes(q)
+
+        const okBrand = b === 'all' || Number(p.brandId) === Number(b)
+        const okCat = c === 'all' || Number(p.categoryId) === Number(c)
+        const okSole = s === 'all' || Number(p.soleId) === Number(s)
+
+        const active = rowActive(p, true)
+        const okStatus =
+            st === 'all' ||
+            (st === 'active' && active) ||
+            (st === 'inactive' && !active)
+
+        return okText && okBrand && okCat && okSole && okStatus
+    })
+})
+
+const productPage = ref(1)
+const productsPerPage = 7
+const totalProductPages = computed(() => Math.max(1, Math.ceil(productsFiltered.value.length / productsPerPage)))
+const paginatedProducts = computed(() => {
+    const start = (productPage.value - 1) * productsPerPage
+    return productsFiltered.value.slice(start, start + productsPerPage)
+})
+const changeProductPage = (p) => { if (p >= 1 && p <= totalProductPages.value) productPage.value = p }
+watch(productFilters, () => { productPage.value = 1 }, { deep: true })
+
 const loadProductDetails = async (productId) => {
     const list = (await API.get(`/productDetail/show/${productId}`)).data || []
     productDetailList.value = list
     detailPage.value = 1
     await hydrateCurrentPage(true)
 }
-
 async function openDetailModal(product) {
     currentProduct.value = product
     await loadProductDetails(product.id)
@@ -218,7 +208,6 @@ async function openDetailModal(product) {
     bootstrap.Modal.getOrCreateInstance(productDetailModalRef.value).show()
 }
 
-// Kiểm tra trùng chi tiết
 function toIdSafe(val, listRef) {
     if (val == null) return null
     if (typeof val === 'object' && 'id' in val) return Number(val.id)
@@ -247,7 +236,6 @@ const existingDetailKeySet = computed(() => {
     return set
 })
 
-// ID & flags
 function detailIdOf(row) {
     const id = row?.productDetailId ?? row?.id ?? row?.detailId ?? row?.PRODUCT_DETAIL_ID
     if (id == null) { console.warn('⚠️ Thiếu ID chi tiết:', row); return undefined }
@@ -268,73 +256,64 @@ function imgBaseName(img) {
     return ''
 }
 
-// CRUD Chi tiết
 function resetDetailForm() {
-    detailForm.id = null;
-    detailForm.price = null;
-    detailForm.description = '';
-    selectedSizes.value = [];
-    selectedColors.value = null;   // radio -> giá trị đơn
-    selectedCollars.value = null;  // radio -> giá trị đơn
-    previewUrls.value.forEach(u => URL.revokeObjectURL(u));
-    previewUrls.value = [];
-    selectedImages.value = [];
-    mainImageIndex.value = null;
+    detailForm.id = null
+    detailForm.price = null
+    detailForm.description = ''
+    selectedSizes.value = []
+    selectedColors.value = null
+    selectedCollars.value = null
+    previewUrls.value.forEach(u => URL.revokeObjectURL(u))
+    previewUrls.value = []
+    selectedImages.value = []
+    mainImageIndex.value = null
 }
 
 function editDetail(detail) {
-    selectedSizes.value = [detail.size?.id ?? getIdByName(sizes.value, detail.size)];
-    selectedColors.value = (detail.color?.id ?? getIdByName(colors.value, detail.color));  // <= giá trị đơn
-    selectedCollars.value = (detail.collar?.id ?? getIdByName(collars.value, detail.collar)); // <= giá trị đơn
-    detailForm.price = detail.price;
-    detailForm.description = detail.description;
-    detailForm.id = detailIdOf(detail);
+    selectedSizes.value = [detail.size?.id ?? getIdByName(sizes.value, detail.size)]
+    selectedColors.value = (detail.color?.id ?? getIdByName(colors.value, detail.color))
+    selectedCollars.value = (detail.collar?.id ?? getIdByName(collars.value, detail.collar))
+    detailForm.price = detail.price
+    detailForm.description = detail.description
+    detailForm.id = detailIdOf(detail)
 }
 
 async function changeDetailStatus(id) {
-    if (!confirm('Bạn có chắc muốn chuyển trạng thái biến thể này?')) return;
-
-    const updatedDetail = {
-        id: id,
-    };
-
+    if (!confirm('Bạn có chắc muốn chuyển trạng thái biến thể này?')) return
     try {
-        await API.put(`/productDetail/updateStatus/${id}`, updatedDetail);
-        alert('Đã chuyển trạng thái biến thể');
-        await loadProductDetails(currentProduct.value.id);
+        await API.put(`/productDetail/updateStatus/${id}`, { id })
+        alert('Đã chuyển trạng thái biến thể')
+        await loadProductDetails(currentProduct.value.id)
     } catch (error) {
-        console.error('Lỗi chuyển trạng thái biến thể:', error.response ? error.response.data : error.message);
-        alert('Không thể chuyển trạng thái biến thể');
+        console.error('Lỗi chuyển trạng thái biến thể:', error.response ? error.response.data : error.message)
+        alert('Không thể chuyển trạng thái biến thể')
     }
 }
 
 async function saveProductDetails() {
-    if (loading.value) return;
-    loading.value = true;
+    if (loading.value) return
+    loading.value = true
     try {
-        if (!currentProduct.value?.id) return;
+        if (!currentProduct.value?.id) return
+        const isEdit = !!detailForm.id
 
-        const isEdit = !!detailForm.id;
-
-        // 🔧 Chuẩn hoá thành mảng để dùng chung cho cả radio (1 giá trị) và checkbox (nhiều)
-        const sizesArr = asArray(selectedSizes.value);
-        const colorsArr = asArray(selectedColors.value);
-        const collarsArr = asArray(selectedCollars.value);
+        const sizesArr = asArray(selectedSizes.value)
+        const colorsArr = asArray(selectedColors.value)
+        const collarsArr = asArray(selectedCollars.value)
 
         const missingBase =
             !detailForm.price || !detailForm.description ||
-            sizesArr.length === 0 || colorsArr.length === 0 || collarsArr.length === 0;
-        if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return; }
+            sizesArr.length === 0 || colorsArr.length === 0 || collarsArr.length === 0
+        if (missingBase) { alert('Vui lòng điền đầy đủ thông tin.'); return }
 
         if (!isEdit && selectedImages.value.length === 0) {
-            alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.');
-            return;
+            alert('Vui lòng chọn ít nhất 1 ảnh cho chi tiết mới.')
+            return
         }
 
         if (isEdit) {
-            // ====== CHECK NO-CHANGE ======
-            const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {};
-            const origTriple = tripleFromRow(orig);
+            const orig = productDetailList.value.find(d => detailIdOf(d) === detailForm.id) || {}
+            const origTriple = tripleFromRow(orig)
 
             const sameSize = Number(selectedSizes.value[0]) === Number(origTriple.sizeId)
             const sameColor = Number(selectedColors.value[0]) === Number(origTriple.colorId)
@@ -342,25 +321,20 @@ async function saveProductDetails() {
             const samePrice = Number(detailForm.price) === Number(orig.price)
             const sameDesc = String(detailForm.description ?? '').trim() === String(orig.description ?? '').trim()
 
-            const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc);
-            const needUploadImages = selectedImages.value.length > 0;
+            const needUpdateDetail = !(sameSize && sameColor && sameCollar && samePrice && sameDesc)
+            const needUploadImages = selectedImages.value.length > 0
 
-            if (!needUpdateDetail && !needUploadImages) {
-                alert('Không có thay đổi để cập nhật.');
-                return;
-            }
+            if (!needUpdateDetail && !needUploadImages) { alert('Không có thay đổi để cập nhật.'); return }
 
-            // Nếu đổi bộ biến thể thì check trùng
             if (!(sameSize && sameColor && sameCollar)) {
-                const targetKey = tripleKey(sizesArr[0], colorsArr[0], collarsArr[0]);
+                const targetKey = tripleKey(sizesArr[0], colorsArr[0], collarsArr[0])
                 const duplicated = productDetailList.value.some(d => {
-                    const id = detailIdOf(d); if (id === detailForm.id) return false;
-                    const { key } = tripleFromRow(d); return key === targetKey;
-                });
-                if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return; }
+                    const id = detailIdOf(d); if (id === detailForm.id) return false
+                    const { key } = tripleFromRow(d); return key === targetKey
+                })
+                if (duplicated) { alert('Chi tiết (Size/Màu/Cổ) này đã tồn tại ở chi tiết khác.'); return }
             }
 
-            // Cập nhật detail nếu có thay đổi
             if (needUpdateDetail) {
                 const updatedDetail = {
                     product: { id: currentProduct.value.id },
@@ -370,32 +344,31 @@ async function saveProductDetails() {
                     price: detailForm.price,
                     description: detailForm.description,
                     status: 1
-                };
-                await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail);
+                }
+                await API.put(`/productDetail/update/${detailForm.id}`, updatedDetail)
             }
 
             if (needUploadImages) {
-                const filesCopy = [...selectedImages.value];
-                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1;
-                await uploadImages(detailForm.id, filesCopy, mainIdxCopy);
+                const filesCopy = [...selectedImages.value]
+                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+                await uploadImages(detailForm.id, filesCopy, mainIdxCopy)
             }
 
-            alert('Cập nhật chi tiết thành công');
+            alert('Cập nhật chi tiết thành công')
         } else {
-            // ====== THÊM MỚI ======
-            const wantKeys = new Set(), wantTriples = [];
+            const wantKeys = new Set(), wantTriples = []
             for (const size of sizesArr) {
                 for (const color of colorsArr) {
                     for (const collar of collarsArr) {
-                        const k = tripleKey(size, color, collar);
-                        if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }); }
+                        const k = tripleKey(size, color, collar)
+                        if (!wantKeys.has(k)) { wantKeys.add(k); wantTriples.push({ size, color, collar, key: k }) }
                     }
                 }
             }
 
-            const duplicates = [], payloads = [];
+            const duplicates = [], payloads = []
             for (const t of wantTriples) {
-                if (existingDetailKeySet.value.has(t.key)) duplicates.push(t);
+                if (existingDetailKeySet.value.has(t.key)) duplicates.push(t)
                 else {
                     payloads.push({
                         product: { id: currentProduct.value.id },
@@ -405,47 +378,42 @@ async function saveProductDetails() {
                         price: detailForm.price,
                         description: detailForm.description,
                         active: true
-                    });
+                    })
                 }
             }
 
             if (payloads.length === 0) {
-                alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.');
-                return;
+                alert(duplicates.length ? `Tất cả ${duplicates.length} chi tiết đã tồn tại, không thể thêm trùng.` : 'Không có chi tiết hợp lệ để thêm.')
+                return
             }
 
-            const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)));
-            const successIds = []; let failed = 0;
-            addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++; });
+            const addResults = await Promise.allSettled(payloads.map(p => API.post('/productDetail/add', p)))
+            const successIds = []; let failed = 0
+            addResults.forEach(r => { if (r.status === 'fulfilled') successIds.push(r.value.data.id); else failed++ })
 
             if (selectedImages.value.length > 0 && successIds.length > 0) {
-                const filesCopy = [...selectedImages.value];
-                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1;
-                await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)));
+                const filesCopy = [...selectedImages.value]
+                const mainIdxCopy = (mainImageIndex.value != null && mainImageIndex.value >= 0) ? mainImageIndex.value : -1
+                await Promise.all(successIds.map(id => uploadImages(id, filesCopy, mainIdxCopy)))
             }
-            alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`);
+            alert(`Đã thêm ${successIds.length} chi tiết.${duplicates.length ? ` Bỏ qua ${duplicates.length} chi tiết trùng.` : ''}${failed ? ` ${failed} chi tiết thêm thất bại.` : ''}`)
         }
 
-        resetDetailForm();
-        await loadProductDetails(currentProduct.value.id);
+        resetDetailForm()
+        await loadProductDetails(currentProduct.value.id)
     } catch (err) {
-        console.error('Lỗi khi lưu chi tiết:', err);
-        alert('Không thể lưu chi tiết!');
+        console.error('Lỗi khi lưu chi tiết:', err)
+        alert('Không thể lưu chi tiết!')
     } finally {
-        loading.value = false;
+        loading.value = false
     }
 }
 
-// Hydrate ảnh
 async function hydrateMainImages(list) {
-    const pairs = list
-        .map(item => ({ item, id: detailIdOf(item) }))
-        .filter(p => !!p.id)
-
+    const pairs = list.map(item => ({ item, id: detailIdOf(item) })).filter(p => !!p.id)
     if (!pairs.length) return
     const calls = pairs.map(p => API.get(`/image/show/${p.id}`).catch(() => ({ data: [] })))
     const results = await Promise.allSettled(calls)
-
     results.forEach((r, i) => {
         const item = pairs[i].item
         const imgs = r.status === 'fulfilled' ? (r.value.data || []) : []
@@ -453,11 +421,9 @@ async function hydrateMainImages(list) {
         const main = imgs.find(it => isMainFlag(it.main)) || imgs[0]
         item.mainImageUrl = main ? (typeof main === 'string' ? main : (main.url || '')) : ''
     })
-
     productDetailList.value = [...productDetailList.value]
 }
 
-// Hydrate cho Trang hiển thị sau khi lọc
 function currentPageItems() {
     const start = (detailPage.value - 1) * detailsPerPage
     return detailsFiltered.value.slice(start, start + detailsPerPage)
@@ -469,7 +435,6 @@ async function hydrateCurrentPage(force = false) {
     if (need.length) await hydrateMainImages(need)
 }
 
-// Refresh
 async function refreshRowMainImage(productDetailId) {
     if (!productDetailId) return
     try {
@@ -483,7 +448,6 @@ async function refreshRowMainImage(productDetailId) {
     } catch (e) { console.error('refreshRowMainImage error:', e) }
 }
 
-// Ảnh - chọn & upload trong form
 function handleMultipleImageChange(e) {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
@@ -501,6 +465,7 @@ function handleMultipleImageChange(e) {
     mainImageIndex.value = null
     e.target.value = ''
 }
+
 onBeforeUnmount(() => previewUrls.value.forEach(u => URL.revokeObjectURL(u)))
 const selectMainImage = (i) => mainImageIndex.value = i
 
@@ -514,7 +479,6 @@ async function uploadImages(detailId, files, mainIndex) {
     } catch (err) { console.error('uploadImages error:', err); throw err }
 }
 
-// Viewer ảnh
 async function openImageViewer(detail) {
     try {
         const id = detailIdOf(detail)
@@ -590,40 +554,26 @@ async function addImagesForDetail(detailId) {
         if (!files.length) return
 
         try {
-            // Lấy danh sách ảnh hiện có để so trùng theo tên
             const { data: existing = [] } = await API.get(`/image/show/${detailId}`)
-            const nameToIndex = new Map() // filename -> vị trí (imageIndex)
+            const nameToIndex = new Map()
             existing.forEach((img, idx) => nameToIndex.set(imgBaseName(img), idx))
 
-            const toUpdate = [] // { file, index }
-            const toUpload = [] // File mới hoàn toàn
-
+            const toUpdate = []
+            const toUpload = []
             for (const f of files) {
                 const base = fileBaseName(f.name)
-                if (nameToIndex.has(base)) {
-                    toUpdate.push({ file: f, index: nameToIndex.get(base) })
-                } else {
-                    toUpload.push(f)
-                }
+                if (nameToIndex.has(base)) toUpdate.push({ file: f, index: nameToIndex.get(base) })
+                else toUpload.push(f)
             }
-
-            // Thay thế file trùng tên bằng /image/update-file (không tạo bản mới)
             for (const u of toUpdate) {
                 const form = new FormData()
                 form.append('file', u.file)
                 form.append('productDetailId', detailId)
                 form.append('imageIndex', u.index)
-                await API.post('/image/update-file', form, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                })
+                await API.post('/image/update-file', form, { headers: { 'Content-Type': 'multipart/form-data' } })
             }
+            if (toUpload.length) await uploadImages(detailId, toUpload, -1)
 
-            // 2) Upload các file mới thật sự
-            if (toUpload.length) {
-                await uploadImages(detailId, toUpload, -1) // -1: không set main
-            }
-
-            // Cập nhật lại viewer + thumbnail bảng
             const { data } = await API.get(`/image/show/${detailId}`)
             selectedDetailImages.value = data || []
             const mainIdx = selectedDetailImages.value.findIndex(i => isMainFlag(i.main))
@@ -634,11 +584,48 @@ async function addImagesForDetail(detailId) {
             alert('Không thể thêm/cập nhật ảnh.')
         }
     }
-
     input.click()
 }
 
-// Lọc danh sách biến thể theo từ khoá
+const detailsFiltered = computed(() => {
+    const sz = detailFilters.value.sizeId
+    const co = detailFilters.value.colorId
+    const cl = detailFilters.value.collarId
+    const st = detailFilters.value.status
+
+    return productDetailList.value.filter(d => {
+        const sizeId = toIdSafe(d.size, sizes)
+        const colorId = toIdSafe(d.color, colors)
+        const collarId = toIdSafe(d.collar, collars)
+
+        const okSize = sz === 'all' || Number(sizeId) === Number(sz)
+        const okColor = co === 'all' || Number(colorId) === Number(co)
+        const okCollar = cl === 'all' || Number(collarId) === Number(cl)
+
+        const active = rowActive(d, true)
+        const okStatus =
+            st === 'all' ||
+            (st === 'active' && active) ||
+            (st === 'inactive' && !active)
+
+        return okSize && okColor && okCollar && okStatus
+    })
+})
+
+// Pagination chi tiết
+const detailPage = ref(1)
+const detailsPerPage = 4
+const totalDetailPages = computed(() => Math.max(1, Math.ceil(detailsFiltered.value.length / detailsPerPage)))
+const paginatedDetails = computed(() => {
+    const start = (detailPage.value - 1) * detailsPerPage
+    return detailsFiltered.value.slice(start, start + detailsPerPage)
+})
+const changeDetailPage = (p) => { if (p >= 1 && p <= totalDetailPages.value) detailPage.value = p }
+
+// Reset trang khi đổi filter chi tiết
+watch(detailFilters, () => { detailPage.value = 1; hydrateCurrentPage(false) }, { deep: true })
+
+// Lọc danh sách biến thể theo từ khoá (giữ nguyên cho UI chọn)
 const filteredColors = computed(() =>
     colors.value.filter(c => norm(c.name).includes(norm(colorSearch.value)))
 )
@@ -649,7 +636,7 @@ const filteredCollars = computed(() =>
     collars.value.filter(c => norm(c.name).includes(norm(collarSearch.value)))
 )
 
-// Lifecycle + hydrate
+// Lifecycle
 onMounted(async () => {
     try {
         await Promise.all([
@@ -666,7 +653,6 @@ onMounted(async () => {
     }
 })
 watch(detailPage, () => { hydrateCurrentPage(false) })
-
 </script>
 
 <template>
@@ -710,13 +696,50 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
             </div>
         </div>
 
-        <!-- Header bảng + ô tìm kiếm sản phẩm -->
+        <!-- Bộ lọc sản phẩm -->
+        <div class="card mb-3">
+            <div class="card-body row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small">Tìm theo tên</label>
+                    <input class="form-control" v-model="productFilters.q" placeholder="Nhập tên sản phẩm..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Thương hiệu</label>
+                    <select v-model="productFilters.brandId" class="form-select">
+                        <option value="all">Tất cả</option>
+                        <option v-for="b in brands" :key="b.id" :value="b.id">{{ b.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Danh mục</label>
+                    <select v-model="productFilters.categoryId" class="form-select">
+                        <option value="all">Tất cả</option>
+                        <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Đế giày</label>
+                    <select v-model="productFilters.soleId" class="form-select">
+                        <option value="all">Tất cả</option>
+                        <option v-for="s in soles" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Trạng thái</label>
+                    <select v-model="productFilters.status" class="form-select">
+                        <option value="all">Tất cả</option>
+                        <option value="active">Hoạt động</option>
+                        <option value="inactive">Không hoạt động</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header danh sách -->
         <div class="d-flex align-items-center justify-content-between mb-2">
             <h5 class="mb-0">Danh sách sản phẩm</h5>
-            <div style="max-width: 420px; width: 100%;">
-                <input class="form-control" v-model="productQuery"
-                    placeholder="Tìm sản phẩm theo tên, ID, thương hiệu, danh mục..." />
-            </div>
+            <small class="text-muted">Hiển thị {{ paginatedProducts.length }} / {{ productsFiltered.length }} kết
+                quả</small>
         </div>
 
         <!-- Bảng sản phẩm -->
@@ -741,7 +764,7 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                     <td class="text-center">{{ getNameById(categories, p.categoryId) }}</td>
                     <td class="text-center">{{ getNameById(soles, p.soleId) }}</td>
                     <td class="text-center">
-                        <span v-if="p.active" class="badge bg-success">Hoạt động</span>
+                        <span v-if="rowActive(p)" class="badge bg-success">Hoạt động</span>
                         <span v-else class="badge bg-danger">Không hoạt động</span>
                     </td>
                     <td>{{ p.description }}</td>
@@ -781,7 +804,7 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                     </div>
 
                     <div class="modal-body">
-                        <!-- Nhóm biến thể + ô tìm theo nhóm -->
+                        <!-- Nhóm biến thể để TẠO/SỬA -->
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold mb-1">Màu sắc</label>
@@ -845,8 +868,6 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                             <!-- Cột phải: Ảnh -->
                             <div class="col-md-6">
                                 <label>Ảnh sản phẩm</label>
-
-                                <!-- TẠO MỚI -->
                                 <template v-if="!detailForm.id">
                                     <input type="file" multiple accept="image/*" class="form-control"
                                         @change="handleMultipleImageChange" />
@@ -854,18 +875,13 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                         v-if="previewUrls.length">
                                         <div v-for="(url, index) in previewUrls" :key="index" class="position-relative"
                                             style="cursor: pointer;" @click="selectMainImage(index)">
-                                            <img :src="url" alt="Preview" class="img-thumbnail" :style="{
-                                                width: '120px', height: '120px', objectFit: 'cover',
-                                                border: mainImageIndex === index ? '3px solid red' : '1px solid #ccc',
-                                                boxShadow: mainImageIndex === index ? '0 0 6px red' : 'none'
-                                            }" required />
+                                            <img :src="url" alt="Preview" class="img-thumbnail"
+                                                :style="{ width: '120px', height: '120px', objectFit: 'cover', border: mainImageIndex === index ? '3px solid red' : '1px solid #ccc', boxShadow: mainImageIndex === index ? '0 0 6px red' : 'none' }" />
                                             <span v-if="mainImageIndex === index"
                                                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">Chính</span>
                                         </div>
                                     </div>
                                 </template>
-
-                                <!-- SỬA -->
                                 <template v-else>
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-outline-secondary w-50"
@@ -881,13 +897,46 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                             </div>
                         </div>
 
-                        <!-- Header bảng + ô tìm kiếm chi tiết -->
-                        <div class="d-flex align-items-center justify-content-between mt-4 mb-2">
-                            <h6 class="mb-0">Danh sách chi tiết</h6>
-                            <div style="max-width: 380px; width: 100%;">
-                                <input class="form-control" v-model="detailQuery"
-                                    placeholder="Tìm chi tiết theo size, màu, cổ, mô tả hoặc giá..." />
+                        <div class="card mt-4 mb-2">
+                            <div class="card-body row g-2 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label small">Size</label>
+                                    <select class="form-select" v-model="detailFilters.sizeId">
+                                        <option value="all">Tất cả</option>
+                                        <option v-for="s in sizes" :key="s.id" :value="s.id">{{ s.eu ?? s.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Màu</label>
+                                    <select class="form-select" v-model="detailFilters.colorId">
+                                        <option value="all">Tất cả</option>
+                                        <option v-for="c in colors" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Kiểu cổ</label>
+                                    <select class="form-select" v-model="detailFilters.collarId">
+                                        <option value="all">Tất cả</option>
+                                        <option v-for="c in collars" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Trạng thái</label>
+                                    <select class="form-select" v-model="detailFilters.status">
+                                        <option value="all">Tất cả</option>
+                                        <option value="active">Hoạt động</option>
+                                        <option value="inactive">Không hoạt động</option>
+                                    </select>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Header bảng chi tiết -->
+                        <div class="d-flex align-items-center justify-content-between mt-2 mb-2">
+                            <h6 class="mb-0">Danh sách chi tiết</h6>
+                            <small class="text-muted">Hiển thị {{ paginatedDetails.length }} / {{ detailsFiltered.length
+                            }} dòng</small>
                         </div>
 
                         <!-- Bảng chi tiết -->
@@ -914,7 +963,8 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                         <td class="text-center">{{ productDetail.price }}</td>
                                         <td>{{ productDetail.description }}</td>
                                         <td class="text-center">
-                                            <span v-if="productDetail.active" class="badge bg-success">Hoạt động</span>
+                                            <span v-if="rowActive(productDetail)" class="badge bg-success">Hoạt
+                                                động</span>
                                             <span v-else class="badge bg-danger">Không hoạt động</span>
                                         </td>
                                         <td class="text-center">
@@ -935,7 +985,9 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                             <button class="btn btn-sm btn-warning me-1"
                                                 @click="editDetail(productDetail)">Sửa</button>
                                             <button class="btn btn-sm btn-danger"
-                                                @click="changeDetailStatus(productDetail.productDetailId ?? productDetail.id)">Chuyển trạng thái</button>
+                                                @click="changeDetailStatus(productDetail.productDetailId ?? productDetail.id)">
+                                                Chuyển trạng thái
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -991,13 +1043,11 @@ watch(detailPage, () => { hydrateCurrentPage(false) })
                                     style="font-size: 12px;">Chính</span>
                                 <div class="btn-group mt-2" role="group">
                                     <button class="btn btn-sm btn-outline-primary"
-                                        @click="editImage(img.productDetailId || currentDetailId, index)">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
+                                        @click="editImage(img.productDetailId || currentDetailId, index)"><i
+                                            class="bi bi-pencil"></i></button>
                                     <button class="btn btn-sm btn-outline-danger"
-                                        @click="deleteImage(img.id, img.productDetailId || currentDetailId)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                        @click="deleteImage(img.id, img.productDetailId || currentDetailId)"><i
+                                            class="bi bi-trash"></i></button>
                                 </div>
                             </div>
                             <div v-if="!selectedDetailImages.length" class="text-muted">

@@ -28,8 +28,9 @@ public class AuthDTO {
         } else {
             this.email = null;
         }
-        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ Customer
-                                                                                                
+        this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ
+                                                                                                // Customer
+
         this.employeeId = account.getEmployee() != null ? account.getEmployee().getId() : null;
     }
 

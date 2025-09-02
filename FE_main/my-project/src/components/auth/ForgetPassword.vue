@@ -27,10 +27,9 @@ const sendRequest = async () => {
   <Banner title="Quên mật khẩu" breadcrumb="Quên mật khẩu"
     backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
   <div class="custom-box">
-    <!-- Mũi tên quay lại -->
+
     <a href="/auth/login" class="back-arrow">&#8592;</a>
 
-    <!-- Tiêu đề -->
     <h2 class="text-center fw-bold text-dark mb-4">Quên mật khẩu</h2>
     <form @submit.prevent="sendRequest">
       <div class="mb-3">

@@ -32,8 +32,8 @@ public class CartDetail {
 
     @Column(name = "QUANTITY")
     private int quantity;
-    
+
     @Column(name = "MODIFIED_DATE")
     private LocalDateTime modifiedDate = LocalDateTime.now();
-    
+
 }

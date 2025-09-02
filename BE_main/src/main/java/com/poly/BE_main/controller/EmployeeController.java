@@ -55,7 +55,13 @@ public class EmployeeController {
         account.setUsername(dto.getUsername());
         account.setPassword(dto.getPassword() != null ? dto.getPassword() : "123456");
         account.setIsActive(true);
-        account.setRoleId(dto.getRoleId() != null ? dto.getRoleId() : 1);
+        int roleId;
+        if (dto.getRoleId().equals(1)) {
+            roleId = 1;
+        } else {
+            roleId = 3;
+        }
+        account.setRoleId(roleId);
         account.setCreatedDate(LocalDateTime.now());
         account = accountService.createAccount(account);
 

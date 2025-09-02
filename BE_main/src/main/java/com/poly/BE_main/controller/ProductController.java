@@ -34,7 +34,7 @@ public class ProductController {
     @GetMapping("/showSPdto")
     public ResponseEntity<List<ProductDTO>> getAllProductDTOs() {
         List<ProductDTO> products = productService.getProducts();
-        return ResponseEntity.ok(products); 
+        return ResponseEntity.ok(products);
     }
 
     @PostMapping("/add")
@@ -58,7 +58,7 @@ public class ProductController {
     public Product updateStatus(@PathVariable int id, @RequestBody Product p) {
         return productService.updateStatus(id, p);
     }
-    
+
     @GetMapping("/search")
     public ResponseEntity<List<ProductDTO>> searchProduct(@RequestParam("keyword") String keyword) {
         List<ProductDTO> results = productService.searchByKeyword(keyword);

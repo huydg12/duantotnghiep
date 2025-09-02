@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.poly.BE_main.model.Collar;
 
-public interface CollarRepository extends JpaRepository<Collar, Integer>{
-    
+public interface CollarRepository extends JpaRepository<Collar, Integer> {
+
 }
