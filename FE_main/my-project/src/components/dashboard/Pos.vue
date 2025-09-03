@@ -46,6 +46,30 @@ async function fetchUser() {
     }
 }
 
+const inventoryCache = ref(new Map()); 
+
+const getStock = async (productDetailId) => {
+    if (inventoryCache.value.has(productDetailId))
+        return inventoryCache.value.get(productDetailId);
+
+    try {
+        const { data } = await api.get(`/inventory/getQuantity/${productDetailId}`);
+        const stock = Number(data?.quantityInventory ?? 0);
+        inventoryCache.value.set(productDetailId, stock);
+        return stock;
+    } catch (e) {
+        console.error("Lỗi lấy tồn kho:", e);
+        // Không lấy được thì coi như 0 để an toàn
+        inventoryCache.value.set(productDetailId, 0);
+        return 0;
+    }
+};
+
+const clampAdditionToStock = async (productDetailId, toAdd, alreadyInCart = 0) => {
+    const stock = await getStock(productDetailId);
+    const remain = Math.max(0, stock - (Number(alreadyInCart) || 0));
+    return { allowed: Math.max(0, Math.min(Number(toAdd) || 0, remain)), stock };
+};
 
 const newInvoice = () => ({
     id: uid(),
@@ -175,34 +199,57 @@ const closeVariantModal = () => {
     productVariants.value = [];
 };
 
-const addToInvoice = (variant) => {
+const addToInvoice = async (variant) => {
     if (!isActiveRow(variant)) { alert('Biến thể không hoạt động.'); return; }
-    const qty = Number(variant.quantity) > 0 ? Number(variant.quantity) : 1;
+
+    // user chọn số lượng trong modal (mặc định 1)
+    const requested = Number(variant.quantity) > 0 ? Number(variant.quantity) : 1;
+
     const existing = currentInvoice.value.items.find(
         (i) => i.productDetailId === variant.productDetailId
     );
-    if (existing) existing.quantity += qty;
-    else currentInvoice.value.items.push({ ...variant, quantity: qty });
+
+    const already = existing?.quantity || 0;
+    const { allowed, stock } = await clampAdditionToStock(
+        variant.productDetailId,
+        requested,
+        already
+    );
+
+    if (allowed <= 0) {
+        alert(`Hết hàng/Không đủ tồn. Tồn kho: ${stock}, trong giỏ: ${already}.`);
+        return;
+    }
+
+    if (existing) existing.quantity += allowed;
+    else currentInvoice.value.items.push({ ...variant, quantity: allowed });
+
+    if (allowed < requested) {
+        alert(`Chỉ thêm được ${allowed}/${requested} do tồn kho hiện còn ${stock}.`);
+    }
+
     closeVariantModal();
 };
+
 
 const removeItem = (index) => {
     currentInvoice.value.items.splice(index, 1);
 };
 
-const changeQuantity = (index, quantity) => {
+const changeQuantity = async (index, quantity) => {
     const item = currentInvoice.value.items[index];
-    const q = parseInt(quantity) || 1;
-    api.get(`/inventory/getQuantity/${item.productDetailId}`)
-        .then((invRes) => {
-            const stock = invRes.data?.quantityInventory ?? 0;
-            currentInvoice.value.items[index].quantity = Math.min(Math.max(1, q), stock);
-            if (q > stock) alert(`Tồn kho chỉ còn ${stock}. Đã điều chỉnh!`);
-        })
-        .catch(() => {
-            currentInvoice.value.items[index].quantity = Math.max(1, q);
-        });
+    const q = Math.max(1, parseInt(quantity) || 1);
+
+    const stock = await getStock(item.productDetailId);
+    const clamped = Math.min(q, stock);
+
+    currentInvoice.value.items[index].quantity = clamped;
+
+    if (q > stock) {
+        alert(`Tồn kho cho biến thể này chỉ còn ${stock}. Đã điều chỉnh về ${clamped}.`);
+    }
 };
+
 
 const switchInvoice = (index) => {
     activeInvoiceIndex.value = index;
@@ -323,7 +370,6 @@ async function saveNewCustomer() {
     const fullName = String(newCus.value.fullName || '').trim()
     const email = String(newCus.value.email || '').trim()
 
-    // HỖ TRỢ CẢ 2 KEY: numberPhone ưu tiên, fallback sang phone nếu còn sót
     const phoneRaw = newCus.value.numberPhone ?? newCus.value.phone ?? ''
     const phoneDigits = onlyDigits(phoneRaw)
 
@@ -373,16 +419,46 @@ async function saveNewCustomer() {
     }
 }
 
+const validateInvoiceStock = async () => {
+    const inv = currentInvoice.value;
+    const errors = [];
+
+    // fetch tồn kho song song cho nhanh
+    await Promise.all(inv.items.map(async (it) => {
+        const stock = await getStock(it.productDetailId);
+        if (Number(it.quantity) > stock) {
+            errors.push({
+                name: `${it.productName} (${it.color}/${it.size})`,
+                qty: Number(it.quantity),
+                stock
+            });
+        }
+    }));
+
+    return { ok: errors.length === 0, errors };
+};
+
+
 const handleCheckout = async () => {
     const inv = currentInvoice.value;
-
-    let user = null;
-    try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch { }
 
     if (!inv || inv.items.length === 0) {
         alert("Giỏ hàng đang trống!");
         return;
     }
+
+    // ✅ Chặn vượt kho trước khi thanh toán
+    const { ok, errors } = await validateInvoiceStock();
+    if (!ok) {
+        const msg = errors
+            .map(e => `• ${e.name}: yêu cầu ${e.qty}, tồn kho ${e.stock}`)
+            .join('\n');
+        alert("Không thể thanh toán do vượt tồn kho:\n" + msg);
+        return;
+    }
+    
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch { }
 
     const name = (currentCustomer.value?.fullName || WALK_IN.fullName).trim();
     const phone = firstNonEmpty(
@@ -419,9 +495,7 @@ const handleCheckout = async () => {
 
     try {
         const res = await api.post("/bill/create", dto);
-
         const bfs = res?.data || {};
-        // Ưu tiên dữ liệu server nếu có
         const employeeFromServer = bfs.employeeName ?? bfs.employee?.fullName ?? "";
         const customerFromServer = bfs.customerName ?? bfs.customer?.fullName ?? "";
         const customerPhone = firstNonEmpty(
@@ -441,19 +515,16 @@ const handleCheckout = async () => {
         const bill = {
             billCode: bfs.billCode ?? dto.billCode,
             createdAt: bfs.createdDate ?? new Date().toISOString(),
-
             employeeName: firstNonEmpty(
                 employeeFromServer,
                 (typeof employeeName !== "undefined" && employeeName?.value) ? employeeName.value : "",
                 user?.fullName
             ),
-
             customerName: firstNonEmpty(
                 customerFromServer,
                 currentCustomer.value?.fullName,
                 WALK_IN.fullName
             ),
-
             customerPhone: customerPhone,
             items: itemsSrc.map((d) => ({
                 productName: d.productName,
@@ -469,18 +540,15 @@ const handleCheckout = async () => {
         };
 
         alert("Thanh toán thành công!");
-        await printReceipt(bill); // mở PDF ở tab mới
+        await printReceipt(bill);
 
-        // Reset
         invoices.value[activeInvoiceIndex.value] = newInvoice();
         customerSelectModel.value = null;
         localStorage.setItem("invoices", JSON.stringify(invoices.value));
     } catch (error) {
-        console.error("Lỗi khi tạo hóa đơn:", error);
         alert(error?.response?.data?.message || "Lỗi khi thanh toán. Vui lòng thử lại.");
     }
 };
-
 
 
 onMounted(() => {
