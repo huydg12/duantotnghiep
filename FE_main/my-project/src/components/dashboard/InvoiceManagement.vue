@@ -203,7 +203,7 @@ const fetchBills = async () => {
     const response = await axios.get("http://localhost:8080/bill/show");
     bills.value = mapBillData(response.data);
     console.log(bills.value);
-    setDefaultTab(); // ✅
+    setDefaultTab();
   } catch (error) {
     console.log("Lỗi lấy hoá đơn", error);
   }
@@ -415,7 +415,7 @@ const openModal = async (bill, ev) => {
   selectedBill.value.oldNote = (selectedBill.value.NOTE ?? '').trim();
   billDetails.value = billDetails.value.map(d => {
     const q = parseInt(d.QUANTITY) || 1;
-    return { ...d, QUANTITY: q, oldQuantity: q }; // oldQuantity dùng để so sánh khi lưu
+    return { ...d, QUANTITY: q, oldQuantity: q }
   });
 
   await nextTick();
@@ -466,7 +466,7 @@ const cacheOldQuantity = (detail) => {
 
 const saveAllChanges = async () => {
   try {
-    // NEW: validate trống/hợp lệ chi tiết
+
     if (!billDetails.value.length) {
       alert('Hóa đơn chưa có sản phẩm.');
       return;
@@ -723,8 +723,7 @@ onMounted(() => {
             <h6>Chi tiết sản phẩm</h6>
             <table class="table table-sm">
               <thead>
-                <tr>
-                  <th>Ảnh</th>
+                <tr>  
                   <th>Tên SP</th>
                   <th>Màu</th>
                   <th>Kích cỡ</th>
@@ -735,7 +734,6 @@ onMounted(() => {
               </thead>
               <tbody>
                 <tr v-for="(detail, index) in billDetails" :key="detail.ID">
-                  <td><img :src="detail.PRODUCT_IMAGE" width="50" /></td>
                   <td>{{ detail.PRODUCT_NAME }}</td>
                   <td>{{ detail.COLOR }}</td>
                   <td>{{ detail.SIZE }}</td>

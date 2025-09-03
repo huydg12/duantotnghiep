@@ -154,9 +154,9 @@ const toggleSelectAll = () => {
   }
 };
 
-function goToProductDetail(productDetailId) {
-  router.push(`/productdetail/${productDetailId}`);
-  console.log("sp chi tiết: " + productDetailId);
+function goToProductDetail(productId) {
+  router.push(`/productdetail/${productId}`);
+  console.log("sp chi tiết: " + productId);
 }
 
 </script>
@@ -183,10 +183,10 @@ function goToProductDetail(productDetailId) {
           </div>
           <div class="col-2 text-center">
             <img :src="item.images" :alt="item.productName" class="img-fluid rounded clickable"
-              @click="goToProductDetail(item.productDetailId)" style="max-width: 96px; height: auto" />
+              @click="goToProductDetail(item.productId)" style="max-width: 96px; height: auto" />
           </div>
           <div class="col-4">
-            <h6 class="mb-1 fw-medium text clickable" @click="goToProductDetail(item.productDetailId)"
+            <h6 class="mb-1 fw-medium text clickable" @click="goToProductDetail(item.productId)"
               style="cursor: pointer;">{{ item.productName }}</h6>
             <small class="text-muted">Color: {{ item.color }} | Size: {{ item.size }}</small>
           </div>

@@ -20,7 +20,7 @@ const normalizeId = (x) => (x === null || x === undefined ? null : String(x));
 const firstNonEmpty = (...vals) =>
     vals.find(v => v !== null && v !== undefined && String(v).trim() !== "") || "";
 
-const WALK_IN = { fullName: "Khách lẻ", phone: "" };
+const WALK_IN = { fullName: "Khách Lẻ", phone: "" };
 
 const products = ref([]);
 const customers = ref([]);
@@ -112,6 +112,11 @@ const normalizeCustomer = (c) => ({
     fullName: firstNonEmpty(c.fullName, c.name, c.customerName),
     phone: firstNonEmpty(c.phone, c.numberPhone, c.phoneNumber, c.sdt, c.mobile),
 });
+
+const toVND = (n) =>
+    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
+        .format(Number(n || 0));
+
 
 const toBoolish = (v) => {
     if (v === true || v === 1) return true;
@@ -455,14 +460,12 @@ const handleCheckout = async () => {
                 color: d.color,
                 size: d.size,
                 quantity: d.quantity,
-                price: d.price,
-                lineTotal: (Number(d.price) || 0) * (Number(d.quantity) || 0),
+                price: toVND(d.price),
+                lineTotal: toVND((Number(d.price) || 0) * (Number(d.quantity) || 0)),
             })),
-            subTotal: bfs.subTotal ?? dto.subTotal,
-            discountAmount: bfs.discountAmount ?? dto.discountAmount,
-            grandTotal: bfs.grandTotal ?? dto.grandTotal,
-            paid: inv.paid,
-            change: (Number(inv.paid) || 0) - (bfs.grandTotal ?? dto.grandTotal),
+            subTotal: toVND(bfs.subTotal ?? dto.subTotal),
+            discountAmount: toVND(bfs.discountAmount ?? dto.discountAmount),
+            grandTotal: toVND(bfs.grandTotal ?? dto.grandTotal),
         };
 
         alert("Thanh toán thành công!");

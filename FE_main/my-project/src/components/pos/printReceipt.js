@@ -21,7 +21,7 @@ export async function printReceipt(bill) {
       <div><b>Mã:</b> ${safe(bill?.billCode)}</div>
       <div><b>Thời gian:</b> ${nowText}</div>
       <div><b>Nhân viên bán hàng:</b> ${safe(bill?.employeeName) || "—"}</div>
-      <div><b>Khách hàng:</b> ${safe(bill?.customerName) || "Khách lẻ"}</div>
+      <div><b>Khách hàng:</b> ${safe(bill?.customerName) || "Khách Lẻ"}</div>
       <div><b>Số điện thoại:</b> ${safe(bill?.customerPhone) || "—"}</div>
     </div>
 
