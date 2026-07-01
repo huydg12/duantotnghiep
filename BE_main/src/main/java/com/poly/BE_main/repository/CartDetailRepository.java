@@ -1,22 +1,21 @@
 package com.poly.BE_main.repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+import com.poly.BE_main.model.CartDetail;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.poly.BE_main.model.CartDetail;
-
-import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public interface CartDetailRepository extends JpaRepository<CartDetail, Integer> {
     @Transactional
     @Modifying
     @Query(value = "DELETE FROM CART_DETAIL WHERE CART_ID = :cartId", nativeQuery = true)
     void deleteAllByCartId(@Param("cartId") Integer cartId);
+
     @Query(value = """
             WITH RepresentativeProductDetail AS (
                 SELECT
@@ -26,7 +25,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
                 FROM PRODUCT_DETAIL
                 GROUP BY PRODUCT_ID, COLOR_ID
             )
-
+            
             SELECT
                 CD.ID                  AS cartDetailId,
                 C.ID                   AS cartId,
@@ -49,18 +48,18 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
             JOIN SIZE S ON PD.SIZE_ID = S.ID
             JOIN COLOR CO ON PD.COLOR_ID = CO.ID
             LEFT JOIN INVENTORY ITR ON ITR.PRODUCT_DETAIL_ID = PD.ID
-
+            
             -- Lấy product detail đại diện theo màu
             LEFT JOIN RepresentativeProductDetail RPD
                 ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
-
+            
             -- Lấy ảnh chính (is_main = 1) từ bản ghi đại diện
             LEFT JOIN IMAGE I
                 ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID AND I.IS_MAIN = 1
-
+            
             WHERE CU.ID = :customerId
             ORDER BY CD.MODIFIED_DATE DESC
-                        """, nativeQuery = true)
+            """, nativeQuery = true)
     List<Object[]> findAllCartDetailByCustomer(@Param("customerId") Integer customerId);
 
     @Query(value = """
@@ -73,7 +72,7 @@ public interface CartDetailRepository extends JpaRepository<CartDetail, Integer>
             AND PRODUCT_DETAIL_ID = :productDetailId
             """, nativeQuery = true)
     boolean existsByCartIdAndProductDetailId(@Param("cartId") Integer cartId,
-            @Param("productDetailId") Integer productDetailId);
+                                             @Param("productDetailId") Integer productDetailId);
 
     // ✅ Hàm cập nhật quantity
     @Transactional

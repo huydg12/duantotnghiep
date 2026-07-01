@@ -1,22 +1,27 @@
 package com.poly.BE_main.service;
 
+import com.poly.BE_main.dto.BillDTO;
+import com.poly.BE_main.dto.BillDetailDTO;
+import com.poly.BE_main.dto.InvoiceCustomerDTO;
+import com.poly.BE_main.dto.InvoiceItemCustomerDTO;
+import com.poly.BE_main.model.*;
+import com.poly.BE_main.repository.*;
+import com.poly.BE_main.utils.BillStatus;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.context.ApplicationEventPublisher;
-import com.poly.BE_main.utils.BillStatus;
-
-import com.poly.BE_main.dto.*;
-import com.poly.BE_main.model.*;
-import com.poly.BE_main.repository.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class BillService {
@@ -35,16 +40,20 @@ public class BillService {
     private final ApplicationEventPublisher eventPublisher;
 
     public BillService(BillRepository billRepository, BillDetailRepository billDetailRepository,
-            InventoryRepository inventoryRepository, AccountRepository accountRepository,
-            CustomerRepository customerRepository, ProductDetailRepository productDetailRepository,
-            PromotionRepository promotionRepository, CartRepository cartRepository,
-            CartDetailRepository cartDetailRepository, BillStatusHistoryRepository statusHistoryRepository,
-            InventoryMovementRepository inventoryMovementRepository, PromotionUsageRepository promotionUsageRepository,
-            ApplicationEventPublisher eventPublisher) {
-        this.billRepository = billRepository; this.billDetailRepository = billDetailRepository;
-        this.inventoryRepository = inventoryRepository; this.accountRepository = accountRepository;
-        this.customerRepository = customerRepository; this.productDetailRepository = productDetailRepository;
-        this.promotionRepository = promotionRepository; this.cartRepository = cartRepository;
+                       InventoryRepository inventoryRepository, AccountRepository accountRepository,
+                       CustomerRepository customerRepository, ProductDetailRepository productDetailRepository,
+                       PromotionRepository promotionRepository, CartRepository cartRepository,
+                       CartDetailRepository cartDetailRepository, BillStatusHistoryRepository statusHistoryRepository,
+                       InventoryMovementRepository inventoryMovementRepository, PromotionUsageRepository promotionUsageRepository,
+                       ApplicationEventPublisher eventPublisher) {
+        this.billRepository = billRepository;
+        this.billDetailRepository = billDetailRepository;
+        this.inventoryRepository = inventoryRepository;
+        this.accountRepository = accountRepository;
+        this.customerRepository = customerRepository;
+        this.productDetailRepository = productDetailRepository;
+        this.promotionRepository = promotionRepository;
+        this.cartRepository = cartRepository;
         this.cartDetailRepository = cartDetailRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.inventoryMovementRepository = inventoryMovementRepository;
@@ -52,9 +61,17 @@ public class BillService {
         this.eventPublisher = eventPublisher;
     }
 
-    public List<Bill> findAll() { return billRepository.findAll(); }
-    public Optional<Bill> findById(int id) { return billRepository.findById(id); }
-    public void delete(Integer id) { billRepository.deleteById(id); }
+    public List<Bill> findAll() {
+        return billRepository.findAll();
+    }
+
+    public Optional<Bill> findById(int id) {
+        return billRepository.findById(id);
+    }
+
+    public void delete(Integer id) {
+        billRepository.deleteById(id);
+    }
 
     @Deprecated
     public Bill create(Bill ignored) {
@@ -82,10 +99,13 @@ public class BillService {
             subtotal = subtotal.add(pd.getPrice().multiply(BigDecimal.valueOf(line.getQuantity())));
 
             BillDetail detail = new BillDetail();
-            detail.setProductDetailId(pd.getId()); detail.setQuantity(line.getQuantity());
-            detail.setPrice(pd.getPrice()); detail.setStatus(1);
+            detail.setProductDetailId(pd.getId());
+            detail.setQuantity(line.getQuantity());
+            detail.setPrice(pd.getPrice());
+            detail.setStatus(1);
             detail.setProductName(pd.getProduct().getProductName());
-            detail.setColor(pd.getColor().getName()); detail.setSize(pd.getSize().getEu());
+            detail.setColor(pd.getColor().getName());
+            detail.setSize(pd.getSize().getEu());
             details.add(detail);
         }
 
@@ -94,14 +114,25 @@ public class BillService {
         BigDecimal total = subtotal.subtract(discount).add(shipping).max(BigDecimal.ZERO);
 
         Bill bill = new Bill();
-        bill.setCustomerId(customerId); bill.setEmployeeId(dto.getEmployeeId()); bill.setPtttId(dto.getPtttId());
-        bill.setPromotionId(dto.getPromotionId()); bill.setCode(newBillCode());
-        bill.setBillType(actor.getRoleId() == 2 ? "ONLINE" : "POS"); bill.setStatus(1);
-        bill.setCreatedBy(username); bill.setCreatedDate(LocalDate.now());
-        bill.setRecipientName(dto.getRecipientName()); bill.setRecipientPhoneNumber(dto.getRecipientPhoneNumber());
-        bill.setReceiverAddress(dto.getReceiverAddress()); bill.setAddressMethod(dto.getAddressMethod());
-        bill.setNote(dto.getNote()); bill.setStatusPayment(actor.getRoleId() == 2 ? "Chưa thanh toán" : "Đã thanh toán");
-        bill.setSubTotal(subtotal); bill.setDiscountAmount(discount); bill.setShippingFee(shipping); bill.setGrandTotal(total);
+        bill.setCustomerId(customerId);
+        bill.setEmployeeId(dto.getEmployeeId());
+        bill.setPtttId(dto.getPtttId());
+        bill.setPromotionId(dto.getPromotionId());
+        bill.setCode(newBillCode());
+        bill.setBillType(actor.getRoleId() == 2 ? "ONLINE" : "POS");
+        bill.setStatus(1);
+        bill.setCreatedBy(username);
+        bill.setCreatedDate(LocalDate.now());
+        bill.setRecipientName(dto.getRecipientName());
+        bill.setRecipientPhoneNumber(dto.getRecipientPhoneNumber());
+        bill.setReceiverAddress(dto.getReceiverAddress());
+        bill.setAddressMethod(dto.getAddressMethod());
+        bill.setNote(dto.getNote());
+        bill.setStatusPayment(actor.getRoleId() == 2 ? "Chưa thanh toán" : "Đã thanh toán");
+        bill.setSubTotal(subtotal);
+        bill.setDiscountAmount(discount);
+        bill.setShippingFee(shipping);
+        bill.setGrandTotal(total);
         Bill saved = billRepository.save(bill);
         details.forEach(d -> d.setBill(saved));
         billDetailRepository.saveAll(details);
@@ -113,8 +144,10 @@ public class BillService {
         }
         if (dto.getPromotionId() != null) {
             PromotionUsage usage = new PromotionUsage();
-            usage.setPromotionId(dto.getPromotionId()); usage.setCustomerId(customerId);
-            usage.setBillId(saved.getId()); usage.setUsedAt(LocalDateTime.now());
+            usage.setPromotionId(dto.getPromotionId());
+            usage.setCustomerId(customerId);
+            usage.setBillId(saved.getId());
+            usage.setUsedAt(LocalDateTime.now());
             promotionUsageRepository.save(usage);
         }
 
@@ -129,7 +162,8 @@ public class BillService {
 
     private Integer resolveCustomerId(Account actor, Integer requested) {
         if (actor.getRoleId() != 2) {
-            if (requested == null || !customerRepository.existsById(requested)) throw badRequest("Customer is required");
+            if (requested == null || !customerRepository.existsById(requested))
+                throw badRequest("Customer is required");
             return requested;
         }
         return customerRepository.findByAccountId(actor.getId()).map(Customer::getId)
@@ -165,17 +199,30 @@ public class BillService {
 
     private String newBillCode() {
         String code;
-        do { code = "HD-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase(); }
+        do {
+            code = "HD-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
+        }
         while (billRepository.existsByCode(code));
         return code;
     }
-    private ResponseStatusException badRequest(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, message); }
 
-    public Bill update(int id, Bill b) { return billRepository.findById(id).map(x -> {
-        x.setCustomerId(b.getCustomerId()); x.setEmployeeId(b.getEmployeeId()); x.setPtttId(b.getPtttId());
-        x.setRecipientName(b.getRecipientName()); x.setRecipientPhoneNumber(b.getRecipientPhoneNumber());
-        x.setReceiverAddress(b.getReceiverAddress()); x.setNote(b.getNote()); return billRepository.save(x);
-    }).orElseThrow(() -> badRequest("Bill not found")); }
+    private ResponseStatusException badRequest(String message) {
+        return new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+    }
+
+    public Bill update(int id, Bill b) {
+        return billRepository.findById(id).map(x -> {
+            x.setCustomerId(b.getCustomerId());
+            x.setEmployeeId(b.getEmployeeId());
+            x.setPtttId(b.getPtttId());
+            x.setRecipientName(b.getRecipientName());
+            x.setRecipientPhoneNumber(b.getRecipientPhoneNumber());
+            x.setReceiverAddress(b.getReceiverAddress());
+            x.setNote(b.getNote());
+            return billRepository.save(x);
+        }).orElseThrow(() -> badRequest("Bill not found"));
+    }
+
     @Transactional
     public Bill transitionStatus(Integer id, Integer status, String username, String note) {
         Bill bill = billRepository.findById(id).orElseThrow(() -> badRequest("Bill not found"));
@@ -183,16 +230,22 @@ public class BillService {
         if (!BillStatus.canTransition(previous, status))
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Invalid status transition: " + BillStatus.toString(previous) + " -> " + BillStatus.toString(status));
-        bill.setStatus(status); bill.setNote(note == null ? bill.getNote() : note);
-        if (status == BillStatus.HOAN_TAT) { bill.setStatusPayment("Đã thanh toán"); bill.setDateOfPayment(LocalDate.now()); }
+        bill.setStatus(status);
+        bill.setNote(note == null ? bill.getNote() : note);
+        if (status == BillStatus.HOAN_TAT) {
+            bill.setStatusPayment("Đã thanh toán");
+            bill.setDateOfPayment(LocalDate.now());
+        }
         if (status == BillStatus.DA_HUY) restoreInventory(bill, username);
         Bill saved = billRepository.save(bill);
         saveStatusHistory(id, previous, status, username, note);
         return saved;
     }
+
     public List<BillStatusHistory> getStatusHistory(Integer billId) {
         return statusHistoryRepository.findByBillIdOrderByChangedAtAsc(billId);
     }
+
     private void restoreInventory(Bill bill, String username) {
         for (BillDetail detail : billDetailRepository.findByBillId(bill.getId())) {
             Inventory stock = inventoryRepository.lockByProductDetailId(detail.getProductDetailId())
@@ -202,21 +255,65 @@ public class BillService {
                     "ORDER_CANCEL", "BILL", bill.getId(), username);
         }
     }
+
     private void saveStatusHistory(Integer billId, Integer from, Integer to, String username, String note) {
-        BillStatusHistory h = new BillStatusHistory(); h.setBillId(billId); h.setFromStatus(from); h.setToStatus(to);
-        h.setChangedBy(username); h.setNote(note); h.setChangedAt(LocalDateTime.now()); statusHistoryRepository.save(h);
+        BillStatusHistory h = new BillStatusHistory();
+        h.setBillId(billId);
+        h.setFromStatus(from);
+        h.setToStatus(to);
+        h.setChangedBy(username);
+        h.setNote(note);
+        h.setChangedAt(LocalDateTime.now());
+        statusHistoryRepository.save(h);
     }
+
     private void saveMovement(Integer pdId, int change, int balance, String type, String refType, Integer refId, String user) {
-        InventoryMovement m = new InventoryMovement(); m.setProductDetailId(pdId); m.setQuantityChange(change);
-        m.setBalanceAfter(balance); m.setMovementType(type); m.setReferenceType(refType); m.setReferenceId(refId);
-        m.setCreatedBy(user); m.setCreatedAt(LocalDateTime.now()); inventoryMovementRepository.save(m);
+        InventoryMovement m = new InventoryMovement();
+        m.setProductDetailId(pdId);
+        m.setQuantityChange(change);
+        m.setBalanceAfter(balance);
+        m.setMovementType(type);
+        m.setReferenceType(refType);
+        m.setReferenceId(refId);
+        m.setCreatedBy(user);
+        m.setCreatedAt(LocalDateTime.now());
+        inventoryMovementRepository.save(m);
     }
-    public Bill updateEmployee(int id, Bill b) { return billRepository.findById(id).map(x -> { x.setEmployeeId(b.getEmployeeId()); return billRepository.save(x); }).orElseThrow(() -> badRequest("Bill not found")); }
-    public void updateSubTotal(int id, BigDecimal ignored) { throw new ResponseStatusException(HttpStatus.GONE, "Totals are server managed"); }
-    public Bill updateStatusNote(int id, Bill b) { return transitionStatus(id, b.getStatus(), "legacy-admin", b.getNote()); }
-    public Bill updateStatusNote4(int id, Bill b) { return transitionStatus(id, b.getStatus(), "legacy-admin", b.getNote()); }
-    public Bill updateAddressByBill(int id, Bill b) { return billRepository.findById(id).map(x -> { x.setRecipientName(b.getRecipientName()); x.setRecipientPhoneNumber(b.getRecipientPhoneNumber()); x.setReceiverAddress(b.getReceiverAddress()); return billRepository.save(x); }).orElseThrow(() -> badRequest("Bill not found")); }
-    public Bill updateBill(int id, Bill b) { return billRepository.findById(id).map(x -> { x.setNote(b.getNote()); return billRepository.save(x); }).orElseThrow(() -> badRequest("Bill not found")); }
+
+    public Bill updateEmployee(int id, Bill b) {
+        return billRepository.findById(id).map(x -> {
+            x.setEmployeeId(b.getEmployeeId());
+            return billRepository.save(x);
+        }).orElseThrow(() -> badRequest("Bill not found"));
+    }
+
+    public void updateSubTotal(int id, BigDecimal ignored) {
+        throw new ResponseStatusException(HttpStatus.GONE, "Totals are server managed");
+    }
+
+    public Bill updateStatusNote(int id, Bill b) {
+        return transitionStatus(id, b.getStatus(), "legacy-admin", b.getNote());
+    }
+
+    public Bill updateStatusNote4(int id, Bill b) {
+        return transitionStatus(id, b.getStatus(), "legacy-admin", b.getNote());
+    }
+
+    public Bill updateAddressByBill(int id, Bill b) {
+        return billRepository.findById(id).map(x -> {
+            x.setRecipientName(b.getRecipientName());
+            x.setRecipientPhoneNumber(b.getRecipientPhoneNumber());
+            x.setReceiverAddress(b.getReceiverAddress());
+            return billRepository.save(x);
+        }).orElseThrow(() -> badRequest("Bill not found"));
+    }
+
+    public Bill updateBill(int id, Bill b) {
+        return billRepository.findById(id).map(x -> {
+            x.setNote(b.getNote());
+            return billRepository.save(x);
+        }).orElseThrow(() -> badRequest("Bill not found"));
+    }
 
     public List<InvoiceCustomerDTO> getInvoicesByCustomerId(Integer customerId) {
         List<InvoiceCustomerDTO> result = new ArrayList<>();
@@ -228,5 +325,16 @@ public class BillService {
         }
         return result;
     }
-    private String statusName(int status) { return switch (status) { case 1 -> "Chờ xác nhận"; case 2 -> "Đã xác nhận"; case 3 -> "Đang giao"; case 4 -> "Hoàn thành"; case 5 -> "Đã hủy"; case 6 -> "Trả hàng/Hoàn tiền"; default -> "Không xác định"; }; }
+
+    private String statusName(int status) {
+        return switch (status) {
+            case 1 -> "Chờ xác nhận";
+            case 2 -> "Đã xác nhận";
+            case 3 -> "Đang giao";
+            case 4 -> "Hoàn thành";
+            case 5 -> "Đã hủy";
+            case 6 -> "Trả hàng/Hoàn tiền";
+            default -> "Không xác định";
+        };
+    }
 }

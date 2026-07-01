@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, reactive, onUnmounted, watch } from 'vue';
+import {computed, onMounted, reactive, ref, watch} from 'vue';
 import axios from 'axios';
 
 const currentCustomerId = ref(null);
@@ -37,10 +37,10 @@ const addressBeingEdited = reactive({
 // Hàm normalize để so sánh tên không dấu
 const normalize = (str) => {
   return str
-    ?.normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
+      ?.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
 };
 
 // Lấy danh sách tỉnh/thành phố
@@ -219,13 +219,13 @@ const updateAddress = async () => {
       const wardNameNew = getWardNameByCode(m.wardCode) || m.wardName || original.wardName || "";
 
       const noChange =
-        String(m.fullName ?? "") === String(original.fullName ?? "") &&
-        String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
-        String(m.detailAddress ?? "") === String(original.detailAddress ?? "") &&
-        cityNameNew === (original.cityName || "") &&
-        districtNameNew === (original.districtName || "") &&
-        wardNameNew === (original.wardName || "") &&
-        (!!m.default === !!original.default);
+          String(m.fullName ?? "") === String(original.fullName ?? "") &&
+          String(m.numberPhone ?? "") === String(original.numberPhone ?? "") &&
+          String(m.detailAddress ?? "") === String(original.detailAddress ?? "") &&
+          cityNameNew === (original.cityName || "") &&
+          districtNameNew === (original.districtName || "") &&
+          wardNameNew === (original.wardName || "") &&
+          (!!m.default === !!original.default);
 
       if (noChange) {
         alert('Không có thay đổi nào.');
@@ -252,7 +252,7 @@ const updateAddress = async () => {
 
     const response = await fetch(`http://localhost:8080/address/update/${m.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data),
     });
 
@@ -313,7 +313,7 @@ const openUpdateAddressOverlay = async (address) => {
 
   // Tìm tỉnh/thành phố
   const city = provinces.value.find(p =>
-    normalize(p.name) === normalize(address.cityName)
+      normalize(p.name) === normalize(address.cityName)
   );
   const cityCode = city?.code || null;
   console.log("📍 Mã tỉnh (cityCode):", cityCode, "| Tên tỉnh:", address.cityName);
@@ -326,7 +326,7 @@ const openUpdateAddressOverlay = async (address) => {
 
     // Tìm quận/huyện
     const district = (city?.districts || []).find(d =>
-      normalize(d.name) === normalize(address.districtName)
+        normalize(d.name) === normalize(address.districtName)
     );
     districtCode = district?.code || null;
     console.log("🏙️ Mã quận (districtCode):", districtCode, "| Tên quận:", address.districtName);
@@ -336,9 +336,9 @@ const openUpdateAddressOverlay = async (address) => {
 
       if (Array.isArray(wardList)) {
         const ward = wardList.find(w =>
-          normalize(w.name) === normalize(address.wardName)
+            normalize(w.name) === normalize(address.wardName)
         );
-        console.table(wardList.map(w => ({ code: w.code, name: w.name })));
+        console.table(wardList.map(w => ({code: w.code, name: w.name})));
         wardCode = ward?.code || null;
         console.log("🏡 Mã phường (wardCode):", wardCode, "| Tên phường:", address.wardName);
       } else {
@@ -428,9 +428,9 @@ const filteredCustomers = computed(() => {
 
     const matchKw = !kw || haystacks.some((v) => v.includes(kw));
     const matchGender =
-      search.gender === "all" || String(c?.gender) === search.gender;
+        search.gender === "all" || String(c?.gender) === search.gender;
     const matchStatus =
-      search.status === "all" || String(c?.active) === search.status;
+        search.status === "all" || String(c?.active) === search.status;
 
     return matchKw && matchGender && matchStatus;
   });
@@ -438,9 +438,11 @@ const filteredCustomers = computed(() => {
 
 // Khi thay đổi tìm kiếm thì quay về trang 1
 watch(
-  () => [search.keyword, search.gender, search.status],
-  () => { currentPage.value = 1; },
-  { deep: true }
+    () => [search.keyword, search.gender, search.status],
+    () => {
+      currentPage.value = 1;
+    },
+    {deep: true}
 );
 
 // CRUD khách hàng
@@ -459,11 +461,11 @@ function editCustomer(customer) {
     gender: customer.gender != null ? String(customer.gender) : "0", // mặc định Nam
     status: customer.status != null ? String(customer.status) : "1", // mặc định Hoạt động
     birthOfDate: customer.birthOfDate
-      ? new Date(customer.birthOfDate).toISOString().split("T")[0]
-      : ""
+        ? new Date(customer.birthOfDate).toISOString().split("T")[0]
+        : ""
   };
   isEditing.value = true;
-  originalCustomer.value = { ...toComparable(form.value) };
+  originalCustomer.value = {...toComparable(form.value)};
 }
 
 const resetForm = () => {
@@ -509,7 +511,7 @@ const saveCustomer = async () => {
       }
 
       const res = await axios.put(`http://localhost:8080/customer/update/${form.value.id}`, form.value);
-       alert('Cập nhật thành công');
+      alert('Cập nhật thành công');
       console.log('Kết quả update:', res.data);
     } else {
       const rep = await axios.post('http://localhost:8080/customer/add', form.value);
@@ -530,7 +532,7 @@ const saveCustomer = async () => {
 const changeStatus = async (id) => {
   if (!confirm('Bạn có chắc muốn chuyển trạng thái khách hàng này?')) return;
 
-  const updateEmployee = { id };
+  const updateEmployee = {id};
 
   try {
     await axios.put(`http://localhost:8080/customer/updateStatus/${id}`, updateEmployee);
@@ -558,7 +560,7 @@ function getVietnamDateTimeLocalFormat() {
 }
 
 const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredCustomers.value.length / pageSize))
+    Math.max(1, Math.ceil(filteredCustomers.value.length / pageSize))
 );
 const paginatedCustomers = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
@@ -581,31 +583,31 @@ onMounted(fetchCustomer);
     <form @submit.prevent="saveCustomer" class="border p-4 rounded bg-light mb-4">
       <div class="mb-3">
         <label class="form-label">Họ tên</label>
-        <input v-model="form.fullName" required class="form-control" />
+        <input v-model="form.fullName" required class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label d-block">Giới tính</label>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="gender" value="true" v-model="form.gender" />
+          <input class="form-check-input" type="radio" name="gender" value="true" v-model="form.gender"/>
           <label class="form-check-label">Nam</label>
         </div>
         <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="gender" value="false" v-model="form.gender" />
+          <input class="form-check-input" type="radio" name="gender" value="false" v-model="form.gender"/>
           <label class="form-check-label">Nữ</label>
         </div>
       </div>
       <div class="mb-3">
         <label class="form-label">Email</label>
-        <input v-model="form.email" type="email" required class="form-control" />
+        <input v-model="form.email" type="email" required class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Số điện thoại</label>
         <input v-model="form.numberPhone" required class="form-control" pattern="^(0[0-9]{9})$"
-          title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" />
+               title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Ngày sinh</label>
-        <input type="date" v-model="form.birthOfDate" required class="form-control" />
+        <input type="date" v-model="form.birthOfDate" required class="form-control"/>
       </div>
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">{{ isEditing ? "Cập nhật" : "Thêm" }}</button>
@@ -618,7 +620,7 @@ onMounted(fetchCustomer);
       <div class="row g-2 align-items-end">
         <div class="col-sm-5">
           <label class="form-label small">Từ khóa</label>
-          <input v-model="search.keyword" class="form-control" placeholder="Tìm theo tên, email, SĐT..." />
+          <input v-model="search.keyword" class="form-control" placeholder="Tìm theo tên, email, SĐT..."/>
         </div>
 
         <div class="col-sm-3">
@@ -641,7 +643,7 @@ onMounted(fetchCustomer);
 
         <div class="col-sm-1 d-flex">
           <button type="button" class="btn btn-outline-secondary ms-auto"
-            @click="search.keyword = ''; search.gender = 'all'; search.status = 'all'">
+                  @click="search.keyword = ''; search.gender = 'all'; search.status = 'all'">
             Xóa
           </button>
         </div>
@@ -655,40 +657,40 @@ onMounted(fetchCustomer);
     <!-- Bảng khách hàng -->
     <table class="table table-bordered table-hover align-middle">
       <thead class="table-secondary text-center">
-        <tr>
-          <th>ID</th>
-          <th>Account ID</th>
-          <th>Họ tên</th>
-          <th>Giới tính</th>
-          <th>Email</th>
-          <th>SĐT</th>
-          <th>Ngày sinh</th>
-          <th>Trạng thái</th>
-          <th>Ngày tạo</th>
-          <th>Hành động</th>
-        </tr>
+      <tr>
+        <th>ID</th>
+        <th>Account ID</th>
+        <th>Họ tên</th>
+        <th>Giới tính</th>
+        <th>Email</th>
+        <th>SĐT</th>
+        <th>Ngày sinh</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Hành động</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="customer in paginatedCustomers" :key="customer.id">
-          <td class="text-center">{{ customer.id }}</td>
-          <td class="text-center">{{ customer.accountId }}</td>
-          <td class="text-center">{{ customer.fullName }}</td>
-          <td class="text-center">{{ customer.gender === true ? 'Nam' : 'Nữ' }}</td>
-          <td class="text-center">{{ customer.email }}</td>
-          <td class="text-center">{{ customer.numberPhone }}</td>
-          <td class="text-center">{{ formatDateTime(customer.birthOfDate) }}</td>
-          <td class="text-center">
+      <tr v-for="customer in paginatedCustomers" :key="customer.id">
+        <td class="text-center">{{ customer.id }}</td>
+        <td class="text-center">{{ customer.accountId }}</td>
+        <td class="text-center">{{ customer.fullName }}</td>
+        <td class="text-center">{{ customer.gender === true ? 'Nam' : 'Nữ' }}</td>
+        <td class="text-center">{{ customer.email }}</td>
+        <td class="text-center">{{ customer.numberPhone }}</td>
+        <td class="text-center">{{ formatDateTime(customer.birthOfDate) }}</td>
+        <td class="text-center">
             <span class="badge" :class="customer.active === true ? 'bg-success' : 'bg-danger'">
               {{ customer.active === true ? 'Hoạt động' : 'Không hoạt động' }}
             </span>
-          </td>
-          <td class="text-center">{{ formatDateTime(customer.createdDate) }}</td>
-          <td>
-            <button class="btn btn-info btn-sm me-2" @click="openAddressOverlay(customer.id)">Xem địa chỉ</button>
-            <button class="btn btn-success btn-sm me-2" @click="editCustomer(customer)">Sửa</button>
-            <button class="btn btn-danger btn-sm" @click="changeStatus(customer.id)">Chuyển trạng thái</button>
-          </td>
-        </tr>
+        </td>
+        <td class="text-center">{{ formatDateTime(customer.createdDate) }}</td>
+        <td>
+          <button class="btn btn-info btn-sm me-2" @click="openAddressOverlay(customer.id)">Xem địa chỉ</button>
+          <button class="btn btn-success btn-sm me-2" @click="editCustomer(customer)">Sửa</button>
+          <button class="btn btn-danger btn-sm" @click="changeStatus(customer.id)">Chuyển trạng thái</button>
+        </td>
+      </tr>
       </tbody>
     </table>
 
@@ -709,14 +711,14 @@ onMounted(fetchCustomer);
 
     <!-- Popup chọn địa chỉ -->
     <div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
-      class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+         class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
       <div class="bg-white rounded shadow position-relative w-100 d-flex flex-column"
-        style="max-width: 600px; height: 70vh;" @click.stop>
+           style="max-width: 600px; height: 70vh;" @click.stop>
         <!-- Header: cố định -->
         <div class="p-4 border-bottom bg-white position-sticky top-0 z-2">
           <h5 class="fw-semibold m-0">Địa chỉ của tôi</h5>
           <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Đóng"
-            @click="closeAddressOverlay"></button>
+                  @click="closeAddressOverlay"></button>
         </div>
 
         <!-- Body: cuộn -->
@@ -725,8 +727,8 @@ onMounted(fetchCustomer);
             <!-- Danh sách địa chỉ -->
             <div v-for="address in addressList" :key="address.id" class="border rounded p-3 mb-3 position-relative">
               <div class="mb-2">
-                <strong>{{ address.fullName }}</strong><br />
-                <span class="text-muted small">{{ address.numberPhone }}</span><br />
+                <strong>{{ address.fullName }}</strong><br/>
+                <span class="text-muted small">{{ address.numberPhone }}</span><br/>
                 <span class="small">{{ address.fullAddress }}</span>
               </div>
 
@@ -741,11 +743,11 @@ onMounted(fetchCustomer);
                 <!-- Bên phải: 2 nút Xoá & Cập nhật sát nhau -->
                 <div class="d-flex gap-2">
                   <span class="text-danger text-decoration-underline small" role="button"
-                    @click="deleteAddress(address.id)">
+                        @click="deleteAddress(address.id)">
                     Xoá
                   </span>
                   <span class="text-primary text-decoration-underline small" role="button"
-                    @click="openUpdateAddressOverlay(address)">
+                        @click="openUpdateAddressOverlay(address)">
                     Cập nhật
                   </span>
                 </div>
@@ -765,36 +767,36 @@ onMounted(fetchCustomer);
 
     <!-- Popup thêm địa chỉ -->
     <div v-if="showAddAddressOverlay" @click="handleOverlayClick"
-      class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
+         class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
       <div class="bg-white rounded shadow position-relative w-100" style="max-width: 400px; font-size: 0.800rem;">
         <div class="p-3">
           <h6 class="fw-semibold mb-3 text-center">Thêm địa chỉ mới</h6>
 
           <!-- Nút X -->
           <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
-            @click="closeAddAddressOverlay"></button>
+                  @click="closeAddAddressOverlay"></button>
 
           <form @submit.prevent="saveAddress">
             <!-- Họ và tên -->
             <div class="mb-2">
               <label class="form-label">Họ và tên người nhận</label>
               <input type="text" class="form-control form-control-sm" placeholder="Nhập họ tên" v-model="recipientName"
-                required />
+                     required/>
             </div>
 
             <!-- Số điện thoại -->
             <div class="mb-2">
               <label class="form-label">Số điện thoại</label>
               <input type="tel" class="form-control form-control-sm" placeholder="Nhập số điện thoại"
-                v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
-                required />
+                     v-model="phoneNumber" pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0"
+                     required/>
             </div>
 
             <!-- Tỉnh / Thành phố -->
             <div class="mb-2">
               <label class="form-label">Tỉnh / Thành phố</label>
               <select class="form-select form-select-sm" required v-model="selectedProvinceCode"
-                @change="fetchDistricts(selectedProvinceCode)">
+                      @change="fetchDistricts(selectedProvinceCode)">
                 <option value="" disabled selected>-- Chọn tỉnh/thành phố --</option>
                 <option v-for="province in provinces" :key="province.code" :value="province.code">
                   {{ province.name }}
@@ -806,7 +808,7 @@ onMounted(fetchCustomer);
             <div class="mb-2">
               <label class="form-label">Quận / Huyện</label>
               <select class="form-select form-select-sm" required v-model="selectedDistrictCode"
-                @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
+                      @change="fetchWards(selectedDistrictCode)" :disabled="!districts.length">
                 <option value="" disabled selected>-- Chọn quận/huyện --</option>
                 <option v-for="district in districts" :key="district.code" :value="district.code">
                   {{ district.name }}
@@ -829,7 +831,7 @@ onMounted(fetchCustomer);
             <div class="mb-3">
               <label class="form-label">Địa chỉ chi tiết</label>
               <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập địa chỉ cụ thể"
-                v-model="detailAddress" required></textarea>
+                        v-model="detailAddress" required></textarea>
             </div>
 
             <!-- Nút lưu -->
@@ -843,38 +845,38 @@ onMounted(fetchCustomer);
 
     <!-- Popup cập nhật địa chỉ -->
     <div v-if="showUpdateAddressOverlay"
-      class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
-      style="z-index: 9999">
+         class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center"
+         style="z-index: 9999">
       <div class="bg-white p-3 rounded shadow position-relative w-100"
-        style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
+           style="max-width: 400px; font-size: 0.7rem; height: 70vh;">
         <h5 class="fw-bold mb-3" style="font-size: 0.75rem;">Cập nhật địa chỉ</h5>
 
         <!-- Nút X -->
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Đóng"
-          @click="closeUpdateAddressOverlay"></button>
+                @click="closeUpdateAddressOverlay"></button>
 
         <form @submit.prevent="updateAddress">
           <!-- Họ tên -->
           <div class="mb-2">
             <label class="form-label">Họ và tên</label>
             <input type="text" class="form-control form-control-sm"
-              style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName"
-              required />
+                   style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.fullName"
+                   required/>
           </div>
 
           <!-- Số điện thoại -->
           <div class="mb-2">
             <label class="form-label">Số điện thoại</label>
             <input type="text" class="form-control form-control-sm"
-              style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
-              pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" required />
+                   style="font-size: 0.7rem; height: 28px; padding: 4px 8px;" v-model="addressBeingEdited.numberPhone"
+                   pattern="^(0[0-9]{9})$" title="Số điện thoại gồm 10 chữ số, bắt đầu bằng 0" required/>
           </div>
 
           <!-- Tỉnh / Thành phố -->
           <div class="mb-2">
             <label class="form-label">Tỉnh / Thành phố</label>
             <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-              required v-model="addressBeingEdited.cityCode" @change="handleCityChange">
+                    required v-model="addressBeingEdited.cityCode" @change="handleCityChange">
               <option value="" disabled>-- Chọn tỉnh/thành phố --</option>
               <option v-for="province in provinces" :key="province.code" :value="province.code">
                 {{ province.name }}
@@ -886,8 +888,8 @@ onMounted(fetchCustomer);
           <div class="mb-2">
             <label class="form-label">Quận / Huyện</label>
             <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-              required v-model="addressBeingEdited.districtCode" @change="handleDistrictChange"
-              :disabled="!districts.length">
+                    required v-model="addressBeingEdited.districtCode" @change="handleDistrictChange"
+                    :disabled="!districts.length">
               <option disabled value="">-- Chọn quận/huyện --</option>
               <option v-for="district in districts" :key="district.code" :value="district.code">
                 {{ district.name }}
@@ -899,7 +901,7 @@ onMounted(fetchCustomer);
           <div class="mb-2">
             <label class="form-label">Phường / Xã</label>
             <select class="form-select form-select-sm" style="font-size: 0.7rem; height: 28px; padding: 4px 8px;"
-              required v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
+                    required v-model="addressBeingEdited.wardCode" :disabled="!wards.length">
               <option disabled value="">-- Chọn phường/xã --</option>
               <option v-for="ward in wards" :key="ward.code" :value="ward.code">
                 {{ ward.name }}
@@ -911,7 +913,7 @@ onMounted(fetchCustomer);
           <div class="mb-3 mt-2">
             <label class="form-label">Địa chỉ chi tiết (số nhà, đường...)</label>
             <textarea class="form-control form-control-sm" rows="2" style="font-size: 0.7rem; padding: 4px 8px;"
-              placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
+                      placeholder="Nhập địa chỉ cụ thể" v-model="addressBeingEdited.detailAddress" required></textarea>
           </div>
 
           <div class="text-end">

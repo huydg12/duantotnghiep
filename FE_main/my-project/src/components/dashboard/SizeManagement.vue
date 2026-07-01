@@ -1,6 +1,6 @@
 <script setup>
 import axios from 'axios'
-import { ref, computed, onMounted } from 'vue'
+import {computed, onMounted, ref} from 'vue'
 
 // Danh sách size
 const Sizes = ref([])
@@ -17,7 +17,7 @@ const fetchSize = async () => {
 }
 
 // Form size
-const form = ref({ id: null, eu: '', description: '' })
+const form = ref({id: null, eu: '', description: ''})
 const isEditing = ref(false)
 
 // Phân trang
@@ -25,7 +25,7 @@ const currentPage = ref(1)
 const pageSize = 5
 
 const totalPages = computed(() =>
-  Math.ceil(Sizes.value.length / pageSize)
+    Math.ceil(Sizes.value.length / pageSize)
 )
 
 const paginatedSizes = computed(() => {
@@ -34,7 +34,7 @@ const paginatedSizes = computed(() => {
 })
 
 function resetForm() {
-  form.value = { id: null, eu: '', description: '' }
+  form.value = {id: null, eu: '', description: ''}
   isEditing.value = false
 }
 
@@ -59,7 +59,7 @@ async function saveSize() {
 }
 
 function editSize(size) {
-  form.value = { ...size }
+  form.value = {...size}
   isEditing.value = true
 }
 
@@ -93,11 +93,11 @@ onMounted(() => {
     <form @submit.prevent="saveSize" class="border p-4 rounded bg-light mb-4">
       <div class="mb-3">
         <label class="form-label">Số Size (EU)</label>
-        <input v-model="form.eu" required class="form-control" />
+        <input v-model="form.eu" required class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Mô tả</label>
-        <input v-model="form.description" class="form-control" />
+        <input v-model="form.description" class="form-control"/>
       </div>
       <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">
@@ -111,28 +111,28 @@ onMounted(() => {
     <div class="table-container table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-secondary text-center">
-          <tr>
-            <th style="width: 60px">ID</th>
-            <th style="width: 180px">Size (EU)</th>
-            <th style="width: 300px">Mô tả</th>
-            <th style="width: 160px">Trạng thái</th>
-            <th style="width: 160px">Hành động</th>
-          </tr>
+        <tr>
+          <th style="width: 60px">ID</th>
+          <th style="width: 180px">Size (EU)</th>
+          <th style="width: 300px">Mô tả</th>
+          <th style="width: 160px">Trạng thái</th>
+          <th style="width: 160px">Hành động</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="size in paginatedSizes" :key="size.id">
-            <td class="text-center">{{ size.id }}</td>
-            <td>{{ size.eu }}</td>
-            <td class="text-wrap">{{ size.description }}</td>
-            <td class="text-center">
-              <span v-if="size.active" class="badge bg-success">Hoạt động</span>
-              <span v-else class="badge bg-danger">Không hoạt động</span>
-            </td>
-            <td class="text-center">
-              <button class="btn btn-success btn-sm me-2" @click="editSize(size)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="changeStatus(size.id)">Chuyển trạng thái</button>
-            </td>
-          </tr>
+        <tr v-for="size in paginatedSizes" :key="size.id">
+          <td class="text-center">{{ size.id }}</td>
+          <td>{{ size.eu }}</td>
+          <td class="text-wrap">{{ size.description }}</td>
+          <td class="text-center">
+            <span v-if="size.active" class="badge bg-success">Hoạt động</span>
+            <span v-else class="badge bg-danger">Không hoạt động</span>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-success btn-sm me-2" @click="editSize(size)">Sửa</button>
+            <button class="btn btn-danger btn-sm" @click="changeStatus(size.id)">Chuyển trạng thái</button>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -167,8 +167,8 @@ onMounted(() => {
 }
 
 .pagination .active .page-link {
-    background-color: #198754;
-    border-color: #198754;
-    color: #fff;
+  background-color: #198754;
+  border-color: #198754;
+  color: #fff;
 }
 </style>

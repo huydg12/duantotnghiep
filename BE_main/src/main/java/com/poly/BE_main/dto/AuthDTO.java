@@ -29,7 +29,7 @@ public class AuthDTO {
             this.email = null;
         }
         this.customerId = account.getCustomer() != null ? account.getCustomer().getId() : null; // Lấy customerId từ
-                                                                                                // Customer
+        // Customer
 
         this.employeeId = account.getEmployee() != null ? account.getEmployee().getId() : null;
     }

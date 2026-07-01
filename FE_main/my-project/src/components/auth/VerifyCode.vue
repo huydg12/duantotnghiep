@@ -1,9 +1,9 @@
 <script setup>
 import Banner from "../common/Banner.vue";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import {ref} from "vue";
+import {useRouter} from "vue-router";
 import axios from "axios";
-import { useForgotPasswordStore } from "../../stores/emailStore";
+import {useForgotPasswordStore} from "../../stores/emailStore";
 
 const store = useForgotPasswordStore();
 const router = useRouter();
@@ -30,7 +30,7 @@ const handleCode = async () => {
 </script>
 <template>
   <Banner title="Xác nhận mã" breadcrumb="Xác nhận mã"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
   <div class="container">
     <div class="xacnhan-container mx-auto">
       <router-link to="/auth/forgetpassword" class="back-arrow">&#8592;</router-link>
@@ -40,7 +40,7 @@ const handleCode = async () => {
       <form @submit.prevent="handleCode">
         <div class="mb-3">
           <label class="form-label fw-semibold">NHẬP MÃ XÁC NHẬN</label>
-          <input v-model="otpCode" type="text" required placeholder="******" class="form-control code-input" />
+          <input v-model="otpCode" type="text" required placeholder="******" class="form-control code-input"/>
         </div>
         <button type="submit" class="btn btn-dark w-100 confirm-btn mt-2">
           XÁC NHẬN

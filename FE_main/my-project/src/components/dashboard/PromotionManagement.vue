@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import {onMounted, ref} from "vue";
 import axios from "axios";
 
 // Khuyến mãi
@@ -165,11 +165,11 @@ onMounted(async () => {
         <form @submit.prevent="savePromotion" class="row g-3">
           <div class="col-md-4">
             <label class="form-label">Mã KM</label>
-            <input v-model="form.promotionCode" class="form-control" required />
+            <input v-model="form.promotionCode" class="form-control" required/>
           </div>
           <div class="col-md-4">
             <label class="form-label">Tên khuyến mãi</label>
-            <input v-model="form.name" class="form-control" required />
+            <input v-model="form.name" class="form-control" required/>
           </div>
           <div class="col-md-4">
             <label class="form-label">Loại</label>
@@ -181,31 +181,31 @@ onMounted(async () => {
 
           <div class="col-md-3">
             <label class="form-label">Giá trị</label>
-            <input type="number" v-model="form.value" class="form-control" required />
+            <input type="number" v-model="form.value" class="form-control" required/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Đơn tối thiểu</label>
-            <input type="number" min="0" v-model="form.minOrderAmount" class="form-control" />
+            <input type="number" min="0" v-model="form.minOrderAmount" class="form-control"/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Giảm tối đa</label>
-            <input type="number" min="0" v-model="form.maxDiscountAmount" class="form-control" />
+            <input type="number" min="0" v-model="form.maxDiscountAmount" class="form-control"/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Tổng lượt dùng</label>
-            <input type="number" min="1" v-model="form.usageLimit" class="form-control" />
+            <input type="number" min="1" v-model="form.usageLimit" class="form-control"/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Lượt mỗi khách</label>
-            <input type="number" min="1" v-model="form.perCustomerLimit" class="form-control" />
+            <input type="number" min="1" v-model="form.perCustomerLimit" class="form-control"/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Từ ngày</label>
-            <input type="date" v-model="form.startDate" class="form-control" required />
+            <input type="date" v-model="form.startDate" class="form-control" required/>
           </div>
           <div class="col-md-3">
             <label class="form-label">Đến ngày</label>
-            <input type="date" v-model="form.endDate" class="form-control" required />
+            <input type="date" v-model="form.endDate" class="form-control" required/>
           </div>
           <div class="col-md-12">
             <label class="form-label">Ghi chú</label>
@@ -228,41 +228,41 @@ onMounted(async () => {
     <!-- DANH SÁCH -->
     <table class="table table-bordered">
       <thead>
-        <tr>
-          <th>STT</th>
-          <th>Mã KM</th>
-          <th>Tên</th>
-          <th>Loại</th>
-          <th>Giá trị</th>
-          <th>Thời gian</th>
-          <th>Trạng thái</th>
-          <th>Hành động</th>
-        </tr>
+      <tr>
+        <th>STT</th>
+        <th>Mã KM</th>
+        <th>Tên</th>
+        <th>Loại</th>
+        <th>Giá trị</th>
+        <th>Thời gian</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="(promo, index) in promotions" :key="promo.id">
-          <td>{{ index + 1 }}</td>
-          <td>{{ promo.promotionCode }}</td>
-          <td>{{ promo.name }}</td>
-          <td>{{ promo.type === 1 ? "%" : "Cố định" }}</td>
-          <td>{{ promo.value }}</td>
-          <td>
-            {{ formatDate(promo.startDate) }} -
-            {{ formatDate(promo.endDate) }}
-          </td>
-          <td>
-            <span v-if="promo.active" class="badge bg-success">Đang áp dụng</span>
-            <span v-else class="badge bg-danger">Ngưng áp dụng</span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-warning me-1" @click="editPromotion(promo)">
-              Sửa
-            </button>
-            <button class="btn btn-sm btn-danger me-1" @click="changeStatus(promo.id)">
-              Chuyển trạng thái
-            </button>
-          </td>
-        </tr>
+      <tr v-for="(promo, index) in promotions" :key="promo.id">
+        <td>{{ index + 1 }}</td>
+        <td>{{ promo.promotionCode }}</td>
+        <td>{{ promo.name }}</td>
+        <td>{{ promo.type === 1 ? "%" : "Cố định" }}</td>
+        <td>{{ promo.value }}</td>
+        <td>
+          {{ formatDate(promo.startDate) }} -
+          {{ formatDate(promo.endDate) }}
+        </td>
+        <td>
+          <span v-if="promo.active" class="badge bg-success">Đang áp dụng</span>
+          <span v-else class="badge bg-danger">Ngưng áp dụng</span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-warning me-1" @click="editPromotion(promo)">
+            Sửa
+          </button>
+          <button class="btn btn-sm btn-danger me-1" @click="changeStatus(promo.id)">
+            Chuyển trạng thái
+          </button>
+        </td>
+      </tr>
       </tbody>
     </table>
 

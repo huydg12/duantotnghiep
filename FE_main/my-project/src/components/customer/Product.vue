@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted, ref, watch, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 import axios from 'axios'
 import Banner from "../common/Banner.vue";
-import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import {useCartFavoriteStore} from "@/stores/cartFavoriteStore";
 import Swal from 'sweetalert2'
+
 const store = useCartFavoriteStore()
 const router = useRouter()
 const route = useRoute()
@@ -29,9 +30,10 @@ const paginatedProducts = computed(() => {
 function setPage(page) {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    window.scrollTo({ top: 0, behavior: 'smooth' }) // Cuộn lên đầu
+    window.scrollTo({top: 0, behavior: 'smooth'}) // Cuộn lên đầu
   }
 }
+
 const fetchBrands = async () => {
   try {
     const res = await axios.get('http://localhost:8080/brand/show')
@@ -77,7 +79,7 @@ const fetchProducts = async () => {
     if (filters.value.search && filters.value.search.trim() !== '') {
       const keyword = filters.value.search.trim()
       const res = await axios.get(`http://localhost:8080/product/search`, {
-        params: { keyword }
+        params: {keyword}
       })
       fetchedProducts = res.data
     } else {
@@ -87,7 +89,7 @@ const fetchProducts = async () => {
 
     if (filters.value.brands) {
       fetchedProducts = fetchedProducts.filter(product =>
-        filters.value.brands.toLowerCase() === product.brandName.toLowerCase()
+          filters.value.brands.toLowerCase() === product.brandName.toLowerCase()
       )
     }
 
@@ -136,7 +138,9 @@ const toggleFavorite = async (productId) => {
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',
       confirmButtonText: 'OK',
-      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+      didOpen: () => {
+        Swal.getContainer().style.zIndex = '20000';
+      }
     });
     return;
   }
@@ -173,11 +177,11 @@ const toggleFavorite = async (productId) => {
 }
 
 watch(
-  () => [filters.value.search, filters.value.brands, filters.value.sort, filters.value.prices],
-  () => {
-    currentPage.value = 1
-    fetchProducts()
-  }
+    () => [filters.value.search, filters.value.brands, filters.value.sort, filters.value.prices],
+    () => {
+      currentPage.value = 1
+      fetchProducts()
+    }
 )
 
 // Theo dõi khi route thay đổi query
@@ -198,11 +202,11 @@ const filterSections = computed(() => [
     model: 'sort',
     type: 'radio',
     options: [
-      { id: 'sort-default', label: 'Tất cả', value: '' },
-      { id: 'sort-az', label: 'Tên A-Z', value: 'az' },
-      { id: 'sort-za', label: 'Tên Z-A', value: 'za' },
-      { id: 'sort-price-asc', label: 'Giá tăng dần', value: 'asc' },
-      { id: 'sort-price-desc', label: 'Giá giảm dần', value: 'desc' }
+      {id: 'sort-default', label: 'Tất cả', value: ''},
+      {id: 'sort-az', label: 'Tên A-Z', value: 'az'},
+      {id: 'sort-za', label: 'Tên Z-A', value: 'za'},
+      {id: 'sort-price-asc', label: 'Giá tăng dần', value: 'asc'},
+      {id: 'sort-price-desc', label: 'Giá giảm dần', value: 'desc'}
     ]
   },
   {
@@ -216,9 +220,9 @@ const filterSections = computed(() => [
     model: 'prices',
     type: 'radio',
     options: [
-      { id: 'price-1', label: 'Dưới 1 triệu', value: 'under-1m' },
-      { id: 'price-2', label: '1 - 2 triệu', value: '1-2m' },
-      { id: 'price-3', label: 'Trên 2 triệu', value: 'over-2m' }
+      {id: 'price-1', label: 'Dưới 1 triệu', value: 'under-1m'},
+      {id: 'price-2', label: '1 - 2 triệu', value: '1-2m'},
+      {id: 'price-3', label: 'Trên 2 triệu', value: 'over-2m'}
     ]
   },
 ])
@@ -231,7 +235,7 @@ const handleRadioClick = (model, value) => {
   }
 
   if (model === 'brands') {
-    router.replace({ path: '/product' }) // Xóa ?brand khỏi URL
+    router.replace({path: '/product'}) // Xóa ?brand khỏi URL
   }
 
   fetchProducts()
@@ -243,7 +247,7 @@ onMounted(() => {
     filters.value.brands = selectedBrand
     fetchProducts() // => Gọi luôn để hiển thị sản phẩm theo brand
     // Xóa brandFromHeader khỏi state để khi quay lại không còn giữ nữa
-    history.replaceState({ ...history.state, brandFromHeader: null }, '')
+    history.replaceState({...history.state, brandFromHeader: null}, '')
   }
   filters.value.search = route.query.keyword || ''
   fetchBrands()
@@ -258,10 +262,10 @@ onMounted(() => {
 
 <template>
   <Banner title="Sản phẩm" breadcrumb=''
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
 
   <div v-if="hasSearch" class="mb-4 search-result-header">
-    <br />
+    <br/>
     <h3 class="fw-semibold mb-1">Kết quả tìm kiếm cho: {{ searchQuery }} ({{ products.length }})</h3>
   </div>
   <div class="container-fluid p-4 p-md-5">
@@ -274,7 +278,7 @@ onMounted(() => {
             <div v-for="(section, index) in filterSections" :key="section.title" class="accordion-item">
               <h2 class="accordion-header">
                 <button class="accordion-button fw-semibold" :class="{ collapsed: index !== 0 }" type="button"
-                  data-bs-toggle="collapse" :data-bs-target="'#collapse' + index">
+                        data-bs-toggle="collapse" :data-bs-target="'#collapse' + index">
                   {{ section.title }}
                 </button>
               </h2>
@@ -283,14 +287,14 @@ onMounted(() => {
                   <div v-if="section.type === 'radio'">
                     <div v-for="opt in section.options" :key="opt.id" class="form-check">
                       <input class="form-check-input" type="radio" :id="opt.id" :name="section.name" :value="opt.value"
-                        v-model="filters[section.model]" @click="handleRadioClick(section.model, opt.value)" />
+                             v-model="filters[section.model]" @click="handleRadioClick(section.model, opt.value)"/>
                       <label class="form-check-label" :for="opt.id">{{ opt.label }}</label>
                     </div>
                   </div>
                   <div v-else>
                     <div v-for="opt in section.options" :key="opt.id" class="form-check">
                       <input class="form-check-input" type="checkbox" :id="opt.id" :value="opt.value"
-                        v-model="filters[section.model]" />
+                             v-model="filters[section.model]"/>
                       <label class="form-check-label" :for="opt.id">{{ opt.label }}</label>
                     </div>
                   </div>
@@ -313,9 +317,9 @@ onMounted(() => {
                 'far text-secondary': !favoriteMap.has(product.productId)
               }" @click.stop="toggleFavorite(product.productId)"></i>
               <div class="image-container position-relative">
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                  :alt="product.productName" />
+                     :alt="product.productName"/>
               </div>
 
               <div class="card-body d-flex flex-column">
@@ -378,7 +382,6 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
 
 
 <style scoped>

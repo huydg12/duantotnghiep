@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import axios from 'axios'
 
 const dailyRevenue = ref([])             // [{ createDate, billCount, totalStatistic }]
@@ -9,7 +9,7 @@ const errorMsg = ref('')
 // Định dạng tiền tệ VND
 const formatCurrency = (val) => {
   if (val == null) return '0 đ'
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(val) || 0)
+  return new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(Number(val) || 0)
 }
 
 // ====== NHÓM / GỘP THEO THÁNG & NĂM (từ dailyRevenue) ======
@@ -18,7 +18,7 @@ const monthRevenue = computed(() => {
   for (const r of dailyRevenue.value) {
     const key = (r.createDate || '').slice(0, 7) // YYYY-MM
     if (!key) continue
-    const cur = m.get(key) || { period: key, billCount: 0, totalStatistic: 0 }
+    const cur = m.get(key) || {period: key, billCount: 0, totalStatistic: 0}
     cur.billCount += Number(r.billCount) || 0
     cur.totalStatistic += Number(r.totalStatistic) || 0
     m.set(key, cur)
@@ -32,7 +32,7 @@ const yearRevenue = computed(() => {
   for (const r of dailyRevenue.value) {
     const key = (r.createDate || '').slice(0, 4) // YYYY
     if (!key) continue
-    const cur = m.get(key) || { period: key, billCount: 0, totalStatistic: 0 }
+    const cur = m.get(key) || {period: key, billCount: 0, totalStatistic: 0}
     cur.billCount += Number(r.billCount) || 0
     cur.totalStatistic += Number(r.totalStatistic) || 0
     m.set(key, cur)
@@ -48,7 +48,7 @@ const selectedYear = ref('')       // YYYY
 const startDate = ref('')
 const endDate = ref('')
 // Ô kết quả
-const summary = ref({ period: '', billCount: 0, total: 0 })
+const summary = ref({period: '', billCount: 0, total: 0})
 
 // Tính kết quả theo chế độ & input
 const calculate = () => {
@@ -96,11 +96,11 @@ const dailyRevenueLast5 = computed(() => {
   fiveDaysAgo.setDate(today.getDate() - 5)
 
   return dailyRevenue.value
-    .filter(r => {
-      const d = new Date(r.createDate)
-      return d >= fiveDaysAgo && d <= today
-    })
-    .sort((a, b) => new Date(b.createDate) - new Date(a.createDate))
+      .filter(r => {
+        const d = new Date(r.createDate)
+        return d >= fiveDaysAgo && d <= today
+      })
+      .sort((a, b) => new Date(b.createDate) - new Date(a.createDate))
 })
 
 const fetchDailyRevenue = async () => {
@@ -172,21 +172,21 @@ onMounted(() => {
               </select>
 
               <template v-if="viewMode === 'day'">
-                <input type="date" v-model="selectedDay" class="form-control" style="max-width: 220px" />
+                <input type="date" v-model="selectedDay" class="form-control" style="max-width: 220px"/>
               </template>
 
               <template v-else-if="viewMode === 'month'">
-                <input type="month" v-model="selectedMonth" class="form-control" style="max-width: 220px" />
+                <input type="month" v-model="selectedMonth" class="form-control" style="max-width: 220px"/>
               </template>
 
               <template v-else-if="viewMode === 'year'">
                 <input type="number" v-model="selectedYear" placeholder="YYYY" min="2000" max="2100"
-                  class="form-control" style="max-width: 160px" />
+                       class="form-control" style="max-width: 160px"/>
               </template>
               <template v-else>
-                <input type="date" v-model="startDate" class="form-control" style="max-width: 200px" />
+                <input type="date" v-model="startDate" class="form-control" style="max-width: 200px"/>
                 <span>→</span>
-                <input type="date" v-model="endDate" class="form-control" style="max-width: 200px" />
+                <input type="date" v-model="endDate" class="form-control" style="max-width: 200px"/>
               </template>
 
               <button class="btn btn-success" @click="calculate">Tính</button>
@@ -226,25 +226,25 @@ onMounted(() => {
 
     <table class="table table-bordered text-center align-middle table-hover">
       <thead class="table-info">
-        <tr>
-          <th style="width: 60px">#</th>
-          <th>Ngày</th>
-          <th>Số hóa đơn</th>
-          <th>Tổng tiền</th>
-        </tr>
+      <tr>
+        <th style="width: 60px">#</th>
+        <th>Ngày</th>
+        <th>Số hóa đơn</th>
+        <th>Tổng tiền</th>
+      </tr>
       </thead>
 
       <tbody>
-        <tr v-for="(row, idx) in dailyRevenueLast5" :key="row.createDate + '-' + idx" class="row-click"
+      <tr v-for="(row, idx) in dailyRevenueLast5" :key="row.createDate + '-' + idx" class="row-click"
           @click="pickDay(row)">
-          <td>{{ idx + 1 }}</td>
-          <td>{{ row.createDate }}</td>
-          <td class="fw-semibold">{{ row.billCount }}</td>
-          <td class="fw-semibold">{{ formatCurrency(row.totalStatistic) }}</td>
-        </tr>
-        <tr v-if="!loading && dailyRevenueLast5.length === 0">
-          <td colspan="4">Không có dữ liệu</td>
-        </tr>
+        <td>{{ idx + 1 }}</td>
+        <td>{{ row.createDate }}</td>
+        <td class="fw-semibold">{{ row.billCount }}</td>
+        <td class="fw-semibold">{{ formatCurrency(row.totalStatistic) }}</td>
+      </tr>
+      <tr v-if="!loading && dailyRevenueLast5.length === 0">
+        <td colspan="4">Không có dữ liệu</td>
+      </tr>
       </tbody>
     </table>
 
@@ -255,21 +255,21 @@ onMounted(() => {
 
     <table class="table table-bordered text-center align-middle table-hover">
       <thead class="table-warning">
-        <tr>
-          <th style="width: 60px">#</th>
-          <th>Tên sản phẩm</th>
-          <th>Số lượng đã bán</th>
-        </tr>
+      <tr>
+        <th style="width: 60px">#</th>
+        <th>Tên sản phẩm</th>
+        <th>Số lượng đã bán</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, idx) in top5Products" :key="item.productName">
-          <td>{{ idx + 1 }}</td>
-          <td class="fw-semibold">{{ item.productName }}</td>
-          <td class="fw-semibold text-success">{{ item.totalSold }}</td>
-        </tr>
-        <tr v-if="!loadingTop5 && top5Products.length === 0">
-          <td colspan="3">Không có dữ liệu</td>
-        </tr>
+      <tr v-for="(item, idx) in top5Products" :key="item.productName">
+        <td>{{ idx + 1 }}</td>
+        <td class="fw-semibold">{{ item.productName }}</td>
+        <td class="fw-semibold text-success">{{ item.totalSold }}</td>
+      </tr>
+      <tr v-if="!loadingTop5 && top5Products.length === 0">
+        <td colspan="3">Không có dữ liệu</td>
+      </tr>
       </tbody>
     </table>
 

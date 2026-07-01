@@ -1,9 +1,9 @@
 <script setup>
 import Banner from "../common/Banner.vue";
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import {ref} from 'vue';
+import {useRouter} from 'vue-router';
 import axios from 'axios';
-import { useForgotPasswordStore } from "../../stores/emailStore";
+import {useForgotPasswordStore} from "../../stores/emailStore";
 
 const store = useForgotPasswordStore();
 const newPassword = ref('');
@@ -42,12 +42,12 @@ const handleChangePassword = async () => {
 
 <template>
   <Banner title="Đổi mật khẩu" breadcrumb="Đổi mật khẩu"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
   <div class="container">
     <div class="bg-white shadow rounded p-4 mt-5 mx-auto" style="max-width: 480px;">
       <div class="position-relative mb-4 text-center">
         <router-link to="/auth/login"
-          class="back-arrow position-absolute start-0 top-50 translate-middle-y text-dark fs-5">
+                     class="back-arrow position-absolute start-0 top-50 translate-middle-y text-dark fs-5">
           &#8592;
         </router-link>
         <h2 class="fs-4 fw-bold mb-0">Đổi Mật Khẩu</h2>
@@ -57,12 +57,12 @@ const handleChangePassword = async () => {
         <div class="mb-3">
           <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới:</label>
           <input v-model="newPassword" type="password" id="newPassword" required class="form-control"
-            placeholder="Nhập mật khẩu mới" />
+                 placeholder="Nhập mật khẩu mới"/>
         </div>
         <div class="mb-3">
           <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu:</label>
           <input v-model="confirmPassword" type="password" id="confirmPassword" required class="form-control"
-            placeholder="Xác nhận mật khẩu mới" />
+                 placeholder="Xác nhận mật khẩu mới"/>
         </div>
 
         <button type="submit" class="btn btn-dark w-100 fw-semibold">Xác nhận</button>

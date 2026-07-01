@@ -1,18 +1,19 @@
 package com.poly.BE_main.service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import com.poly.BE_main.dto.EmployeeDTO;
 import com.poly.BE_main.dto.InformationEmployeeDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.repository.EmployeeRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -128,7 +129,7 @@ public class EmployeeService {
     // Cập nhật theo EMPLOYEE ID
     @Transactional
     public InformationEmployeeDTO updateInformationEmployeeByEmployeeId(Integer employeeId,
-            InformationEmployeeDTO dto) {
+                                                                        InformationEmployeeDTO dto) {
         Employee e = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Employee not found with id=" + employeeId));

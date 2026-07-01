@@ -1,16 +1,21 @@
 <script setup>
-import { ref, shallowRef, computed, defineAsyncComponent, onUnmounted, onMounted } from "vue";
+import {computed, defineAsyncComponent, onMounted, onUnmounted, ref, shallowRef} from "vue";
 import axios from "axios";
-import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/userStore';
+import {useRouter} from 'vue-router';
+import {useUserStore} from '@/stores/userStore';
 
 const router = useRouter();
 const userStore = useUserStore();
 userStore.loadUserFromLocalStorage();
 
 function safeParse(json) {
-  try { return JSON.parse(json) } catch { return null }
+  try {
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
 }
+
 const lsUser = safeParse(localStorage.getItem('user'));
 const currentUser = computed(() => userStore.user ?? lsUser ?? null);
 
@@ -25,11 +30,20 @@ function collectRoleTokens(u) {
   const bag = [];
   const push = (v) => {
     if (v == null) return;
-    if (Array.isArray(v)) { v.forEach(push); return; }
+    if (Array.isArray(v)) {
+      v.forEach(push);
+      return;
+    }
     if (typeof v === 'object') {
       // Thử các key phổ biến
-      push(v.role); push(v.roleName); push(v.name); push(v.authority);
-      push(v.code); push(v.title); push(v.type); push(v.id);
+      push(v.role);
+      push(v.roleName);
+      push(v.name);
+      push(v.authority);
+      push(v.code);
+      push(v.title);
+      push(v.type);
+      push(v.id);
       // Quét toàn bộ values để không bỏ sót
       Object.values(v).forEach(push);
       return;
@@ -53,16 +67,16 @@ function collectRoleTokens(u) {
   if (u.isAdmin === true) bag.push('ADMIN');
 
   return bag
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(s => s.toUpperCase());
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(s => s.toUpperCase());
 }
 
 function detectRole(u) {
   const tokens = collectRoleTokens(u);
   const isAdmin =
-    tokens.some(t => ADMIN_MARKERS.some(m => t.includes(m))) ||
-    tokens.some(t => ADMIN_IDS.has(t));
+      tokens.some(t => ADMIN_MARKERS.some(m => t.includes(m))) ||
+      tokens.some(t => ADMIN_IDS.has(t));
   return isAdmin ? 'ADMIN' : 'STAFF';
 }
 
@@ -77,7 +91,7 @@ async function fetchUser() {
   if (!id) return;
 
   try {
-    const { data } = await axios.get(`http://localhost:8080/employee/showById/${id}`);
+    const {data} = await axios.get(`http://localhost:8080/employee/showById/${id}`);
     const payload = Array.isArray(data) ? data[0] : data; // nếu BE trả List
     employee.value = payload;
     name.value = payload?.fullName ?? payload?.FULL_NAME ?? payload?.name ?? 'User';
@@ -132,34 +146,34 @@ function firstAllowedTarget() {
 
 const activeTarget = ref(firstAllowedTarget());
 const activeComponent = shallowRef(
-  componentMap[activeTarget.value] ??
-  defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
+    componentMap[activeTarget.value] ??
+    defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
 );
 
 const menuItems = [
-  { id: "pos", label: "Bán hàng tại quầy", target: "Pos", icon: "fa-solid fa-cash-register" },
-  { id: "product", label: "Sản phẩm", target: "ProductManagement", icon: "fa-solid fa-box-open" },
+  {id: "pos", label: "Bán hàng tại quầy", target: "Pos", icon: "fa-solid fa-cash-register"},
+  {id: "product", label: "Sản phẩm", target: "ProductManagement", icon: "fa-solid fa-box-open"},
   {
     id: "attribute", label: "Thuộc tính", icon: "fa-solid fa-sliders",
     sub: [
-      { label: "Hãng", target: "BrandManagement", icon: "fa-solid fa-tags" },
-      { label: "Loại", target: "CategoryManagement", icon: "fa-solid fa-shapes" },
-      { label: "Đế", target: "SoleManagement", icon: "fa-solid fa-shoe-prints" },
-      { label: "Cổ", target: "CollarManagement", icon: "fa-solid fa-socks" },
-      { label: "Size", target: "SizeManagement", icon: "fa-solid fa-ruler-horizontal" },
-      { label: "Màu", target: "ColorManagement", icon: "fa-solid fa-palette" },
+      {label: "Hãng", target: "BrandManagement", icon: "fa-solid fa-tags"},
+      {label: "Loại", target: "CategoryManagement", icon: "fa-solid fa-shapes"},
+      {label: "Đế", target: "SoleManagement", icon: "fa-solid fa-shoe-prints"},
+      {label: "Cổ", target: "CollarManagement", icon: "fa-solid fa-socks"},
+      {label: "Size", target: "SizeManagement", icon: "fa-solid fa-ruler-horizontal"},
+      {label: "Màu", target: "ColorManagement", icon: "fa-solid fa-palette"},
     ],
   },
-  { id: "invoice", label: "Hóa đơn", target: "InvoiceManagement", icon: "fa-solid fa-receipt" },
-  { id: "staff", label: "Nhân viên", target: "EmployeeManagement", icon: "fa-solid fa-user-tie" },
-  { id: "customer", label: "Khách hàng", target: "CustomerManagement", icon: "fa-solid fa-users" },
-  { id: "account", label: "Tài khoản", target: "AccountManagement", icon: "fa-solid fa-user-cog" },
-  { id: "promotion", label: "Khuyến mãi", target: "PromotionManagement", icon: "fa-solid fa-tag" },
-  { id: "importreceipt", label: "Phiếu nhập", target: "ImportReceiptManagement", icon: "fa-solid fa-clipboard-list" },
-  { id: "warehouse", label: "Kho", target: "WarehouseManagement", icon: "fa-solid fa-warehouse" },
-  { id: "statistic", label: "Thống kê", target: "StatisticsManagement", icon: "fa-solid fa-chart-line" },
-  { id: "personal", label: "Thông tin cá nhân", target: "PersonalInformation", icon: "fa-solid fa-id-card" },
-  { id: "logout", label: "Đăng xuất", target: "logout", icon: "fa-solid fa-sign-out-alt" },
+  {id: "invoice", label: "Hóa đơn", target: "InvoiceManagement", icon: "fa-solid fa-receipt"},
+  {id: "staff", label: "Nhân viên", target: "EmployeeManagement", icon: "fa-solid fa-user-tie"},
+  {id: "customer", label: "Khách hàng", target: "CustomerManagement", icon: "fa-solid fa-users"},
+  {id: "account", label: "Tài khoản", target: "AccountManagement", icon: "fa-solid fa-user-cog"},
+  {id: "promotion", label: "Khuyến mãi", target: "PromotionManagement", icon: "fa-solid fa-tag"},
+  {id: "importreceipt", label: "Phiếu nhập", target: "ImportReceiptManagement", icon: "fa-solid fa-clipboard-list"},
+  {id: "warehouse", label: "Kho", target: "WarehouseManagement", icon: "fa-solid fa-warehouse"},
+  {id: "statistic", label: "Thống kê", target: "StatisticsManagement", icon: "fa-solid fa-chart-line"},
+  {id: "personal", label: "Thông tin cá nhân", target: "PersonalInformation", icon: "fa-solid fa-id-card"},
+  {id: "logout", label: "Đăng xuất", target: "logout", icon: "fa-solid fa-sign-out-alt"},
 ];
 
 const filteredMenuItems = computed(() => {
@@ -169,16 +183,16 @@ const filteredMenuItems = computed(() => {
   const allowed = allowedTargetsByRole[role.value];
 
   return menuItems
-    .map(item => {
-      if (!item.sub) return item;
-      const newSubs = item.sub.filter(s => allowed.has(s.target));
-      return { ...item, sub: newSubs };
-    })
-    .filter(item => {
-      if (item.sub && item.sub.length > 0) return true;
-      if (item.sub && item.sub.length === 0) return false;
-      return isAllowed(item.target);
-    });
+      .map(item => {
+        if (!item.sub) return item;
+        const newSubs = item.sub.filter(s => allowed.has(s.target));
+        return {...item, sub: newSubs};
+      })
+      .filter(item => {
+        if (item.sub && item.sub.length > 0) return true;
+        if (item.sub && item.sub.length === 0) return false;
+        return isAllowed(item.target);
+      });
 });
 
 function loadContent(target) {
@@ -195,18 +209,25 @@ function handleClick(target) {
     loadContent(target);
   }
 }
+
 const bills = ref([]);
 const newBillCount = computed(() => bills.value.filter(b => Number(b.STATUS) === 1).length);
 
 const fetchBills = async () => {
-  const { data } = await axios.get('http://localhost:8080/bill/show');
-  bills.value = data.map(x => ({ ...x, STATUS: Number(x.status) }));
+  const {data} = await axios.get('http://localhost:8080/bill/show');
+  bills.value = data.map(x => ({...x, STATUS: Number(x.status)}));
 };
 const refreshOnChanged = () => fetchBills();
 
 const openMenus = ref({});
-function toggleCollapse(id) { openMenus.value[id] = !openMenus.value[id] }
-function isCollapseOpen(id) { return openMenus.value[id] }
+
+function toggleCollapse(id) {
+  openMenus.value[id] = !openMenus.value[id]
+}
+
+function isCollapseOpen(id) {
+  return openMenus.value[id]
+}
 
 onMounted(() => {
   fetchUser()
@@ -229,7 +250,7 @@ onUnmounted(() => {
       <div class="flex-grow-1 sidebar-scroll">
         <div class="text-center py-4 border-bottom border-secondary user-profile">
           <div
-            class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
+              class="bg-white rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm user-icon">
             <i class="fa-solid fa-user text-dark fa-2x"></i>
           </div>
           <h2 class="mt-3 fs-5 fw-semibold">
@@ -241,10 +262,11 @@ onUnmounted(() => {
           <li v-for="item in filteredMenuItems" :key="item.id" class="nav-item">
             <!-- Item thường -->
             <a v-if="!item.sub" href="#" class="nav-link" :class="{ active: activeTarget === item.target }"
-              @click.prevent="handleClick(item.target)">
+               @click.prevent="handleClick(item.target)">
               <i :class="item.icon"></i> {{ item.label }}
-              <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{ newBillCount
-              }}</span>
+              <span v-if="item.label === 'Hóa đơn' && newBillCount > 0" class="badge bg-danger">{{
+                  newBillCount
+                }}</span>
             </a>
 
             <!-- Item có submenu -->
@@ -259,7 +281,7 @@ onUnmounted(() => {
                   <ul class="nav flex-column">
                     <li v-for="sub in item.sub" :key="sub.target">
                       <a href="#" class="nav-link" :class="{ active: activeTarget === sub.target }"
-                        @click.prevent="loadContent(sub.target)">
+                         @click.prevent="loadContent(sub.target)">
                         <i :class="sub.icon"></i> {{ sub.label }}
                       </a>
                     </li>
@@ -274,7 +296,7 @@ onUnmounted(() => {
 
     <main class="flex-grow-1 p-4 main-content">
       <Transition name="fade" mode="out-in">
-        <component :is="activeComponent" />
+        <component :is="activeComponent"/>
       </Transition>
     </main>
   </div>

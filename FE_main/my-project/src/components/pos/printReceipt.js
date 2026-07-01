@@ -1,20 +1,20 @@
 export async function printReceipt(bill) {
-  // bill: { billCode, createdAt, employeeName, customerName, items[], subTotal, discountAmount, grandTotal, paid, change }
-  // items[]: { productName, color, size, quantity, price, lineTotal? }
+    // bill: { billCode, createdAt, employeeName, customerName, items[], subTotal, discountAmount, grandTotal, paid, change }
+    // items[]: { productName, color, size, quantity, price, lineTotal? }
 
-  const html2pdf = (await import("html2pdf.js")).default;
+    const html2pdf = (await import("html2pdf.js")).default;
 
-  const safe = (v) => v ?? "";
-  const nowText = bill?.createdAt
-    ? new Date(bill.createdAt).toLocaleString()
-    : new Date().toLocaleString();
+    const safe = (v) => v ?? "";
+    const nowText = bill?.createdAt
+        ? new Date(bill.createdAt).toLocaleString()
+        : new Date().toLocaleString();
 
-  // Tạo DOM tạm để render PDF
-  const el = document.createElement("div");
-  el.style.width = "500px";
-  el.style.fontFamily =
-    "Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
-  el.innerHTML = `
+    // Tạo DOM tạm để render PDF
+    const el = document.createElement("div");
+    el.style.width = "500px";
+    el.style.fontFamily =
+        "Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+    el.innerHTML = `
   <div style="padding:16px 14px;">
     <h2 style="margin:0 0 8px 0; font-size:28px; letter-spacing:1px; text-align: center">HÓA ĐƠN BÁN LẺ</h2>
     <div style="font-size:12px; color:#555;">
@@ -39,19 +39,19 @@ export async function printReceipt(bill) {
       </thead>
       <tbody>
         ${(bill?.items || [])
-          .map((it, idx) => {
+        .map((it, idx) => {
             const name = `${safe(it.productName)}${
-              it.color || it.size
-                ? " - " +
-                  [safe(it.color), safe(it.size)].filter(Boolean).join(" / ")
-                : ""
+                it.color || it.size
+                    ? " - " +
+                    [safe(it.color), safe(it.size)].filter(Boolean).join(" / ")
+                    : ""
             }`;
             const qty = it?.quantity ?? "";
             const price = it?.price ?? "";
             const total =
-              it?.lineTotal != null
-                ? it.lineTotal
-                : (Number(it?.price) || 0) * (Number(it?.quantity) || 0);
+                it?.lineTotal != null
+                    ? it.lineTotal
+                    : (Number(it?.price) || 0) * (Number(it?.quantity) || 0);
             return `
               <tr>
                 <td style="padding:6px 0;">${idx + 1}</td>
@@ -60,8 +60,8 @@ export async function printReceipt(bill) {
                 <td style="text-align:right; padding:6px 0;">${price}</td>
                 <td style="text-align:right; padding:6px 0;">${total}</td>
               </tr>`;
-          })
-          .join("")}
+        })
+        .join("")}
       </tbody>
     </table>
 
@@ -86,26 +86,26 @@ export async function printReceipt(bill) {
   </div>
   `;
 
-  document.body.appendChild(el);
+    document.body.appendChild(el);
 
-  const opt = {
-    margin: 5,
-    filename: `${safe(bill?.billCode) || "hoa-don"}.pdf`,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "mm", format: "a5", orientation: "portrait" },
-    pagebreak: { mode: ["css", "legacy"] },
-  };
+    const opt = {
+        margin: 5,
+        filename: `${safe(bill?.billCode) || "hoa-don"}.pdf`,
+        image: {type: "jpeg", quality: 0.98},
+        html2canvas: {scale: 2},
+        jsPDF: {unit: "mm", format: "a5", orientation: "portrait"},
+        pagebreak: {mode: ["css", "legacy"]},
+    };
 
-  await html2pdf()
-    .set(opt)
-    .from(el)
-    .toPdf()
-    .get("pdf")
-    .then((pdf) => {
-      const url = pdf.output("bloburl");
-      window.open(url, "_blank"); // mở luôn tab xem hóa đơn
-    });
+    await html2pdf()
+        .set(opt)
+        .from(el)
+        .toPdf()
+        .get("pdf")
+        .then((pdf) => {
+            const url = pdf.output("bloburl");
+            window.open(url, "_blank"); // mở luôn tab xem hóa đơn
+        });
 
-  document.body.removeChild(el);
+    document.body.removeChild(el);
 }

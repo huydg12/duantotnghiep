@@ -6,18 +6,18 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {
-		"com.poly.BE_main.controller",
-		"com.poly.BE_main.model",
-		"com.poly.BE_main.repository",
-		"com.poly.BE_main.service",
-		"com.poly.BE_main.config",
-		"com.poly.BE_main.dto",
-		"com.poly.BE_main.utils"
+        "com.poly.BE_main.controller",
+        "com.poly.BE_main.model",
+        "com.poly.BE_main.repository",
+        "com.poly.BE_main.service",
+        "com.poly.BE_main.config",
+        "com.poly.BE_main.dto",
+        "com.poly.BE_main.utils"
 })
 public class BeMainApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(BeMainApplication.class, args);
-		System.out.println("✅✅ Spring Boot Server is running on http://localhost:8080");
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(BeMainApplication.class, args);
+        System.out.println("✅✅ Spring Boot Server is running on http://localhost:8080");
+    }
 
 }

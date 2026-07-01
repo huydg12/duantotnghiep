@@ -1,31 +1,22 @@
 package com.poly.BE_main.controller;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.server.ResponseStatusException;
-import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import com.poly.BE_main.dto.BillDTO;
 import com.poly.BE_main.dto.InvoiceCustomerDTO;
 import com.poly.BE_main.model.Bill;
 import com.poly.BE_main.service.BillService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -57,7 +48,7 @@ public class BillController {
 
     @PutMapping("/updateStatus/{id}")
     public ResponseEntity<?> updateStatus(@PathVariable int id, @RequestBody Map<String, Object> body,
-            Authentication authentication) {
+                                          Authentication authentication) {
         int status = ((Number) body.get("status")).intValue();
         String note = body.get("note") == null ? null : body.get("note").toString();
         Bill updated = billService.transitionStatus(id, status, authentication.getName(), note);
@@ -73,7 +64,7 @@ public class BillController {
     @PutMapping("/{billId}/cancel")
     @PreAuthorize("@ownership.ownsBill(authentication, #billId)")
     public ResponseEntity<?> cancel(@PathVariable Integer billId, @RequestBody(required = false) Map<String, String> body,
-            Authentication authentication) {
+                                    Authentication authentication) {
         String note = body == null ? "Khách hàng hủy đơn" : body.getOrDefault("note", "Khách hàng hủy đơn");
         return ResponseEntity.ok(billService.transitionStatus(billId, 5, authentication.getName(), note));
     }
@@ -109,7 +100,7 @@ public class BillController {
 
     @PutMapping("/updateSubTotal/{billId}")
     public ResponseEntity<String> updateSubTotal(@PathVariable int billId,
-            @RequestBody Map<String, BigDecimal> requestBody) {
+                                                 @RequestBody Map<String, BigDecimal> requestBody) {
         try {
             BigDecimal subTotal = requestBody.get("subTotal");
             billService.updateSubTotal(billId, subTotal);

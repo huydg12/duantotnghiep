@@ -1,12 +1,11 @@
 package com.poly.BE_main.service;
 
-import java.util.List;
-
+import com.poly.BE_main.model.Promotion;
+import com.poly.BE_main.repository.PromotionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.poly.BE_main.model.Promotion;
-import com.poly.BE_main.repository.PromotionRepository;
+import java.util.List;
 
 @Service
 public class PromotionService {
@@ -65,10 +64,14 @@ public class PromotionService {
             throw new IllegalArgumentException("Promotion value is invalid");
         if (p.getStartDate() == null || p.getEndDate() == null || !p.getEndDate().isAfter(p.getStartDate()))
             throw new IllegalArgumentException("Promotion date range is invalid");
-        if (p.getMinOrderAmount() != null && p.getMinOrderAmount().signum() < 0) throw new IllegalArgumentException("Minimum order cannot be negative");
-        if (p.getMaxDiscountAmount() != null && p.getMaxDiscountAmount().signum() <= 0) throw new IllegalArgumentException("Maximum discount must be positive");
-        if (p.getUsageLimit() != null && p.getUsageLimit() <= 0) throw new IllegalArgumentException("Usage limit must be positive");
-        if (p.getPerCustomerLimit() != null && p.getPerCustomerLimit() <= 0) throw new IllegalArgumentException("Customer usage limit must be positive");
+        if (p.getMinOrderAmount() != null && p.getMinOrderAmount().signum() < 0)
+            throw new IllegalArgumentException("Minimum order cannot be negative");
+        if (p.getMaxDiscountAmount() != null && p.getMaxDiscountAmount().signum() <= 0)
+            throw new IllegalArgumentException("Maximum discount must be positive");
+        if (p.getUsageLimit() != null && p.getUsageLimit() <= 0)
+            throw new IllegalArgumentException("Usage limit must be positive");
+        if (p.getPerCustomerLimit() != null && p.getPerCustomerLimit() <= 0)
+            throw new IllegalArgumentException("Customer usage limit must be positive");
     }
 
     public Promotion updateStatus(int id, Promotion pUpdate) {

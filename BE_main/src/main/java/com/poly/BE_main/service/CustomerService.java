@@ -1,23 +1,21 @@
 package com.poly.BE_main.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-
 import com.poly.BE_main.dto.CustomerDTO;
 import com.poly.BE_main.dto.CustomerInfoDTO;
-
 import com.poly.BE_main.dto.InformationCustomerDTO;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerService {
@@ -74,6 +72,7 @@ public class CustomerService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+
     public Page<CustomerDTO> findPage(String keyword, int page, int size) {
         int safeSize = Math.min(Math.max(size, 1), 100);
         String value = keyword == null ? "" : keyword.trim();
@@ -155,7 +154,7 @@ public class CustomerService {
     // Update thông tin theo customerId
     @Transactional
     public void updateCustomerInfo(Integer id, String fullName, boolean gender, String email, String numberPhone,
-            java.time.LocalDate birthDate) {
+                                   java.time.LocalDate birthDate) {
         java.sql.Date sqlDate = null;
         if (birthDate != null) {
             sqlDate = java.sql.Date.valueOf(birthDate); // convert LocalDate → java.sql.Date

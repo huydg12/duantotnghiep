@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
-import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import {useCartFavoriteStore} from "@/stores/cartFavoriteStore";
 
 const store = useCartFavoriteStore()
 const favoriteList = ref([])
@@ -55,11 +55,11 @@ const deleteFavorite = async (favoriteId) => {
 
 onMounted(() => {
   fetchFavorite()
-}) 
+})
 </script>
 
 <template>
-  <Banner title="" breadcrumb="" backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+  <Banner title="" breadcrumb="" backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
 
   <div class="container mt-4">
     <h3 class="text-center mb-4 fw-bold text-black">Danh sách yêu thích của tôi</h3>
@@ -67,16 +67,16 @@ onMounted(() => {
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-5">
       <div v-for="favorite in favoriteList" :key="favorite.favoriteId" class="col">
         <div class="card h-100 shadow-sm position-relative" @click="goToDetail(favorite.productId)"
-          style="cursor: pointer;">
+             style="cursor: pointer;">
           <!-- Icon yêu thích -->
           <i class="fas fa-heart favorite-icon text-danger"
-            :class="{ 'scale-up': favorite.favoriteId === recentlyRemovedId }"
-            @click.stop="deleteFavorite(favorite.favoriteId)"></i>
+             :class="{ 'scale-up': favorite.favoriteId === recentlyRemovedId }"
+             @click.stop="deleteFavorite(favorite.favoriteId)"></i>
 
           <div class="image-container position-relative">
-            <img :src="favorite.image1" class="product-image image-front" :alt="favorite.productName" />
+            <img :src="favorite.image1" class="product-image image-front" :alt="favorite.productName"/>
             <img :src="favorite.image2" class="product-image image-hover position-absolute top-0 start-0"
-              :alt="favorite.productName" />
+                 :alt="favorite.productName"/>
           </div>
 
           <div class="card-body d-flex flex-column">
@@ -179,7 +179,6 @@ onMounted(() => {
 .image-container:hover .image-front {
   opacity: 0;
 }
-
 
 
 .card:hover {

@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import {defineEmits, defineProps} from 'vue'
 
 const props = defineProps({
   total: Number,

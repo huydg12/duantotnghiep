@@ -1,8 +1,8 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import {computed, onMounted, ref} from "vue";
+import {useRouter} from "vue-router";
 import axios from "axios";
-import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import {useCartFavoriteStore} from "@/stores/cartFavoriteStore";
 import Swal from 'sweetalert2'
 
 // Store và router
@@ -59,7 +59,9 @@ const toggleFavorite = async (productId) => {
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để sử dụng tính năng yêu thích.',
       confirmButtonText: 'OK',
-      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+      didOpen: () => {
+        Swal.getContainer().style.zIndex = '20000';
+      }
     });
     return;
   }
@@ -141,9 +143,10 @@ function selectBrand(brand) {
   selectedBrand.value = brand;
   currentPage.value = 0;  // Reset trang khi thay đổi hãng
 }
+
 const productsByBrand = computed(() => {
   return allProducts.value.filter(
-    p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase()
+      p => p.brandName?.toLowerCase() === selectedBrand.value.toLowerCase()
   );
 });
 
@@ -197,9 +200,9 @@ onMounted(() => {
                 'far text-secondary': !favoriteMap.has(product.productId)
               }" @click.stop="toggleFavorite(product.productId)"></i>
               <div class="image-container position-relative">
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                  :alt="product.productName" />
+                     :alt="product.productName"/>
               </div>
               <div class="card-body d-flex flex-column text-center">
                 <h5 class="cart-title">{{ product.productName }}</h5>
@@ -230,12 +233,15 @@ onMounted(() => {
         <div class="d-flex justify-content-center gap-3 mb-5 filter-buttons">
           <button class="btn" :class="{ active: selectedBrand === 'nike' }" @click="selectBrand('nike')">Nike</button>
           <button class="btn" :class="{ active: selectedBrand === 'adidas' }"
-            @click="selectBrand('adidas')">Adidas</button>
+                  @click="selectBrand('adidas')">Adidas
+          </button>
           <button class="btn" :class="{ active: selectedBrand === 'puma' }" @click="selectBrand('puma')">Puma</button>
           <button class="btn" :class="{ active: selectedBrand === 'converse' }"
-            @click="selectBrand('converse')">Converse</button>
+                  @click="selectBrand('converse')">Converse
+          </button>
           <button class="btn" :class="{ active: selectedBrand === 'new balance' }"
-            @click="selectBrand('new balance')">New Balance</button>
+                  @click="selectBrand('new balance')">New Balance
+          </button>
         </div>
 
         <div id="product-list-container">
@@ -247,9 +253,9 @@ onMounted(() => {
                   'fas text-danger scale-up': favoriteMap.has(product.productId),
                   'far text-secondary': !favoriteMap.has(product.productId)
                 }" @click.stop="toggleFavorite(product.productId)"></i>
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName" />
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                  :alt="product.productName" />
+                     :alt="product.productName"/>
                 <div class="card-body text-center">
                   <h6 class="card-title">{{ product.productName }}</h6>
                   <p class="product-price">{{ formatCurrency(product.price) }}</p>

@@ -1,26 +1,25 @@
 package com.poly.BE_main.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
+import com.poly.BE_main.dto.InventoryDTO;
+import com.poly.BE_main.model.Inventory;
+import com.poly.BE_main.model.InventoryMovement;
+import com.poly.BE_main.repository.InventoryMovementRepository;
+import com.poly.BE_main.repository.InventoryRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.poly.BE_main.dto.InventoryDTO;
-import com.poly.BE_main.model.Inventory;
-import com.poly.BE_main.repository.InventoryRepository;
-import com.poly.BE_main.repository.InventoryMovementRepository;
-import com.poly.BE_main.model.InventoryMovement;
-
-import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 
 public class InventoryService {
     @Autowired
     InventoryRepository inventoryRepository;
-    @Autowired InventoryMovementRepository movementRepository;
+    @Autowired
+    InventoryMovementRepository movementRepository;
 
     public List<Inventory> findAll() {
         return inventoryRepository.findAll();
@@ -137,10 +136,17 @@ public class InventoryService {
     public List<InventoryMovement> getMovements(Integer productDetailId) {
         return movementRepository.findByProductDetailIdOrderByCreatedAtDesc(productDetailId);
     }
+
     private void record(Integer pdId, int change, int balance, String type, String username) {
-        InventoryMovement m = new InventoryMovement(); m.setProductDetailId(pdId); m.setQuantityChange(change);
-        m.setBalanceAfter(balance); m.setMovementType(type); m.setReferenceType("MANUAL");
-        m.setCreatedBy(username); m.setCreatedAt(LocalDateTime.now()); movementRepository.save(m);
+        InventoryMovement m = new InventoryMovement();
+        m.setProductDetailId(pdId);
+        m.setQuantityChange(change);
+        m.setBalanceAfter(balance);
+        m.setMovementType(type);
+        m.setReferenceType("MANUAL");
+        m.setCreatedBy(username);
+        m.setCreatedAt(LocalDateTime.now());
+        movementRepository.save(m);
     }
 
 }

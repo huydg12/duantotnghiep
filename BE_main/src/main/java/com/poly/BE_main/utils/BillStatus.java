@@ -18,12 +18,22 @@ public final class BillStatus {
             HOAN_TAT, Set.of(HOAN_TIEN),
             DA_HUY, Set.of(), HOAN_TIEN, Set.of());
 
-    private BillStatus() {}
-    public static boolean canTransition(int from, int to) { return TRANSITIONS.getOrDefault(from, Set.of()).contains(to); }
-    public static String toString(int status) { return switch (status) {
-        case CHO_XAC_NHAN -> "Chờ xác nhận"; case DA_XAC_NHAN -> "Đã xác nhận";
-        case DANG_GIAO -> "Đang giao"; case HOAN_TAT -> "Hoàn tất";
-        case DA_HUY -> "Đã hủy"; case HOAN_TIEN -> "Trả hàng/Hoàn tiền";
-        default -> "Không xác định";
-    }; }
+    private BillStatus() {
+    }
+
+    public static boolean canTransition(int from, int to) {
+        return TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
+    public static String toString(int status) {
+        return switch (status) {
+            case CHO_XAC_NHAN -> "Chờ xác nhận";
+            case DA_XAC_NHAN -> "Đã xác nhận";
+            case DANG_GIAO -> "Đang giao";
+            case HOAN_TAT -> "Hoàn tất";
+            case DA_HUY -> "Đã hủy";
+            case HOAN_TIEN -> "Trả hàng/Hoàn tiền";
+            default -> "Không xác định";
+        };
+    }
 }

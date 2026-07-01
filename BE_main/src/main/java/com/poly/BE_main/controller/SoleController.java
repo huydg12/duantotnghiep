@@ -1,12 +1,11 @@
 package com.poly.BE_main.controller;
 
-import java.util.List;
-
+import com.poly.BE_main.model.Sole;
+import com.poly.BE_main.service.SoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.poly.BE_main.model.Sole;
-import com.poly.BE_main.service.SoleService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/sole")

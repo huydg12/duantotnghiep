@@ -1,12 +1,11 @@
 package com.poly.BE_main.service;
 
-import java.util.List;
-
+import com.poly.BE_main.model.Collar;
+import com.poly.BE_main.repository.CollarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.poly.BE_main.model.Collar;
-import com.poly.BE_main.repository.CollarRepository;
+import java.util.List;
 
 @Service
 public class CollarService {

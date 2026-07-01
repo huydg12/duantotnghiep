@@ -1,13 +1,13 @@
 package com.poly.BE_main.dto;
 
-import java.math.BigDecimal;
-import java.util.List;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -30,5 +30,6 @@ public class BillDTO {
     private BigDecimal discountAmount;
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;
-    @NotEmpty private List<@Valid BillDetailDTO> billDetails;
+    @NotEmpty
+    private List<@Valid BillDetailDTO> billDetails;
 }

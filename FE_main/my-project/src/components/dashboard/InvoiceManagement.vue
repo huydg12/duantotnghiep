@@ -1,8 +1,8 @@
 <script setup>
 import axios from "axios";
-import { ref, computed, onMounted, nextTick, watch } from "vue";
-import { Modal } from "bootstrap";
-import { printReceipt } from "../pos/printReceipt";
+import {computed, nextTick, onMounted, ref, watch} from "vue";
+import {Modal} from "bootstrap";
+import {printReceipt} from "../pos/printReceipt";
 
 // import { nextTick } from 'vue';
 const bills = ref([]);
@@ -16,22 +16,22 @@ const searchQuery = ref("");
 
 const billTypeFilter = ref("all");
 const uniqueBillTypes = computed(() =>
-  Array.from(
-    new Set(
-      (bills.value || [])
-        .map(b => String(b?.BILL_TYPE ?? "").trim())
-        .filter(v => v.length > 0)
+    Array.from(
+        new Set(
+            (bills.value || [])
+                .map(b => String(b?.BILL_TYPE ?? "").trim())
+                .filter(v => v.length > 0)
+        )
     )
-  )
 );
 
 const tabs = [
-  { label: "Tất cả", value: "all" },
-  { label: "Chờ xác nhận", value: "Chờ xác nhận" },
-  { label: "Đã xác nhận", value: "Đã xác nhận" },
-  { label: "Đang giao", value: "Đang giao" },
-  { label: "Hoàn thành", value: "Hoàn thành" },
-  { label: "Đã hủy", value: "Đã hủy" },
+  {label: "Tất cả", value: "all"},
+  {label: "Chờ xác nhận", value: "Chờ xác nhận"},
+  {label: "Đã xác nhận", value: "Đã xác nhận"},
+  {label: "Đang giao", value: "Đang giao"},
+  {label: "Hoàn thành", value: "Hoàn thành"},
+  {label: "Đã hủy", value: "Đã hủy"},
   // { label: "Trả hàng/Hoàn tiền", value: "Trả hàng/Hoàn tiền" }
 ];
 
@@ -52,7 +52,7 @@ const parseToMs = (d) => {
 };
 
 const pendingCount = computed(() =>
-  (bills.value || []).filter(b => Number(b.STATUS) === 1).length
+    (bills.value || []).filter(b => Number(b.STATUS) === 1).length
 );
 
 // Tab dùng để lọc thực tế: nếu đang chọn "Chờ xác nhận" nhưng không còn đơn (và không tìm kiếm) → dùng "all"
@@ -68,9 +68,9 @@ const appliedTab = computed(() => {
 const matchesSearch = (bill, q, typeFilter) => {
   const items = Array.isArray(bill?.items) ? bill.items : [];
   const searchOk =
-    !q ||
-    String(bill?.CODE ?? "").toLowerCase().includes(q) ||
-    items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
+      !q ||
+      String(bill?.CODE ?? "").toLowerCase().includes(q) ||
+      items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
 
   const typeLc = (typeFilter || "all").toLowerCase();
   const billTypeLc = String(bill?.BILL_TYPE ?? "").toLowerCase();
@@ -89,9 +89,9 @@ const filteredOrders = computed(() => {
 
     const items = Array.isArray(bill?.items) ? bill.items : [];
     const matchSearch =
-      !q ||
-      String(bill?.CODE ?? "").toLowerCase().includes(q) ||
-      items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
+        !q ||
+        String(bill?.CODE ?? "").toLowerCase().includes(q) ||
+        items.some((i) => String(i?.name ?? "").toLowerCase().includes(q));
 
     const billTypeLc = String(bill?.BILL_TYPE ?? "").toLowerCase();
     const matchType = typeLc === "all" || billTypeLc === typeLc;
@@ -164,13 +164,13 @@ watch(filteredOrders, () => {
 // Debounce input search để mượt
 let searchTimer;
 watch(
-  () => searchQuery.value,
-  () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      currentPage.value = 1;
-    }, 200);
-  }
+    () => searchQuery.value,
+    () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        currentPage.value = 1;
+      }, 200);
+    }
 );
 
 const mapBillData = (data) => {
@@ -225,7 +225,7 @@ const mapBillDetailData = (data) => {
 const fetchBillDetails = async (billId) => {
   try {
     const response = await axios.get(
-      `http://localhost:8080/billDetail/show/${billId}`
+        `http://localhost:8080/billDetail/show/${billId}`
     );
     billDetails.value = mapBillDetailData(response.data);
     console.log("Bill Details:", billDetails.value);
@@ -236,7 +236,7 @@ const fetchBillDetails = async (billId) => {
 
 const updateBillStatus = async (bill, newStatus) => {
   try {
-    await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });
+    await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {status: newStatus});
     // Cập nhật lạc quan trên UI
     bill.STATUS = newStatus;
     // (tuỳ chọn) refresh danh sách:
@@ -249,7 +249,10 @@ const updateBillStatus = async (bill, newStatus) => {
 
 const updateBillStatus4 = async (bill, newStatus) => {
   try {
-    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, { status: newStatus, statusPayment: "Đã thanh toán" });
+    await axios.put(`http://localhost:8080/bill/updateBillStatus4/${bill.ID}`, {
+      status: newStatus,
+      statusPayment: "Đã thanh toán"
+    });
     // Cập nhật lạc quan trên UI
     bill.STATUS = newStatus;
     // (tuỳ chọn) refresh danh sách:
@@ -278,9 +281,9 @@ const updateInventory = async (bill, newStatus) => {
     // Stock was already reserved atomically when the order was created.
     // Confirmation only assigns the employee and advances the state machine.
     if (employeeId) {
-      await axios.put(`/bill/updateEmployee/${bill.ID}`, { employeeId });
+      await axios.put(`/bill/updateEmployee/${bill.ID}`, {employeeId});
     }
-    await axios.put(`/bill/updateStatus/${bill.ID}`, { status: newStatus });
+    await axios.put(`/bill/updateStatus/${bill.ID}`, {status: newStatus});
     bill.STATUS = newStatus;
     await fetchBills();
     window.dispatchEvent(new CustomEvent('bill:changed'));
@@ -311,11 +314,11 @@ const updateInventory = async (bill, newStatus) => {
 
       // Gửi yêu cầu API để cập nhật số lượng trong kho (sử dụng phương thức updateQuantityTru)
       await axios.put(
-        `http://localhost:8080/inventory/updateQuantityTru/${productDetailId}`, {
-        quantity: quantityToUpdate // Trả lại số lượng vào kho
-      });
+          `http://localhost:8080/inventory/updateQuantityTru/${productDetailId}`, {
+            quantity: quantityToUpdate // Trả lại số lượng vào kho
+          });
 
-      await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, { status: newStatus });
+      await axios.put(`http://localhost:8080/bill/updateStatus/${bill.ID}`, {status: newStatus});
 
       const updateEmployee = {
         employeeId: employeeId,
@@ -338,10 +341,10 @@ async function fetchEmployeeNameForBill(bill) {
   try {
     // lấy employeeId từ bill tại thời điểm click
     const id =
-      bill?.EMPLOYEE_ID ??
-      bill?.employeeId ??
-      bill?.employeeID ??
-      bill?.employee?.id;
+        bill?.EMPLOYEE_ID ??
+        bill?.employeeId ??
+        bill?.employeeID ??
+        bill?.employee?.id;
 
     if (!id) {
       employee.value = null;
@@ -349,12 +352,12 @@ async function fetchEmployeeNameForBill(bill) {
       return null;
     }
 
-    const { data } = await axios.get(`http://localhost:8080/employee/showById/${id}`);
+    const {data} = await axios.get(`http://localhost:8080/employee/showById/${id}`);
     const payload = Array.isArray(data) ? data[0] : data;
 
     employee.value = payload || null;
     employeeName.value =
-      payload?.fullName ?? payload?.FULL_NAME ?? payload?.name ?? '—';
+        payload?.fullName ?? payload?.FULL_NAME ?? payload?.name ?? '—';
 
     console.log('employeeName:', employeeName.value);
     return employeeName.value;
@@ -367,13 +370,13 @@ async function fetchEmployeeNameForBill(bill) {
 }
 
 const toVND = (n) =>
-  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
-    .format(Number(n || 0));
+    new Intl.NumberFormat("vi-VN", {style: "currency", currency: "VND"})
+        .format(Number(n || 0));
 
 const printInvoice = async (bill) => {
   try {
     // Lấy chi tiết hoá đơn
-    const { data } = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
+    const {data} = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
     const details = mapBillDetailData(data); // đã có sẵn trong file của bạn
     const name = await fetchEmployeeNameForBill(bill);
 
@@ -417,7 +420,7 @@ const handleQuantityChange = (detail) => {
 const lastTriggerEl = ref(null);
 
 const openModal = async (bill, ev) => {
-  selectedBill.value = { ...bill };
+  selectedBill.value = {...bill};
   lastTriggerEl.value = ev?.currentTarget || null;
   await fetchBillDetails(bill.ID);
 
@@ -425,7 +428,7 @@ const openModal = async (bill, ev) => {
   selectedBill.value.oldNote = (selectedBill.value.NOTE ?? '').trim();
   billDetails.value = billDetails.value.map(d => {
     const q = parseInt(d.QUANTITY) || 1;
-    return { ...d, QUANTITY: q, oldQuantity: q }
+    return {...d, QUANTITY: q, oldQuantity: q}
   });
 
   await nextTick();
@@ -454,17 +457,17 @@ const formatCurrency = (value) => {
 };
 
 const subTotal = computed(() =>
-  billDetails.value.reduce(
-    (total, item) => total + item.QUANTITY * item.PRICE,
-    0
-  )
+    billDetails.value.reduce(
+        (total, item) => total + item.QUANTITY * item.PRICE,
+        0
+    )
 );
 
 const grandTotal = computed(
-  () =>
-    subTotal.value -
-    (parseFloat(selectedBill.value?.DISCOUNT_AMOUNT) || 0) +
-    (parseFloat(selectedBill.value?.SHIPPING_FEE) || 0)
+    () =>
+        subTotal.value -
+        (parseFloat(selectedBill.value?.DISCOUNT_AMOUNT) || 0) +
+        (parseFloat(selectedBill.value?.SHIPPING_FEE) || 0)
 );
 
 const isPaid = computed(() => selectedBill.value?.STATUS >= 3);
@@ -491,7 +494,7 @@ const saveAllChanges = async () => {
 
     // NEW: phát hiện "không có thay đổi" (số lượng & ghi chú)
     const noteChanged =
-      (selectedBill.value.NOTE ?? '').trim() !== (selectedBill.value.oldNote ?? '').trim();
+        (selectedBill.value.NOTE ?? '').trim() !== (selectedBill.value.oldNote ?? '').trim();
     const qtyChanged = billDetails.value.some(d => {
       const now = parseInt(d.QUANTITY) || 1;
       const before = Number.isFinite(d.oldQuantity) ? d.oldQuantity : now;
@@ -528,11 +531,11 @@ const saveAllChanges = async () => {
         if (safeQ !== newQ) d.QUANTITY = safeQ;
 
         updates.push(
-          axios.put(`http://localhost:8080/billDetail/updateQuantity/${d.ID}`, { quantity: d.QUANTITY }),
-          axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${d.PRODUCT_DETAIL_ID}`, {
-            quantity: d.QUANTITY,
-            oldQuantity: oldQ
-          })
+            axios.put(`http://localhost:8080/billDetail/updateQuantity/${d.ID}`, {quantity: d.QUANTITY}),
+            axios.put(`http://localhost:8080/inventory/updateQuantityByBill/${d.PRODUCT_DETAIL_ID}`, {
+              quantity: d.QUANTITY,
+              oldQuantity: oldQ
+            })
         );
         d.oldQuantity = d.QUANTITY; // cập nhật snapshot sau khi hợp lệ
       }
@@ -566,7 +569,7 @@ const saveAllChanges = async () => {
     // đồng bộ bảng ngoài
     const idx = bills.value.findIndex(b => b.ID === selectedBill.value.ID);
     if (idx !== -1) {
-      bills.value[idx] = { ...bills.value[idx], ...patch };
+      bills.value[idx] = {...bills.value[idx], ...patch};
     }
 
     await fetchBills();
@@ -576,7 +579,13 @@ const saveAllChanges = async () => {
     alert("Lưu thất bại, vui lòng thử lại.");
   }
 };
-function blockMinus(e) { if (e.key === '-' || e.key === 'e') { e.preventDefault() } }
+
+function blockMinus(e) {
+  if (e.key === '-' || e.key === 'e') {
+    e.preventDefault()
+  }
+}
+
 // Hàm chuyển đổi trạng thái từ số sang chữ
 const getStatusText = (status) => {
   const statusMap = {
@@ -605,9 +614,9 @@ onMounted(() => {
     <!-- Tabs -->
     <div class="tabs">
       <button v-for="tab in tabs" :key="tab.value" class="tab"
-        :class="{ active: currentTab === tab.value, disabled: isTabDisabled(tab.value) }"
-        :disabled="isTabDisabled(tab.value)" :title="isTabDisabled(tab.value) ? 'Không có đơn trong mục này' : ''"
-        @click="handleTabClick(tab.value)">
+              :class="{ active: currentTab === tab.value, disabled: isTabDisabled(tab.value) }"
+              :disabled="isTabDisabled(tab.value)" :title="isTabDisabled(tab.value) ? 'Không có đơn trong mục này' : ''"
+              @click="handleTabClick(tab.value)">
         {{ tab.label }}
       </button>
     </div>
@@ -616,7 +625,7 @@ onMounted(() => {
     <div class="row g-2 align-items-center mb-3">
       <div class="col-md-8">
         <input v-model="searchQuery" type="text" class="form-control"
-          placeholder="Tìm kiếm theo mã hóa đơn hoặc tên sản phẩm..." />
+               placeholder="Tìm kiếm theo mã hóa đơn hoặc tên sản phẩm..."/>
       </div>
       <div class="col-md-4">
         <select v-model="billTypeFilter" class="form-select">
@@ -628,51 +637,51 @@ onMounted(() => {
 
     <table class="table table-bordered table-hover">
       <thead class="thead-dark">
-        <tr>
-          <th>Mã HĐ</th>
-          <th>Ngày tạo</th>
-          <th>Loại HĐ</th>
-          <th>Người nhận</th>
-          <th>Phương thức thanh toán</th>
-          <th>Trạng thái</th>
-          <th>Thanh toán</th>
-          <th>Tổng tiền</th>
-          <th>Thao tác</th>
-        </tr>
+      <tr>
+        <th>Mã HĐ</th>
+        <th>Ngày tạo</th>
+        <th>Loại HĐ</th>
+        <th>Người nhận</th>
+        <th>Phương thức thanh toán</th>
+        <th>Trạng thái</th>
+        <th>Thanh toán</th>
+        <th>Tổng tiền</th>
+        <th>Thao tác</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="bill in paginatedOrders" :key="bill.ID">
-          <td>{{ bill.CODE }}</td>
-          <td>{{ bill.CREATED_DATE }}</td>
-          <td>{{ bill.BILL_TYPE }}</td>
-          <td>{{ bill.RECIPIENT_NAME }}</td>
-          <td>{{ PTTT_LABELS[bill.PTTT_ID] }}</td>
-          <td>{{ getStatusText(bill.STATUS) }}</td>
+      <tr v-for="bill in paginatedOrders" :key="bill.ID">
+        <td>{{ bill.CODE }}</td>
+        <td>{{ bill.CREATED_DATE }}</td>
+        <td>{{ bill.BILL_TYPE }}</td>
+        <td>{{ bill.RECIPIENT_NAME }}</td>
+        <td>{{ PTTT_LABELS[bill.PTTT_ID] }}</td>
+        <td>{{ getStatusText(bill.STATUS) }}</td>
 
-          <td>{{ bill.STATUS_PAYMENT }}</td>
-          <td>{{ formatCurrency(bill.GRAND_TOTAL || 0) }}</td>
-          <td>
-            <button class="btn btn-sm btn-primary me-2" @click="openModal(bill, $event)">Chi tiết</button>
+        <td>{{ bill.STATUS_PAYMENT }}</td>
+        <td>{{ formatCurrency(bill.GRAND_TOTAL || 0) }}</td>
+        <td>
+          <button class="btn btn-sm btn-primary me-2" @click="openModal(bill, $event)">Chi tiết</button>
 
-            <!-- Ở đây chỉ là các nút, KHÔNG có thêm <td> -->
-            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-secondary me-1" @click="updateInventory(bill, 2)">
-              Xác nhận
-            </button>
-            <button v-if="+bill.STATUS === 2" class="btn btn-sm btn-warning me-1" @click="updateBillStatus(bill, 3)">
-              Đang giao
-            </button>
-            <button v-if="+bill.STATUS === 3" class="btn btn-sm btn-success me-1" @click="updateBillStatus4(bill, 4)">
-              Hoàn thành
-            </button>
-            <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-danger me-1" @click="updateBillStatus(bill, 5)">
-              Huỷ
-            </button>
+          <!-- Ở đây chỉ là các nút, KHÔNG có thêm <td> -->
+          <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-secondary me-1" @click="updateInventory(bill, 2)">
+            Xác nhận
+          </button>
+          <button v-if="+bill.STATUS === 2" class="btn btn-sm btn-warning me-1" @click="updateBillStatus(bill, 3)">
+            Đang giao
+          </button>
+          <button v-if="+bill.STATUS === 3" class="btn btn-sm btn-success me-1" @click="updateBillStatus4(bill, 4)">
+            Hoàn thành
+          </button>
+          <button v-if="+bill.STATUS === 1" class="btn btn-sm btn-danger me-1" @click="updateBillStatus(bill, 5)">
+            Huỷ
+          </button>
 
-            <button v-if="+bill.STATUS !== 5" class="btn btn-sm btn-outline-dark me-1" @click="printInvoice(bill)">
-              In hoá đơn
-            </button>
-          </td>
-        </tr>
+          <button v-if="+bill.STATUS !== 5" class="btn btn-sm btn-outline-dark me-1" @click="printInvoice(bill)">
+            In hoá đơn
+          </button>
+        </td>
+      </tr>
       </tbody>
     </table>
 
@@ -683,7 +692,7 @@ onMounted(() => {
       </button>
 
       <button v-for="p in totalPages" :key="p" class="page-btn" :class="{ active: currentPage === p }"
-        @click="currentPage = p">
+              @click="currentPage = p">
         {{ p }}
       </button>
 
@@ -694,7 +703,7 @@ onMounted(() => {
 
     <!-- Modal -->
     <div class="modal fade" id="billModal" tabindex="-1" aria-labelledby="billModalLabel" aria-hidden="true"
-      ref="modal">
+         ref="modal">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -707,21 +716,21 @@ onMounted(() => {
             <div class="row mb-3">
               <div class="col-md-6">
                 <label>Mã hóa đơn</label>
-                <input v-model="selectedBill.CODE" class="form-control" :readonly="isPaid || true" />
+                <input v-model="selectedBill.CODE" class="form-control" :readonly="isPaid || true"/>
               </div>
               <div class="col-md-6">
                 <label>Người nhận</label>
-                <input v-model="selectedBill.RECIPIENT_NAME" class="form-control" :readonly="isPaid || true" />
+                <input v-model="selectedBill.RECIPIENT_NAME" class="form-control" :readonly="isPaid || true"/>
               </div>
             </div>
             <div class="row mb-3">
               <div class="col-md-6">
                 <label>SĐT</label>
-                <input v-model="selectedBill.RECIPIENT_PHONE_NUMBER" class="form-control" :readonly="isPaid || true" />
+                <input v-model="selectedBill.RECIPIENT_PHONE_NUMBER" class="form-control" :readonly="isPaid || true"/>
               </div>
               <div class="col-md-6">
                 <label>Địa chỉ</label>
-                <input v-model="selectedBill.RECEIVER_ADDRESS" class="form-control" :readonly="isPaid || true" />
+                <input v-model="selectedBill.RECEIVER_ADDRESS" class="form-control" :readonly="isPaid || true"/>
               </div>
             </div>
             <div class="mb-3">
@@ -733,32 +742,32 @@ onMounted(() => {
             <h6>Chi tiết sản phẩm</h6>
             <table class="table table-sm">
               <thead>
-                <tr>  
-                  <th>Tên SP</th>
-                  <th>Màu</th>
-                  <th>Kích cỡ</th>
-                  <th>SL</th>
-                  <th>Giá</th>
-                  <th>Tổng</th>
-                </tr>
+              <tr>
+                <th>Tên SP</th>
+                <th>Màu</th>
+                <th>Kích cỡ</th>
+                <th>SL</th>
+                <th>Giá</th>
+                <th>Tổng</th>
+              </tr>
               </thead>
               <tbody>
-                <tr v-for="(detail, index) in billDetails" :key="detail.ID">
-                  <td>{{ detail.PRODUCT_NAME }}</td>
-                  <td>{{ detail.COLOR }}</td>
-                  <td>{{ detail.SIZE }}</td>
-                  <!-- ✅ Số lượng có nút tăng/giảm -->
-                  <td>
-                    <input type="number" v-model="detail.QUANTITY" min="1"
-                      class="form-control form-control-sm text-center" style="width: 60px;" @keydown="blockMinus"
-                      @focus="cacheOldQuantity(detail)" @input="handleQuantityChange(detail)" :readonly="isPaid" />
-                  </td>
-                  <td>{{ formatCurrency(detail.PRICE) }}</td>
-                  <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>
-                </tr>
-                <tr v-if="billDetails.length === 0">
-                  <td colspan="7" class="text-center text-muted">Không có sản phẩm nào</td>
-                </tr>
+              <tr v-for="(detail, index) in billDetails" :key="detail.ID">
+                <td>{{ detail.PRODUCT_NAME }}</td>
+                <td>{{ detail.COLOR }}</td>
+                <td>{{ detail.SIZE }}</td>
+                <!-- ✅ Số lượng có nút tăng/giảm -->
+                <td>
+                  <input type="number" v-model="detail.QUANTITY" min="1"
+                         class="form-control form-control-sm text-center" style="width: 60px;" @keydown="blockMinus"
+                         @focus="cacheOldQuantity(detail)" @input="handleQuantityChange(detail)" :readonly="isPaid"/>
+                </td>
+                <td>{{ formatCurrency(detail.PRICE) }}</td>
+                <td>{{ formatCurrency(detail.PRICE * detail.QUANTITY) }}</td>
+              </tr>
+              <tr v-if="billDetails.length === 0">
+                <td colspan="7" class="text-center text-muted">Không có sản phẩm nào</td>
+              </tr>
               </tbody>
             </table>
 

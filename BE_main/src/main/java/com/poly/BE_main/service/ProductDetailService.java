@@ -1,19 +1,18 @@
 package com.poly.BE_main.service;
 
+import com.poly.BE_main.dto.ProductDetailDTO;
+import com.poly.BE_main.dto.ProductReceiptDTO;
+import com.poly.BE_main.model.ProductDetail;
+import com.poly.BE_main.repository.ProductDetailRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.poly.BE_main.dto.ProductDetailDTO;
-import com.poly.BE_main.dto.ProductReceiptDTO;
-import com.poly.BE_main.model.ProductDetail;
-import com.poly.BE_main.repository.ProductDetailRepository;
 
 @Service
 public class ProductDetailService {

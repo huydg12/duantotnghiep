@@ -1,6 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from "vue";
-import vSelect from "vue-select";
+import {onMounted, reactive, ref} from "vue";
 import "vue-select/dist/vue-select.css";
 import axios from "axios";
 
@@ -96,7 +95,10 @@ function addDetail() {
   const n = form.details.length;
   if (n > 0) {
     const err = validateRow(form.details[n - 1]);
-    if (err) { alert(`Dòng ${n}: ${err}`); return; }
+    if (err) {
+      alert(`Dòng ${n}: ${err}`);
+      return;
+    }
   }
 
   form.details.push({
@@ -113,18 +115,19 @@ function removeDetail(index) {
   // Nếu chi tiết đã có ID (đã lưu trong DB) thì gọi API xoá
   if (detail.id) {
     axios.delete(`http://localhost:8080/importReceiptDetail/delete/${detail.id}`)
-      .then(() => {
-        console.log(`Đã xoá chi tiết ID ${detail.id}`);
-        form.details.splice(index, 1); // xoá khỏi form sau khi xoá DB
-      })
-      .catch(err => {
-        console.error("Lỗi khi xoá chi tiết:", err);
-      });
+        .then(() => {
+          console.log(`Đã xoá chi tiết ID ${detail.id}`);
+          form.details.splice(index, 1); // xoá khỏi form sau khi xoá DB
+        })
+        .catch(err => {
+          console.error("Lỗi khi xoá chi tiết:", err);
+        });
   } else {
     // Nếu chưa lưu DB thì chỉ cần xoá trên form
     form.details.splice(index, 1);
   }
 }
+
 // --- Helpers ---
 
 const toNum = (v) => (v === "" || v === null || v === undefined ? NaN : Number(v));
@@ -154,10 +157,9 @@ const validateRow = (d) => {
 };
 
 
-
 // Helpers
 const isBlank = (v) =>
-  v === null || v === undefined || (typeof v === "string" && v.trim() === "");
+    v === null || v === undefined || (typeof v === "string" && v.trim() === "");
 
 // ✅ Ghi chú (note) được phép để trống
 async function saveReceipt() {
@@ -191,25 +193,25 @@ async function saveReceipt() {
     if (isEdit.value) {
       // Cập nhật phiếu
       receiptRes = await axios.put(
-        `http://localhost:8080/importReceipt/update/${form.id}`,
-        {
-          employeeId: form.employeeId,
-          importReceiptCode: String(form.importReceiptCode).trim(),
-          importDate: form.importDate,
-          note: form.note ?? "",
-        }
+          `http://localhost:8080/importReceipt/update/${form.id}`,
+          {
+            employeeId: form.employeeId,
+            importReceiptCode: String(form.importReceiptCode).trim(),
+            importDate: form.importDate,
+            note: form.note ?? "",
+          }
       );
     } else {
       // Tạo phiếu mới
       receiptRes = await axios.post(
-        `http://localhost:8080/importReceipt/create`,
-        {
-          employeeId: form.employeeId,
-          importReceiptCode: String(form.importReceiptCode).trim(),
-          importDate: form.importDate,
-          note: form.note ?? "",
-          totalAmount: form.totalAmount,
-        }
+          `http://localhost:8080/importReceipt/create`,
+          {
+            employeeId: form.employeeId,
+            importReceiptCode: String(form.importReceiptCode).trim(),
+            importDate: form.importDate,
+            note: form.note ?? "",
+            totalAmount: form.totalAmount,
+          }
       );
       form.id = receiptRes?.data?.id;
     }
@@ -372,40 +374,40 @@ onMounted(() => {
     <!-- Bảng phiếu nhập -->
     <table class="table table-bordered table-striped">
       <thead>
-        <tr>
-          <th>Mã phiếu</th>
-          <th>Ngày nhập</th>
-          <th>Trạng thái</th>
-          <th>Hành động</th>
-        </tr>
+      <tr>
+        <th>Mã phiếu</th>
+        <th>Ngày nhập</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="receipt in receipts" :key="receipt.id">
-          <td>{{ receipt.importReceiptCode }}</td>
-          <td>{{ formatDate(receipt.importDate) }}</td>
-          <td>
+      <tr v-for="receipt in receipts" :key="receipt.id">
+        <td>{{ receipt.importReceiptCode }}</td>
+        <td>{{ formatDate(receipt.importDate) }}</td>
+        <td>
             <span class="badge" :class="statusClass(receipt.status)">{{
-              statusText(receipt.status)
-            }}</span>
-          </td>
-          <td>
-            <button v-if="receipt.status === 0" class="btn btn-sm btn-secondary me-1" @click="openEdit(receipt)">
-              Sửa
-            </button>
-            <button v-if="receipt.status === 0" class="btn btn-sm btn-warning me-1" @click="confirm(receipt)">
-              Xác nhận
-            </button>
-            <button v-if="receipt.status === 1" class="btn btn-sm btn-success me-1" @click="complete(receipt)">
-              Ghi nhận kho
-            </button>
-            <button v-if="receipt.status === 2" class="btn btn-sm btn-success me-1" @click="openEdit(receipt)">
-              Chi tiết
-            </button>
-            <button v-if="[0, 1].includes(receipt.status)" class="btn btn-sm btn-danger" @click="cancel(receipt)">
-              Huỷ
-            </button>
-          </td>
-        </tr>
+                statusText(receipt.status)
+              }}</span>
+        </td>
+        <td>
+          <button v-if="receipt.status === 0" class="btn btn-sm btn-secondary me-1" @click="openEdit(receipt)">
+            Sửa
+          </button>
+          <button v-if="receipt.status === 0" class="btn btn-sm btn-warning me-1" @click="confirm(receipt)">
+            Xác nhận
+          </button>
+          <button v-if="receipt.status === 1" class="btn btn-sm btn-success me-1" @click="complete(receipt)">
+            Ghi nhận kho
+          </button>
+          <button v-if="receipt.status === 2" class="btn btn-sm btn-success me-1" @click="openEdit(receipt)">
+            Chi tiết
+          </button>
+          <button v-if="[0, 1].includes(receipt.status)" class="btn btn-sm btn-danger" @click="cancel(receipt)">
+            Huỷ
+          </button>
+        </td>
+      </tr>
       </tbody>
     </table>
 
@@ -422,48 +424,48 @@ onMounted(() => {
           <div class="modal-body">
             <div class="mb-3">
               <label>Mã phiếu</label>
-              <input v-model="form.importReceiptCode" class="form-control bg-light" readonly />
+              <input v-model="form.importReceiptCode" class="form-control bg-light" readonly/>
             </div>
             <div class="mb-3">
               <label>Ngày nhập</label>
               <input v-model="form.importDate" type="datetime-local" class="form-control" :readonly="isViewOnly"
-                :disabled="isViewOnly" />
+                     :disabled="isViewOnly"/>
             </div>
             <div class="mb-3">
               <label>Ghi chú</label>
               <textarea v-model="form.note" class="form-control" :readonly="isViewOnly"
-                :disabled="isViewOnly"></textarea>
+                        :disabled="isViewOnly"></textarea>
             </div>
 
             <!-- Chi tiết sản phẩm -->
             <h5>Chi tiết sản phẩm</h5>
             <table class="table table-sm table-bordered">
               <thead>
-                <tr>
-                  <th>ID sản phẩm</th>
-                  <th>Số lượng</th>
-                  <th>Hành động</th>
-                </tr>
+              <tr>
+                <th>ID sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Hành động</th>
+              </tr>
               </thead>
               <tbody>
-                <tr v-for="(item, idx) in form.details" :key="idx">
-                  <td style="min-width: 250px;">
-                    <div class="form-control p-0">
-                      <v-select v-model="item.productDetailId" :options="products" label="name" :reduce="p => p.id"
-                        class="w-100" placeholder="Chọn sản phẩm" :disabled="isViewOnly" required />
-                    </div>
-                  </td>
-                  <td>
-                    <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
-                      :readonly="isViewOnly" min="1" step="1" @keydown="preventInvalidNumber"
-                      @blur="onQuantityBlur(item)" />
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-danger" @click="removeDetail(idx)" v-if="!isViewOnly">
-                      Xoá
-                    </button>
-                  </td>
-                </tr>
+              <tr v-for="(item, idx) in form.details" :key="idx">
+                <td style="min-width: 250px;">
+                  <div class="form-control p-0">
+                    <v-select v-model="item.productDetailId" :options="products" label="name" :reduce="p => p.id"
+                              class="w-100" placeholder="Chọn sản phẩm" :disabled="isViewOnly" required/>
+                  </div>
+                </td>
+                <td>
+                  <input type="number" v-model.number="item.quantity" class="form-control form-control-sm"
+                         :readonly="isViewOnly" min="1" step="1" @keydown="preventInvalidNumber"
+                         @blur="onQuantityBlur(item)"/>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-danger" @click="removeDetail(idx)" v-if="!isViewOnly">
+                    Xoá
+                  </button>
+                </td>
+              </tr>
               </tbody>
             </table>
             <button class="btn btn-sm btn-outline-primary" @click="addDetail" v-if="!isViewOnly" required>

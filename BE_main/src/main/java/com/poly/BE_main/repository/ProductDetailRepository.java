@@ -1,12 +1,11 @@
 package com.poly.BE_main.repository;
 
-import java.util.List;
-
+import com.poly.BE_main.model.ProductDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.poly.BE_main.model.ProductDetail;
+import java.util.List;
 
 public interface ProductDetailRepository extends JpaRepository<ProductDetail, Integer> {
     @Query(value = """
@@ -18,7 +17,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                 FROM PRODUCT_DETAIL
                 GROUP BY PRODUCT_ID, COLOR_ID
             )
-
+            
             SELECT
                 P.ID AS productId,
                 PD.ID AS productDetailId,
@@ -44,11 +43,11 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
                 ON PD.PRODUCT_ID = RPD.PRODUCT_ID AND PD.COLOR_ID = RPD.COLOR_ID
             LEFT JOIN IMAGE I ON I.PRODUCT_DETAIL_ID = RPD.REPRESENTATIVE_PD_ID
             WHERE P.ID = :productId
-
+            
             GROUP BY
                 P.ID, PD.ID, P.PRODUCT_NAME,
                 B.NAME, C.NAME, P.DESCRIPTION, S.EU, CL.NAME, PD.PRICE, ITR.QUANTITY, PD.IS_ACTIVE;
-                        """, nativeQuery = true)
+            """, nativeQuery = true)
     List<Object[]> findAllProductDetailDTOByID(@Param("productId") Integer productId);
 
     @Query(value = """

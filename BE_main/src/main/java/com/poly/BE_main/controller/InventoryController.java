@@ -1,24 +1,17 @@
 package com.poly.BE_main.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
-
 import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.service.InventoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/inventory")
@@ -47,7 +40,7 @@ public class InventoryController {
 
     @PutMapping("/updateQuantityTru/{productDetailId}")
     public ResponseEntity<?> updateQuantityTru(@PathVariable("productDetailId") Integer productDetailId,
-            @RequestBody Map<String, Integer> body, Authentication authentication) {
+                                               @RequestBody Map<String, Integer> body, Authentication authentication) {
         int quantity = body.get("quantity");
         inventoryService.updateQuantityTru(productDetailId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
@@ -55,7 +48,7 @@ public class InventoryController {
 
     @PutMapping("/updateQuantityCong/{productDetailId}")
     public ResponseEntity<?> updateQuantityCong(@PathVariable("productDetailId") Integer productDetailId,
-            @RequestBody Map<String, Integer> body, Authentication authentication) {
+                                                @RequestBody Map<String, Integer> body, Authentication authentication) {
         int quantity = body.get("quantity");
         inventoryService.updateQuantityCong(productDetailId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
@@ -63,7 +56,7 @@ public class InventoryController {
 
     @PutMapping("/updateQuantityByPayMent/{productDetailId}")
     public ResponseEntity<?> updateQuantityBypayment(@PathVariable("productDetailId") Integer productDetailId,
-            @RequestBody Map<String, Integer> body) {
+                                                     @RequestBody Map<String, Integer> body) {
         int quantity = body.get("quantity");
         inventoryService.updateQuantityByPayment(productDetailId, quantity);
         return ResponseEntity.ok().build();

@@ -9,14 +9,14 @@
         <div class="modal-body">
           <div class="row">
             <div class="col-md-6">
-              <img :src="selectedImage" class="img-fluid rounded border" alt="Ảnh sản phẩm" />
+              <img :src="selectedImage" class="img-fluid rounded border" alt="Ảnh sản phẩm"/>
             </div>
             <div class="col-md-6">
               <div class="mb-3">
                 <label class="form-label fw-bold">Màu sắc:</label>
                 <div>
                   <button v-for="color in uniqueColors" :key="color" class="btn btn-outline-dark btn-sm me-2 mb-2"
-                    :class="{ active: selectedColor === color }" @click="selectColor(color)">
+                          :class="{ active: selectedColor === color }" @click="selectColor(color)">
                     {{ color }}
                   </button>
                 </div>
@@ -26,8 +26,8 @@
                 <label class="form-label fw-bold">Kích cỡ:</label>
                 <div>
                   <button v-for="size in sizesForSelectedColor" :key="size"
-                    class="btn btn-outline-primary btn-sm me-2 mb-2" :class="{ active: selectedSize === size }"
-                    @click="selectSize(size)">
+                          class="btn btn-outline-primary btn-sm me-2 mb-2" :class="{ active: selectedSize === size }"
+                          @click="selectSize(size)">
                     {{ size }}
                   </button>
                 </div>
@@ -39,7 +39,7 @@
                 <div class="mb-3">
                   <label class="form-label">Số lượng:</label>
                   <input type="number" class="form-control" v-model.number="quantity" min="1"
-                    :max="selectedVariant.quantity" />
+                         :max="selectedVariant.quantity"/>
                 </div>
               </div>
             </div>
@@ -47,7 +47,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-success"
-            :disabled="!selectedVariant || quantity < 1 || quantity > selectedVariant.quantity" @click="() => {
+                  :disabled="!selectedVariant || quantity < 1 || quantity > selectedVariant.quantity" @click="() => {
               console.log('Sản phẩm được thêm:', { ...selectedVariant, quantity });
               $emit('confirm', { ...selectedVariant, quantity });
             }">
@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import {computed, ref, watch} from 'vue'
 
 const props = defineProps({
   product: Object,
@@ -77,13 +77,13 @@ const uniqueColors = computed(() => [...new Set(props.variants.map(v => v.color)
 
 const sizesForSelectedColor = computed(() => {
   return props.variants
-    .filter(v => v.color === selectedColor.value)
-    .map(v => v.size)
+      .filter(v => v.color === selectedColor.value)
+      .map(v => v.size)
 })
 
 const selectedVariant = computed(() => {
   return props.variants.find(
-    v => v.color === selectedColor.value && v.size === selectedSize.value
+      v => v.color === selectedColor.value && v.size === selectedSize.value
   )
 })
 
@@ -115,7 +115,7 @@ function selectSize(size) {
 
 watch(selectedColor, (newColor) => {
   const sizes = Array.from(
-    new Set(props.variants.filter(v => v.color === newColor).map(v => v.size))
+      new Set(props.variants.filter(v => v.color === newColor).map(v => v.size))
   )
   if (sizes.length > 0) {
     selectedSize.value = sizes[0] // Tự động chọn size đầu tiên
@@ -133,7 +133,7 @@ watch(() => [props.product, props.variants], ([newProduct, newVariants]) => {
     selectedSize.value = null
     quantity.value = 1
   }
-}, { immediate: true })
+}, {immediate: true})
 
 
 </script>

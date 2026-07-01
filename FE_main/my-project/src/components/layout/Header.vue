@@ -1,11 +1,11 @@
 <script setup>
 import Logo from "/images/logo.png";
-import { RouterLink, useRouter } from "vue-router";
-import { ref, watch } from "vue";
-import { useUserStore } from "@/stores/userStore";
-import { onMounted } from "vue";
+import {RouterLink, useRouter} from "vue-router";
+import {onMounted, ref, watch} from "vue";
+import {useUserStore} from "@/stores/userStore";
 import axios from "axios";
-import { useCartFavoriteStore } from "../../stores/cartFavoriteStore";
+import {useCartFavoriteStore} from "../../stores/cartFavoriteStore";
+
 const store = useCartFavoriteStore()
 const userStore = useUserStore();
 const router = useRouter();
@@ -52,7 +52,7 @@ const popularTerms = ref(["Nike", "Adidas", "Converse", "Vans", "Puma"]);
 // Tìm kiếm từ modal
 const doSearchFromModal = () => {
   if (searchText.value.trim()) {
-    router.push({ path: "/product", query: { keyword: searchText.value } });
+    router.push({path: "/product", query: {keyword: searchText.value}});
     showSearch.value = false; // ✅ Đóng popup khi nhấn Enter
     searchText.value = ''; // ✅ Reset
   }
@@ -60,7 +60,7 @@ const doSearchFromModal = () => {
 
 const searchByPopularTerm = (term) => {
   searchText.value = term; // Gán lại giá trị để đồng bộ input
-  router.push({ path: "/product", query: { keyword: term } });
+  router.push({path: "/product", query: {keyword: term}});
   showSearch.value = false;
 };
 
@@ -107,7 +107,7 @@ const formatCurrency = (value) => {
 const searchByBrand = (brandName) => {
   router.push({
     path: "/product",
-    query: { brand: brandName }
+    query: {brand: brandName}
   });
   showSearch.value = false;
 };
@@ -129,6 +129,7 @@ function goToProductDetail(productId) {
   router.push(`/productdetail/${productId}`);
   console.log("sp chi tiết: " + productId);
 }
+
 const goToDetail = (id) => {
   router.push(`/productdetail/${id}`)
   showSearch.value = false;
@@ -141,14 +142,17 @@ const goToDetail = (id) => {
     <nav class="navbar navbar-expand-lg container-xl">
       <div class="container-fluid">
         <router-link class="navbar-brand" to="/home">
-          <img :src="Logo" alt="Logo" />
+          <img :src="Logo" alt="Logo"/>
         </router-link>
 
         <div class="collapse navbar-collapse justify-content-center">
           <ul class="navbar-nav gap-3">
-            <li class="nav-item"><router-link class="nav-link" to="/home">Trang Chủ</router-link>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/home">Trang Chủ</router-link>
             </li>
-            <li class="nav-item"><router-link class="nav-link" to="/introduce">Giới Thiệu</router-link></li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/introduce">Giới Thiệu</router-link>
+            </li>
             <li class="nav-item dropdown">
               <div class="d-flex align-items-center">
                 <router-link class="nav-link pe-1" to="/product">Sản Phẩm</router-link>
@@ -162,7 +166,9 @@ const goToDetail = (id) => {
                 </li>
               </ul>
             </li>
-            <li class="nav-item"><router-link class="nav-link" to="/contact">Liên Hệ</router-link></li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/contact">Liên Hệ</router-link>
+            </li>
           </ul>
         </div>
 
@@ -174,7 +180,7 @@ const goToDetail = (id) => {
           <!-- Icon yêu thích -->
           <div class="cart-icon">
             <router-link to="/favorite"><a href="#" title="Yêu thích">
-                <i class="bi bi-heart-fill text-white"></i></a></router-link>
+              <i class="bi bi-heart-fill text-white"></i></a></router-link>
             <span class="cart-count">{{ store.favoriteItems.length }}</span>
           </div>
           <!-- Icon giỏ hàng -->
@@ -193,8 +199,12 @@ const goToDetail = (id) => {
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li class="dropdown-item fw-semibold text-uppercase">{{ userStore.user.name }}</li>
-              <li><router-link class="dropdown-item" to="/informationcustomer">Thông tin cá nhân</router-link></li>
-              <li><router-link class="dropdown-item" to="/invoicecustomer">Đơn hàng của bạn</router-link></li>
+              <li>
+                <router-link class="dropdown-item" to="/informationcustomer">Thông tin cá nhân</router-link>
+              </li>
+              <li>
+                <router-link class="dropdown-item" to="/invoicecustomer">Đơn hàng của bạn</router-link>
+              </li>
               <li><a class="dropdown-item text-danger" href="#" @click.prevent="handleLogout">Đăng xuất</a></li>
             </ul>
           </div>
@@ -216,14 +226,14 @@ const goToDetail = (id) => {
         <div class="d-flex justify-content-between align-items-center mb-3">
           <i class="bi bi-search search-icon text-white me-3" style="cursor: pointer;"></i>
           <input type="text" class="search-input form-control me-2" v-model="searchText"
-            placeholder="Tìm kiếm sản phẩm..." @keyup.enter="doSearchFromModal" />
+                 placeholder="Tìm kiếm sản phẩm..." @keyup.enter="doSearchFromModal"/>
           <button class="btn custom-close-button ms-2" @click="showSearch = false">Đóng</button>
         </div>
 
         <h6 class="text-white mb-2">Từ khóa phổ biến</h6>
         <div class="d-flex flex-wrap gap-2">
           <span v-for="term in popularTerms" :key="term" class="badge bg-secondary text-white px-3 py-2 rounded-pill"
-            @click="searchByPopularTerm(term)" style="cursor: pointer">
+                @click="searchByPopularTerm(term)" style="cursor: pointer">
             {{ term }}
           </span>
         </div>
@@ -232,10 +242,10 @@ const goToDetail = (id) => {
           <h6 class="text-white mb-2">Gợi ý sản phẩm</h6>
           <ul class="list-unstyled mb-0">
             <li v-for="product in suggestedProducts" :key="product.productId"
-              class="d-flex align-items-center py-1 px-2 hover-highlight" style="cursor: pointer;"
-              @click="goToDetail(product.productId); showSearch = false">
+                class="d-flex align-items-center py-1 px-2 hover-highlight" style="cursor: pointer;"
+                @click="goToDetail(product.productId); showSearch = false">
               <img :src="fixImageUrl(product.image1)" alt="img" class="me-2"
-                style="width: 40px; height: 40px; object-fit: contain;" />
+                   style="width: 40px; height: 40px; object-fit: contain;"/>
               <span class="text-white">{{ product.productName }}</span>
             </li>
           </ul>

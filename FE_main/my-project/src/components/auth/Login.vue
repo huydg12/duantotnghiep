@@ -1,8 +1,8 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import {ref} from 'vue';
+import {useRouter} from 'vue-router';
 import axios from 'axios';
-import { useUserStore } from '../../stores/userStore';
+import {useUserStore} from '../../stores/userStore';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -35,7 +35,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const { data } = await axios.post('http://localhost:8080/auth/login', {
+    const {data} = await axios.post('http://localhost:8080/auth/login', {
       username: username.value,
       password: password.value
     });
@@ -67,8 +67,8 @@ const handleLogin = async () => {
       errorMessage.value = 'Tài khoản đã bị vô hiệu hoá. Vui lòng liên hệ quản trị viên.';
     } else {
       errorMessage.value =
-        error?.response?.data?.message ||
-        'Tên tài khoản hoặc mật khẩu không đúng!';
+          error?.response?.data?.message ||
+          'Tên tài khoản hoặc mật khẩu không đúng!';
     }
   } finally {
     loading.value = false;
@@ -81,13 +81,13 @@ const handleLogin = async () => {
     <div class="mb-3">
       <label class="form-label fw-semibold">TÀI KHOẢN</label>
       <input v-model="username" type="text" class="form-control" placeholder="Nhập tài khoản" required
-        autocomplete="username">
+             autocomplete="username">
     </div>
 
     <div class="mb-3">
       <label class="form-label fw-semibold">MẬT KHẨU</label>
       <input v-model="password" type="password" class="form-control" placeholder="Nhập mật khẩu" required
-        autocomplete="current-password">
+             autocomplete="current-password">
     </div>
 
     <div class="mb-3 text-end">

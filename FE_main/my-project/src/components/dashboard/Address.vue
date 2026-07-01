@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { ref, computed, onMounted } from "vue";
+import {computed, onMounted, ref} from "vue";
 
 const addresses = ref([]);
 const isEditing = ref(false);
@@ -44,7 +44,7 @@ const saveAddress = async () => {
 };
 
 const editAddress = (addr) => {
-  form.value = { ...addr };
+  form.value = {...addr};
   isEditing.value = true;
 };
 
@@ -76,7 +76,7 @@ const resetForm = () => {
 };
 
 const totalPages = computed(() =>
-  Math.ceil(addresses.value.length / pageSize)
+    Math.ceil(addresses.value.length / pageSize)
 );
 
 const paginatedAddresses = computed(() => {
@@ -103,38 +103,38 @@ onMounted(() => {
     <form @submit.prevent="saveAddress" class="border p-4 rounded bg-light mb-4">
       <div class="mb-3">
         <label class="form-label">Họ tên</label>
-        <input v-model="form.fullName" class="form-control" required />
+        <input v-model="form.fullName" class="form-control" required/>
       </div>
       <div class="mb-3">
         <label class="form-label">Số điện thoại</label>
-        <input v-model="form.numberPhone" class="form-control" required />
+        <input v-model="form.numberPhone" class="form-control" required/>
       </div>
       <div class="mb-3">
         <label class="form-label">Địa chỉ đầy đủ</label>
-        <input v-model="form.fullAddress" class="form-control" required />
+        <input v-model="form.fullAddress" class="form-control" required/>
       </div>
       <div class="mb-3">
         <label class="form-label">Mã Khách hàng</label>
-        <input v-model="form.customerId" class="form-control" />
+        <input v-model="form.customerId" class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Loại địa chỉ</label>
-        <input v-model="form.addressType" class="form-control" />
+        <input v-model="form.addressType" class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Đường</label>
-        <input v-model="form.streetName" class="form-control" />
+        <input v-model="form.streetName" class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Phường/Xã</label>
-        <input v-model="form.wardName" class="form-control" />
+        <input v-model="form.wardName" class="form-control"/>
       </div>
       <div class="mb-3">
         <label class="form-label">Thành phố</label>
-        <input v-model="form.cityName" class="form-control" />
+        <input v-model="form.cityName" class="form-control"/>
       </div>
       <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="isDefault" v-model="form.isDefault" />
+        <input type="checkbox" class="form-check-input" id="isDefault" v-model="form.isDefault"/>
         <label class="form-check-label" for="isDefault">Đặt làm mặc định</label>
       </div>
       <div class="d-flex gap-2">
@@ -147,35 +147,35 @@ onMounted(() => {
     <div class="table-responsive">
       <table class="table table-bordered table-hover align-middle">
         <thead class="table-secondary text-center">
-          <tr>
-            <th>ID</th>
-            <th>Họ tên</th>
-            <th>SĐT</th>
-            <th>Địa chỉ</th>
-            <th>Loại</th>
-            <th>Mặc định</th>
-            <th>Thành phố</th>
-            <th>Hành động</th>
-          </tr>
+        <tr>
+          <th>ID</th>
+          <th>Họ tên</th>
+          <th>SĐT</th>
+          <th>Địa chỉ</th>
+          <th>Loại</th>
+          <th>Mặc định</th>
+          <th>Thành phố</th>
+          <th>Hành động</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="addr in paginatedAddresses" :key="addr.id">
-            <td class="text-center">{{ addr.id }}</td>
-            <td class="text-center">{{ addr.fullName }}</td>
-            <td class="text-center">{{ addr.numberPhone }}</td>
-            <td class="text-wrap">{{ addr.fullAddress }}</td>
-            <td class="text-center">{{ addr.addressType }}</td>
-            <td class="text-center">
+        <tr v-for="addr in paginatedAddresses" :key="addr.id">
+          <td class="text-center">{{ addr.id }}</td>
+          <td class="text-center">{{ addr.fullName }}</td>
+          <td class="text-center">{{ addr.numberPhone }}</td>
+          <td class="text-wrap">{{ addr.fullAddress }}</td>
+          <td class="text-center">{{ addr.addressType }}</td>
+          <td class="text-center">
               <span class="badge" :class="addr.isDefault ? 'bg-success' : 'bg-secondary'">
                 {{ addr.isDefault ? '✔️' : '' }}
               </span>
-            </td>
-            <td class="text-center">{{ addr.cityName }}</td>
-            <td class="text-center">
-              <button class="btn btn-success btn-sm me-2" @click="editAddress(addr)">Sửa</button>
-              <button class="btn btn-danger btn-sm" @click="deleteAddress(addr.id)">Xoá</button>
-            </td>
-          </tr>
+          </td>
+          <td class="text-center">{{ addr.cityName }}</td>
+          <td class="text-center">
+            <button class="btn btn-success btn-sm me-2" @click="editAddress(addr)">Sửa</button>
+            <button class="btn btn-danger btn-sm" @click="deleteAddress(addr.id)">Xoá</button>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>

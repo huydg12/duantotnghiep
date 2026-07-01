@@ -1,5 +1,14 @@
 package com.poly.BE_main.controller;
 
+import com.poly.BE_main.model.Image;
+import com.poly.BE_main.repository.ImageRepository;
+import com.poly.BE_main.service.ImageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,16 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.poly.BE_main.model.Image;
-import com.poly.BE_main.repository.ImageRepository;
-import com.poly.BE_main.service.ImageService;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController

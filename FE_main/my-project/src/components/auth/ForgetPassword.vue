@@ -1,9 +1,9 @@
 <script setup>
 import Banner from "../common/Banner.vue";
-import { ref } from "vue";
+import {ref} from "vue";
 import axios from "axios";
-import { useRouter } from "vue-router";
-import { useForgotPasswordStore } from "@/stores/emailStore";
+import {useRouter} from "vue-router";
+import {useForgotPasswordStore} from "@/stores/emailStore";
 
 const store = useForgotPasswordStore();
 const email = ref("");
@@ -25,7 +25,7 @@ const sendRequest = async () => {
 </script>
 <template>
   <Banner title="Quên mật khẩu" breadcrumb="Quên mật khẩu"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
   <div class="custom-box">
 
     <a href="/auth/login" class="back-arrow">&#8592;</a>
@@ -35,7 +35,7 @@ const sendRequest = async () => {
       <div class="mb-3">
         <label for="emailInput" class="form-label">EMAIL ĐĂNG KÝ</label>
         <input v-model="email" type="email" id="emailInput" required placeholder="Nhập địa chỉ email"
-          class="form-control" />
+               class="form-control"/>
       </div>
       <button type="submit" class="btn btn-dark w-100 mt-3 fw-semibold">
         GỬI YÊU CẦU

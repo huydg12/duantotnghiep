@@ -3,14 +3,14 @@ import Banner from "../common/Banner.vue";
 </script>
 <template>
   <Banner title="Thông tin liên hệ" breadcrumb='Thông tin liên hệ'
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
   <main class="container-xl py-5">
     <div class="row g-5 align-items-start">
       <!-- Google Map -->
       <div class="col-lg-6 map-container">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3729.214795239776!2d106.64883387488325!3d20.8230310807753!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a70bd730b201d%3A0xab7b4b5c986bd11!2zODY3IMSQLiBUcsaw4budbmcgQ2hpbmgsIEzDo20gSMOgLCBLaeG6v24gQW4sIEjhuqNpIFBow7JuZywgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1750154235243!5m2!1svi!2s"
-          style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3729.214795239776!2d106.64883387488325!3d20.8230310807753!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314a70bd730b201d%3A0xab7b4b5c986bd11!2zODY3IMSQLiBUcsaw4budbmcgQ2hpbmgsIEzDo20gSMOgLCBLaeG6v24gQW4sIEjhuqNpIFBow7JuZywgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1750154235243!5m2!1svi!2s"
+            style="border: 0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
 
       <!-- Contact Form -->
@@ -25,13 +25,13 @@ import Banner from "../common/Banner.vue";
           <form class="needs-validation" novalidate>
             <div class="mb-3">
               <label for="fullName" class="form-label fw-medium">Họ và tên*</label>
-              <input type="text" class="form-control" id="fullName" required placeholder="Nhập họ và tên" />
+              <input type="text" class="form-control" id="fullName" required placeholder="Nhập họ và tên"/>
               <div class="invalid-feedback">Vui lòng nhập họ và tên.</div>
             </div>
 
             <div class="mb-3">
               <label for="email" class="form-label fw-medium">Email*</label>
-              <input type="email" class="form-control" id="email" required placeholder="Nhập địa chỉ Email" />
+              <input type="email" class="form-control" id="email" required placeholder="Nhập địa chỉ Email"/>
               <div class="invalid-feedback">
                 Vui lòng nhập một địa chỉ email hợp lệ.
               </div>
@@ -39,14 +39,14 @@ import Banner from "../common/Banner.vue";
 
             <div class="mb-3">
               <label for="phone" class="form-label fw-medium">Điện thoại*</label>
-              <input type="tel" class="form-control" id="phone" required placeholder="Nhập số điện thoại" />
+              <input type="tel" class="form-control" id="phone" required placeholder="Nhập số điện thoại"/>
               <div class="invalid-feedback">Vui lòng nhập số điện thoại.</div>
             </div>
 
             <div class="mb-3">
               <label for="content" class="form-label fw-medium">Nội dung*</label>
               <textarea class="form-control" id="content" rows="5" required
-                placeholder="Nội dung bạn muốn liên hệ..."></textarea>
+                        placeholder="Nội dung bạn muốn liên hệ..."></textarea>
               <div class="invalid-feedback">
                 Vui lòng nhập nội dung liên hệ.
               </div>

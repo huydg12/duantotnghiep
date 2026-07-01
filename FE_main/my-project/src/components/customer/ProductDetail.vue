@@ -1,10 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 import Banner from "../common/Banner.vue";
 import axios from 'axios'
-import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import {useCartFavoriteStore} from "@/stores/cartFavoriteStore";
 import Swal from 'sweetalert2'
+
 const store = useCartFavoriteStore()
 const route = useRoute()
 const router = useRouter()
@@ -73,7 +74,9 @@ const addToCart = async () => {
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để thêm vào giỏ hàng.',
       confirmButtonText: 'OK',
-      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+      didOpen: () => {
+        Swal.getContainer().style.zIndex = '20000';
+      }
     });
     return;
   }
@@ -148,7 +151,7 @@ const selectColor = (color) => {
 
   // lấy cổ đầu tiên cho màu này
   const firstCollar = (variantsOfColor.find(v => (v.collar ?? v.colar))?.collar) ??
-                      (variantsOfColor.find(v => (v.collar ?? v.colar))?.colar) ?? '';
+      (variantsOfColor.find(v => (v.collar ?? v.colar))?.colar) ?? '';
   selectedCollar.value = firstCollar;
 
   // chọn 1 biến thể khớp màu + cổ
@@ -158,10 +161,10 @@ const selectColor = (color) => {
 
 const selectSize = (size) => {
   const newSelectedProduct = productVariants.value.find(
-    p =>
-      p.color === selectedProduct.value.color &&
-      (p.collar ?? p.colar) === selectedCollar.value &&
-      p.size === size
+      p =>
+          p.color === selectedProduct.value.color &&
+          (p.collar ?? p.colar) === selectedCollar.value &&
+          p.size === size
   );
   if (newSelectedProduct) {
     updateSelection(newSelectedProduct);
@@ -172,10 +175,10 @@ const selectedCollar = ref('');
 const collarsForCurrentColor = computed(() => {
   const color = selectedProduct.value?.color;
   const set = new Set(
-    productVariants.value
-      .filter(v => v.color === color)
-      .map(v => (v.collar ?? v.colar))
-      .filter(Boolean)
+      productVariants.value
+          .filter(v => v.color === color)
+          .map(v => (v.collar ?? v.colar))
+          .filter(Boolean)
   );
   return [...set];
 });
@@ -184,14 +187,14 @@ const selectCollar = (collar) => {
   const prevSize = selectedProduct.value?.size;
 
   let v = productVariants.value.find(p =>
-    p.color === selectedProduct.value.color &&
-    (p.collar ?? p.colar) === collar &&
-    p.size === prevSize
+      p.color === selectedProduct.value.color &&
+      (p.collar ?? p.colar) === collar &&
+      p.size === prevSize
   );
   if (!v) {
     v = productVariants.value.find(p =>
-      p.color === selectedProduct.value.color &&
-      (p.collar ?? p.colar) === collar
+        p.color === selectedProduct.value.color &&
+        (p.collar ?? p.colar) === collar
     );
   }
   if (v) updateSelection(v);
@@ -199,7 +202,7 @@ const selectCollar = (collar) => {
 const updateSelection = (variant) => {
   // chuẩn hoá collar/colar
   const collarVal = variant.collar ?? variant.colar ?? '';
-  selectedProduct.value = { ...variant, collar: collarVal, colar: collarVal };
+  selectedProduct.value = {...variant, collar: collarVal, colar: collarVal};
 
   // ảnh chính
   selectedImage.value = (variant.images && variant.images[0]) || '';
@@ -209,11 +212,11 @@ const updateSelection = (variant) => {
 
   // size khả dụng theo cả MÀU + CỔ hiện tại
   const sizesFor = productVariants.value
-    .filter(p =>
-      p.color === selectedProduct.value.color &&
-      ( (p.collar ?? p.colar) === selectedCollar.value )
-    )
-    .map(p => p.size);
+      .filter(p =>
+          p.color === selectedProduct.value.color &&
+          ((p.collar ?? p.colar) === selectedCollar.value)
+      )
+      .map(p => p.size);
   availableSizes.value = [...new Set(sizesFor)];
 };
 const isActiveFlag = (v) => {
@@ -236,21 +239,21 @@ const fetchProductDetail = async () => {
     }
 
     // 2) Lấy toàn bộ biến thể theo productId
-    const { data } = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
+    const {data} = await axios.get(`http://localhost:8080/productDetail/show/${productId}`)
 
     // 3) Chuẩn hoá & CHỈ GIỮ biến thể active (IS_ACTIVE = 1)
     const processed = (Array.isArray(data) ? data : [])
-      .map(v => {
-        const collarVal = v.collar ?? v.colar ?? v.collarName ?? '';
-        return {
-          ...v,
-          images: Array.isArray(v.images) ? v.images : [],
-          collar: collarVal,
-          colar: collarVal, // giữ tương thích chỗ cũ nếu nơi khác còn dùng "colar"
-          __active: isActiveFlag(v.isActive ?? v.active ?? v.status),
-        };
-      })
-      .filter(v => v.__active);
+        .map(v => {
+          const collarVal = v.collar ?? v.colar ?? v.collarName ?? '';
+          return {
+            ...v,
+            images: Array.isArray(v.images) ? v.images : [],
+            collar: collarVal,
+            colar: collarVal, // giữ tương thích chỗ cũ nếu nơi khác còn dùng "colar"
+            __active: isActiveFlag(v.isActive ?? v.active ?? v.status),
+          };
+        })
+        .filter(v => v.__active);
 
     if (!processed.length) {
       console.warn('Không có biến thể active để hiển thị')
@@ -269,14 +272,16 @@ const fetchProductDetail = async () => {
   }
 }
 
-const buyNow = async() => {
+const buyNow = async () => {
   if (!customerId) {
     await Swal.fire({
       icon: 'warning',
       title: 'Bạn cần đăng nhập',
       text: 'Vui lòng đăng nhập để mua hàng.',
       confirmButtonText: 'OK',
-      didOpen: () => { Swal.getContainer().style.zIndex = '20000'; }
+      didOpen: () => {
+        Swal.getContainer().style.zIndex = '20000';
+      }
     });
     return;
   }
@@ -322,45 +327,46 @@ onMounted(() => {
 </script>
 
 <template>
-  <Banner title="" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+  <Banner title="" breadcrumb='' backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
 
   <div class="container bg-white rounded-4 shadow p-4" v-if="selectedProduct.productDetailId">
     <div class="row g-4 align-items-start">
       <div class="col-md-6 position-relative">
         <!-- Ảnh chính -->
         <img :src="selectedImage.startsWith('./') ? selectedImage.replace('./', '/') : selectedImage" alt="Sản phẩm"
-          class="w-100 rounded shadow-sm border border-light" style="max-height: 400px; object-fit: contain;" />
+             class="w-100 rounded shadow-sm border border-light" style="max-height: 400px; object-fit: contain;"/>
 
         <!-- Danh sách ảnh phụ -->
         <div class="d-flex gap-2 mt-3 overflow-auto">
           <img v-for="(img, index) in selectedProduct.images" :key="index"
-            :src="img.startsWith('./') ? img.replace('./', '/') : img" alt="Ảnh phụ" @click="selectImage(img)"
-            class="img-thumbnail border border-2" :class="{ 'border-primary': selectedImage === img }"
-            style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" />
+               :src="img.startsWith('./') ? img.replace('./', '/') : img" alt="Ảnh phụ" @click="selectImage(img)"
+               class="img-thumbnail border border-2" :class="{ 'border-primary': selectedImage === img }"
+               style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"/>
         </div>
       </div>
 
       <div class="col-md-6">
         <h2 class="fw-semibold mb-2">{{ selectedProduct.productName }}</h2>
         <p class="text-muted mb-2">Thương hiệu: <strong>{{ selectedProduct.brandName }}</strong> | Mã phiên bản: {{
-          selectedProduct.productDetailId }}</p>
+            selectedProduct.productDetailId
+          }}</p>
         <p class="text-danger fs-4 fw-bold mb-4">{{ selectedProduct.price }}₫</p>
-          
+
         <div class="mb-3">
           Màu sắc:
           <button v-for="color in uniqueColors" :key="color" @click="selectColor(color)" class="color-btn"
-            :class="{ active: selectedProduct.color === color }">
+                  :class="{ active: selectedProduct.color === color }">
             {{ color }}
           </button>
         </div>
         <div class="mb-3">
           Cổ:
           <button
-            v-for="c in collarsForCurrentColor"
-            :key="c"
-            @click="selectCollar(c)"
-            class="color-btn"
-            :class="{ active: (selectedCollar === c) }"
+              v-for="c in collarsForCurrentColor"
+              :key="c"
+              @click="selectCollar(c)"
+              class="color-btn"
+              :class="{ active: (selectedCollar === c) }"
           >
             {{ c }}
           </button>
@@ -374,15 +380,15 @@ onMounted(() => {
             {{ size }}
           </button>
           <br>
-            <a href="#" class="small text-decoration-underline ms-auto" @click.prevent="openSizeGuide">
+          <a href="#" class="small text-decoration-underline ms-auto" @click.prevent="openSizeGuide">
             Xem bảng chọn size
-    </a>
+          </a>
         </div>
 
         <div class="mb-4" style="max-width: 150px;">
           <label class="form-label">Số lượng</label>
           <input type="number" v-model.number="quantity" min="1" :max="selectedProduct.quantity" class="form-control"
-            @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" :disabled="!inStock"/>
+                 @blur="validateQuantity" @change="validateQuantity" @keydown="blockMinus" :disabled="!inStock"/>
           <small class="text-muted mt-1 d-block">
             {{ !inStock ? '0 sản phẩm có sẵn' : stock + ' sản phẩm có sẵn' }}
           </small>
@@ -396,17 +402,17 @@ onMounted(() => {
         <!-- Luôn hiển thị 2 nút nhưng disable nếu không thể mua -->
         <div class="d-flex gap-3 mb-4">
           <button class="btn btn-primary product-button fw-semibold" @click="addToCart()"
-            :disabled="!canBuy">
+                  :disabled="!canBuy">
             Thêm vào giỏ
           </button>
 
           <button class="btn btn-danger product-button fw-semibold" @click="buyNow()"
-            :disabled="!canBuy">
+                  :disabled="!canBuy">
             Mua ngay
           </button>
         </div>
 
-        <hr />
+        <hr/>
         <p class="text-muted">{{ selectedProduct.description }}</p>
       </div>
 
@@ -426,30 +432,31 @@ onMounted(() => {
   </div>
 
   <!-- Modal xem bảng size & cách đo -->
-<div v-if="showSizeGuide" class="size-modal-backdrop" @click.self="closeSizeGuide">
-  <div class="size-modal">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h6 class="mb-0">Bảng size</h6>
-      <button class="btn-close" @click="closeSizeGuide" aria-label="Close"></button>
-    </div>
+  <div v-if="showSizeGuide" class="size-modal-backdrop" @click.self="closeSizeGuide">
+    <div class="size-modal">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Bảng size</h6>
+        <button class="btn-close" @click="closeSizeGuide" aria-label="Close"></button>
+      </div>
 
-    <div class="size-modal-body">
-      <img :src="sizeChartUrl" alt="Bảng size" class="img-fluid rounded border mb-3" />
+      <div class="size-modal-body">
+        <img :src="sizeChartUrl" alt="Bảng size" class="img-fluid rounded border mb-3"/>
 
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <style scoped>
 .size-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0, 0, 0, .5);
   display: grid;
   place-items: center;
   z-index: 1060;
 }
+
 .size-modal {
   background: #fff;
   width: min(800px, 90vw);
@@ -457,13 +464,15 @@ onMounted(() => {
   overflow: auto;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
 }
+
 .size-modal-body img {
   width: 100%;
   height: auto;
   object-fit: contain;
 }
+
 .product-image {
   height: 500px;
   object-fit: cover;

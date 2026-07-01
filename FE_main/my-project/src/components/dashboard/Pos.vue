@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import axios from "axios";
-import { printReceipt } from "../pos/printReceipt";
+import {printReceipt} from "../pos/printReceipt";
 
 import ProductList from "../pos/ProductList.vue";
 import ProductVariantModal from "../pos/ProductVariantModal.vue";
@@ -11,7 +11,7 @@ import CustomerSelect from "../pos/CustomerSelect.vue";
 import PaymentInfo from "../pos/PaymentInfo.vue";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080",
 });
 
 const uid = () =>
@@ -20,7 +20,7 @@ const normalizeId = (x) => (x === null || x === undefined ? null : String(x));
 const firstNonEmpty = (...vals) =>
     vals.find(v => v !== null && v !== undefined && String(v).trim() !== "") || "";
 
-const WALK_IN = { fullName: "Khách Lẻ", phone: "" };
+const WALK_IN = {fullName: "Khách Lẻ", phone: ""};
 
 const products = ref([]);
 const customers = ref([]);
@@ -31,56 +31,59 @@ const employee = ref(null);
 const employeeName = ref('');
 
 async function fetchUser() {
-    let u = null;
-    try { u = JSON.parse(localStorage.getItem("user") || "null"); } catch { }
-    const id = u?.employeeId ?? u?.employee?.id ?? u?.EMPLOYEE_ID ?? u?.id;
-    if (!id) return;
+  let u = null;
+  try {
+    u = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+  }
+  const id = u?.employeeId ?? u?.employee?.id ?? u?.EMPLOYEE_ID ?? u?.id;
+  if (!id) return;
 
-    try {
-        const { data } = await api.get(`/employee/showById/${id}`);
-        const emp = Array.isArray(data) ? data[0] : data;
-        employee.value = emp;
-        employeeName.value = emp?.fullName ?? emp?.FULL_NAME ?? emp?.name ?? '';
-    } catch (e) {
-        console.error("Fetch employee failed:", e);
-    }
+  try {
+    const {data} = await api.get(`/employee/showById/${id}`);
+    const emp = Array.isArray(data) ? data[0] : data;
+    employee.value = emp;
+    employeeName.value = emp?.fullName ?? emp?.FULL_NAME ?? emp?.name ?? '';
+  } catch (e) {
+    console.error("Fetch employee failed:", e);
+  }
 }
 
-const inventoryCache = ref(new Map()); 
+const inventoryCache = ref(new Map());
 
 const getStock = async (productDetailId) => {
-    if (inventoryCache.value.has(productDetailId))
-        return inventoryCache.value.get(productDetailId);
+  if (inventoryCache.value.has(productDetailId))
+    return inventoryCache.value.get(productDetailId);
 
-    try {
-        const { data } = await api.get(`/inventory/getQuantity/${productDetailId}`);
-        const stock = Number(data?.quantityInventory ?? 0);
-        inventoryCache.value.set(productDetailId, stock);
-        return stock;
-    } catch (e) {
-        console.error("Lỗi lấy tồn kho:", e);
-        // Không lấy được thì coi như 0 để an toàn
-        inventoryCache.value.set(productDetailId, 0);
-        return 0;
-    }
+  try {
+    const {data} = await api.get(`/inventory/getQuantity/${productDetailId}`);
+    const stock = Number(data?.quantityInventory ?? 0);
+    inventoryCache.value.set(productDetailId, stock);
+    return stock;
+  } catch (e) {
+    console.error("Lỗi lấy tồn kho:", e);
+    // Không lấy được thì coi như 0 để an toàn
+    inventoryCache.value.set(productDetailId, 0);
+    return 0;
+  }
 };
 
 const clampAdditionToStock = async (productDetailId, toAdd, alreadyInCart = 0) => {
-    const stock = await getStock(productDetailId);
-    const remain = Math.max(0, stock - (Number(alreadyInCart) || 0));
-    return { allowed: Math.max(0, Math.min(Number(toAdd) || 0, remain)), stock };
+  const stock = await getStock(productDetailId);
+  const remain = Math.max(0, stock - (Number(alreadyInCart) || 0));
+  return {allowed: Math.max(0, Math.min(Number(toAdd) || 0, remain)), stock};
 };
 
 const newInvoice = () => ({
-    id: uid(),
-    customerId: null,
-    items: [],
-    paid: 0,
-    promotionCode: "",
-    selectedPromotion: null,
-    promotionId: null,
-    promoError: "",
-    recipientPhoneNumber: "",
+  id: uid(),
+  customerId: null,
+  items: [],
+  paid: 0,
+  promotionCode: "",
+  selectedPromotion: null,
+  promotionId: null,
+  promoError: "",
+  recipientPhoneNumber: "",
 });
 
 const invoices = ref([newInvoice()]);
@@ -88,9 +91,9 @@ const activeInvoiceIndex = ref(0);
 const currentInvoice = computed(() => invoices.value[activeInvoiceIndex.value] || newInvoice());
 
 const currentCustomer = computed(() => {
-    const id = normalizeId(currentInvoice.value.customerId);
-    if (id == null) return null;
-    return customers.value.find((c) => normalizeId(c.id) === id) || null;
+  const id = normalizeId(currentInvoice.value.customerId);
+  if (id == null) return null;
+  return customers.value.find((c) => normalizeId(c.id) === id) || null;
 });
 
 const selectedPhone = computed(() =>
@@ -109,658 +112,670 @@ const subTotal = computed(() =>
 const discountAmountList = ref([]);
 
 const discountAmount = computed(() => {
-    const inv = currentInvoice.value;
-    if (!inv?.selectedPromotion) return 0;
-    const total = subTotal.value;
-    const promo = inv.selectedPromotion;
+  const inv = currentInvoice.value;
+  if (!inv?.selectedPromotion) return 0;
+  const total = subTotal.value;
+  const promo = inv.selectedPromotion;
 
-    if (Number(promo.type) === 1) {
-        const percent = Math.max(0, Math.min(100, Number(promo.value || 0)));
-        return Math.min(Math.floor((total * percent) / 100), total);
-    }
-    if (Number(promo.type) === 2) {
-        return Math.min(Math.floor(Number(promo.value || 0)), total);
-    }
-    return 0;
+  if (Number(promo.type) === 1) {
+    const percent = Math.max(0, Math.min(100, Number(promo.value || 0)));
+    return Math.min(Math.floor((total * percent) / 100), total);
+  }
+  if (Number(promo.type) === 2) {
+    return Math.min(Math.floor(Number(promo.value || 0)), total);
+  }
+  return 0;
 });
 
 const grandTotal = computed(() => Math.max(0, subTotal.value - discountAmount.value));
 const change = computed(() => (Number(currentInvoice.value.paid) || 0) - grandTotal.value);
 
 watch(invoices, (val) => {
-    localStorage.setItem("invoices", JSON.stringify(val));
-}, { deep: true });
+  localStorage.setItem("invoices", JSON.stringify(val));
+}, {deep: true});
 
 const normalizeCustomer = (c) => ({
-    ...c,
-    fullName: firstNonEmpty(c.fullName, c.name, c.customerName),
-    phone: firstNonEmpty(c.phone, c.numberPhone, c.phoneNumber, c.sdt, c.mobile),
+  ...c,
+  fullName: firstNonEmpty(c.fullName, c.name, c.customerName),
+  phone: firstNonEmpty(c.phone, c.numberPhone, c.phoneNumber, c.sdt, c.mobile),
 });
 
 const toVND = (n) =>
-    new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" })
+    new Intl.NumberFormat("vi-VN", {style: "currency", currency: "VND"})
         .format(Number(n || 0));
 
 
 const toBoolish = (v) => {
-    if (v === true || v === 1) return true;
-    if (v === false || v === 0 || v == null) return false;
-    const s = String(v).trim().toLowerCase();
-    return s === 'true' || s === '1' || s === 'active' ||
-        s === 'đang hoạt động' || s === 'dang hoat dong' ||
-        s === 'hoạt động' || s === 'hoat dong';
+  if (v === true || v === 1) return true;
+  if (v === false || v === 0 || v == null) return false;
+  const s = String(v).trim().toLowerCase();
+  return s === 'true' || s === '1' || s === 'active' ||
+      s === 'đang hoạt động' || s === 'dang hoat dong' ||
+      s === 'hoạt động' || s === 'hoat dong';
 };
 
 const isActiveRow = (row) => {
-    if (!row || typeof row !== 'object') return false;
-    const keys = ['active', 'isActive', 'status', 'trangThai', 'statusText'];
-    for (const k of keys) {
-        if (k in row) return toBoolish(row[k]);
-    }
-    return false;
+  if (!row || typeof row !== 'object') return false;
+  const keys = ['active', 'isActive', 'status', 'trangThai', 'statusText'];
+  for (const k of keys) {
+    if (k in row) return toBoolish(row[k]);
+  }
+  return false;
 };
 
 const fetchData = async () => {
-    try {
-        const [resProduct, resCustomer] = await Promise.all([
-            api.get("/product/show"),
-            api.get("/customer/show"),
-        ]);
-        products.value = (resProduct.data || []).filter(isActiveRow);
-        customers.value = (resCustomer.data || []).map(normalizeCustomer);
-    } catch (err) {
-        console.error("Lỗi tải sản phẩm/khách hàng:", err);
-    }
+  try {
+    const [resProduct, resCustomer] = await Promise.all([
+      api.get("/product/show"),
+      api.get("/customer/show"),
+    ]);
+    products.value = (resProduct.data || []).filter(isActiveRow);
+    customers.value = (resCustomer.data || []).map(normalizeCustomer);
+  } catch (err) {
+    console.error("Lỗi tải sản phẩm/khách hàng:", err);
+  }
 };
 
 
 const fetchPromotion = async () => {
-    try {
-        const { data } = await api.get("/promotion/show");
-        discountAmountList.value = (data || []).filter(isActiveRow);
-    } catch (err) {
-        console.error("Lỗi khuyến mãi:", err);
-    }
+  try {
+    const {data} = await api.get("/promotion/show");
+    discountAmountList.value = (data || []).filter(isActiveRow);
+  } catch (err) {
+    console.error("Lỗi khuyến mãi:", err);
+  }
 };
 
 const selectProduct = async (product) => {
-    try {
-        const { data } = await api.get(`/productDetail/show/${product.id}`);
-        productVariants.value = (data || []).filter(isActiveRow);
-        selectedProduct.value = product;
-    } catch (err) {
-        console.error("Lỗi lấy chi tiết sản phẩm:", err);
-    }
+  try {
+    const {data} = await api.get(`/productDetail/show/${product.id}`);
+    productVariants.value = (data || []).filter(isActiveRow);
+    selectedProduct.value = product;
+  } catch (err) {
+    console.error("Lỗi lấy chi tiết sản phẩm:", err);
+  }
 };
 
 
 const closeVariantModal = () => {
-    selectedProduct.value = null;
-    productVariants.value = [];
+  selectedProduct.value = null;
+  productVariants.value = [];
 };
 
 const addToInvoice = async (variant) => {
-    if (!isActiveRow(variant)) { alert('Biến thể không hoạt động.'); return; }
+  if (!isActiveRow(variant)) {
+    alert('Biến thể không hoạt động.');
+    return;
+  }
 
-    // user chọn số lượng trong modal (mặc định 1)
-    const requested = Number(variant.quantity) > 0 ? Number(variant.quantity) : 1;
+  // user chọn số lượng trong modal (mặc định 1)
+  const requested = Number(variant.quantity) > 0 ? Number(variant.quantity) : 1;
 
-    const existing = currentInvoice.value.items.find(
-        (i) => i.productDetailId === variant.productDetailId
-    );
+  const existing = currentInvoice.value.items.find(
+      (i) => i.productDetailId === variant.productDetailId
+  );
 
-    const already = existing?.quantity || 0;
-    const { allowed, stock } = await clampAdditionToStock(
-        variant.productDetailId,
-        requested,
-        already
-    );
+  const already = existing?.quantity || 0;
+  const {allowed, stock} = await clampAdditionToStock(
+      variant.productDetailId,
+      requested,
+      already
+  );
 
-    if (allowed <= 0) {
-        alert(`Hết hàng/Không đủ tồn. Tồn kho: ${stock}, trong giỏ: ${already}.`);
-        return;
-    }
+  if (allowed <= 0) {
+    alert(`Hết hàng/Không đủ tồn. Tồn kho: ${stock}, trong giỏ: ${already}.`);
+    return;
+  }
 
-    if (existing) existing.quantity += allowed;
-    else currentInvoice.value.items.push({ ...variant, quantity: allowed });
+  if (existing) existing.quantity += allowed;
+  else currentInvoice.value.items.push({...variant, quantity: allowed});
 
-    if (allowed < requested) {
-        alert(`Chỉ thêm được ${allowed}/${requested} do tồn kho hiện còn ${stock}.`);
-    }
+  if (allowed < requested) {
+    alert(`Chỉ thêm được ${allowed}/${requested} do tồn kho hiện còn ${stock}.`);
+  }
 
-    closeVariantModal();
+  closeVariantModal();
 };
 
 
 const removeItem = (index) => {
-    currentInvoice.value.items.splice(index, 1);
+  currentInvoice.value.items.splice(index, 1);
 };
 
 const changeQuantity = async (index, quantity) => {
-    const item = currentInvoice.value.items[index];
-    const q = Math.max(1, parseInt(quantity) || 1);
+  const item = currentInvoice.value.items[index];
+  const q = Math.max(1, parseInt(quantity) || 1);
 
-    const stock = await getStock(item.productDetailId);
-    const clamped = Math.min(q, stock);
+  const stock = await getStock(item.productDetailId);
+  const clamped = Math.min(q, stock);
 
-    currentInvoice.value.items[index].quantity = clamped;
+  currentInvoice.value.items[index].quantity = clamped;
 
-    if (q > stock) {
-        alert(`Tồn kho cho biến thể này chỉ còn ${stock}. Đã điều chỉnh về ${clamped}.`);
-    }
+  if (q > stock) {
+    alert(`Tồn kho cho biến thể này chỉ còn ${stock}. Đã điều chỉnh về ${clamped}.`);
+  }
 };
 
 
 const switchInvoice = (index) => {
-    activeInvoiceIndex.value = index;
-    customerSelectModel.value = null;
+  activeInvoiceIndex.value = index;
+  customerSelectModel.value = null;
 };
 
 const addInvoice = () => invoices.value.push(newInvoice());
 
 const removeInvoice = (index) => {
-    invoices.value.splice(index, 1);
-    if (invoices.value.length === 0) {
-        invoices.value.push(newInvoice());
-        activeInvoiceIndex.value = 0;
-    } else if (activeInvoiceIndex.value >= invoices.value.length) {
-        activeInvoiceIndex.value = invoices.value.length - 1;
-    }
-    customerSelectModel.value = null;
+  invoices.value.splice(index, 1);
+  if (invoices.value.length === 0) {
+    invoices.value.push(newInvoice());
+    activeInvoiceIndex.value = 0;
+  } else if (activeInvoiceIndex.value >= invoices.value.length) {
+    activeInvoiceIndex.value = invoices.value.length - 1;
+  }
+  customerSelectModel.value = null;
 };
 
 const applyPromotionCode = () => {
-    const inv = currentInvoice.value;
-    const code = (inv.promotionCode || "").trim().toLowerCase();
+  const inv = currentInvoice.value;
+  const code = (inv.promotionCode || "").trim().toLowerCase();
 
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
 
-    const promo = (discountAmountList.value || []).find((p) => {
-        const codeMatch = ((p.promotionCode || "").trim().toLowerCase() === code);
-        const start = p.startDate ? new Date(p.startDate) : null;
-        const end = p.endDate ? new Date(p.endDate) : null;
-        if (end) end.setHours(23, 59, 59, 999);
-        return codeMatch && (!start || start <= now) && (!end || now <= end);
-    });
+  const promo = (discountAmountList.value || []).find((p) => {
+    const codeMatch = ((p.promotionCode || "").trim().toLowerCase() === code);
+    const start = p.startDate ? new Date(p.startDate) : null;
+    const end = p.endDate ? new Date(p.endDate) : null;
+    if (end) end.setHours(23, 59, 59, 999);
+    return codeMatch && (!start || start <= now) && (!end || now <= end);
+  });
 
-    if (promo) {
-        inv.selectedPromotion = promo;
-        inv.promotionId = promo.id;
-        inv.promoError = "";
-    } else {
-        inv.selectedPromotion = null;
-        inv.promotionId = null;
-        inv.promoError = "Mã không hợp lệ hoặc đã hết hạn";
-    }
+  if (promo) {
+    inv.selectedPromotion = promo;
+    inv.promotionId = promo.id;
+    inv.promoError = "";
+  } else {
+    inv.selectedPromotion = null;
+    inv.promotionId = null;
+    inv.promoError = "Mã không hợp lệ hoặc đã hết hạn";
+  }
 };
 
 const clearVoucher = () => {
-    const inv = currentInvoice.value;
-    inv.promotionCode = "";
-    inv.selectedPromotion = null;
-    inv.promotionId = null;
-    inv.promoError = "";
+  const inv = currentInvoice.value;
+  inv.promotionCode = "";
+  inv.selectedPromotion = null;
+  inv.promotionId = null;
+  inv.promoError = "";
 };
 
 // thêm vào script
 const customerSelectResetKey = ref(0)
 const resetCustomerInput = () => {
-    customerSelectModel.value = null
-    customerSelectResetKey.value++
+  customerSelectModel.value = null
+  customerSelectResetKey.value++
 }
 
 const onCustomerPicked = (val) => {
-    const pickedIdRaw = val && typeof val === "object" ? (val.id ?? val.value ?? val.customerId) : val
-    const pickedId = pickedIdRaw == null ? null : String(pickedIdRaw)
+  const pickedIdRaw = val && typeof val === "object" ? (val.id ?? val.value ?? val.customerId) : val
+  const pickedId = pickedIdRaw == null ? null : String(pickedIdRaw)
 
-    const row = (val && typeof val === "object")
-        ? val
-        : customers.value.find(c => normalizeId(c.id) === pickedId) || null
+  const row = (val && typeof val === "object")
+      ? val
+      : customers.value.find(c => normalizeId(c.id) === pickedId) || null
 
-    // KH không hoạt động -> báo + xoá trắng ô nhập
-    if (row && !isActiveRow(row)) {
-        alert("Khách hàng này đang Không hoạt động. Không thể chọn.")
-        resetCustomerInput()
-        return
-    }
-    // Hợp lệ -> set như cũ
-    currentInvoice.value.customerId = pickedId
+  // KH không hoạt động -> báo + xoá trắng ô nhập
+  if (row && !isActiveRow(row)) {
+    alert("Khách hàng này đang Không hoạt động. Không thể chọn.")
+    resetCustomerInput()
+    return
+  }
+  // Hợp lệ -> set như cũ
+  currentInvoice.value.customerId = pickedId
 
-    let phone = ""
-    try {
-        const deep = JSON.parse(JSON.stringify(row ?? val))
-        phone = firstNonEmpty(deep?.numberPhone, deep?.phone, deep?.phoneNumber, deep?.sdt, deep?.mobile)
-    } catch { }
-    currentInvoice.value.recipientPhoneNumber = (phone || "").trim()
+  let phone = ""
+  try {
+    const deep = JSON.parse(JSON.stringify(row ?? val))
+    phone = firstNonEmpty(deep?.numberPhone, deep?.phone, deep?.phoneNumber, deep?.sdt, deep?.mobile)
+  } catch {
+  }
+  currentInvoice.value.recipientPhoneNumber = (phone || "").trim()
 
-    customerSelectModel.value = null // giữ ô tìm trắng sau khi đã set customerId
+  customerSelectModel.value = null // giữ ô tìm trắng sau khi đã set customerId
 }
 
 const clearSelectedCustomer = () => {
-    currentInvoice.value.customerId = null;
-    currentInvoice.value.recipientPhoneNumber = "";
-    customerSelectModel.value = null;
+  currentInvoice.value.customerId = null;
+  currentInvoice.value.recipientPhoneNumber = "";
+  customerSelectModel.value = null;
 };
 
 // Đổi shape cho đúng DTO
 const showAddCus = ref(false)
 const newCus = ref({
-    fullName: '',
-    numberPhone: '',
-    email: '',
-    birthOfDate: '1990-01-01',
-    gender: true,
-    active: true
+  fullName: '',
+  numberPhone: '',
+  email: '',
+  birthOfDate: '1990-01-01',
+  gender: true,
+  active: true
 })
 
 function openAddCustomer() {
-    try {
-        const q = (customerSelectModel?.value ?? '').toString().trim()
-        if (/^\d{9,11}$/.test(q)) newCus.value.numberPhone = q
-        else if (q) newCus.value.fullName = q
-    } catch { }
-    showAddCus.value = true
+  try {
+    const q = (customerSelectModel?.value ?? '').toString().trim()
+    if (/^\d{9,11}$/.test(q)) newCus.value.numberPhone = q
+    else if (q) newCus.value.fullName = q
+  } catch {
+  }
+  showAddCus.value = true
 }
 
 const isValidEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(s || '').trim())
 const onlyDigits = (s) => String(s ?? '').replace(/\D/g, '')
 
 async function saveNewCustomer() {
-    const fullName = String(newCus.value.fullName || '').trim()
-    const email = String(newCus.value.email || '').trim()
+  const fullName = String(newCus.value.fullName || '').trim()
+  const email = String(newCus.value.email || '').trim()
 
-    const phoneRaw = newCus.value.numberPhone ?? newCus.value.phone ?? ''
-    const phoneDigits = onlyDigits(phoneRaw)
+  const phoneRaw = newCus.value.numberPhone ?? newCus.value.phone ?? ''
+  const phoneDigits = onlyDigits(phoneRaw)
 
-    console.log('DEBUG saveNewCustomer', { fullName, email, phoneRaw, phoneDigits })
+  console.log('DEBUG saveNewCustomer', {fullName, email, phoneRaw, phoneDigits})
 
-    if (!fullName || !phoneDigits || !email) {
-        alert('Vui lòng nhập đầy đủ: Họ tên, SĐT và Email'); return
+  if (!fullName || !phoneDigits || !email) {
+    alert('Vui lòng nhập đầy đủ: Họ tên, SĐT và Email');
+    return
+  }
+  if (phoneDigits.length < 9 || phoneDigits.length > 11) {
+    alert('SĐT phải có 9–11 chữ số');
+    return
+  }
+  if (!isValidEmail(email)) {
+    alert('Email không hợp lệ');
+    return
+  }
+
+  const payload = {
+    fullName,
+    numberPhone: phoneDigits,
+    email,
+    gender: !!newCus.value.gender,
+    active: !!newCus.value.active,
+  }
+
+  const d = String(newCus.value.birthOfDate || '').trim()
+  if (d) {
+    const m = d.match(/^(\d{2})-(\d{2})-(\d{4})$/) // dd-MM-yyyy -> yyyy-MM-dd
+    payload.birthOfDate = m ? `${m[3]}-${m[2]}-${m[1]}` : d
+  }
+
+  try {
+    const {data} = await api.post('/customer/add', payload)
+    const created = data?.id ? data : {...payload, id: Date.now()}
+    const createdNorm = normalizeCustomer(created)
+
+    customers.value.unshift(createdNorm)
+    onCustomerPicked(createdNorm)
+    customerSelectResetKey.value++
+
+    newCus.value = {
+      fullName: '', numberPhone: '', email: '',
+      birthOfDate: '1990-01-01', gender: true, active: true
     }
-    if (phoneDigits.length < 9 || phoneDigits.length > 11) {
-        alert('SĐT phải có 9–11 chữ số'); return
-    }
-    if (!isValidEmail(email)) {
-        alert('Email không hợp lệ'); return
-    }
-
-    const payload = {
-        fullName,
-        numberPhone: phoneDigits,
-        email,
-        gender: !!newCus.value.gender,
-        active: !!newCus.value.active,
-    }
-
-    const d = String(newCus.value.birthOfDate || '').trim()
-    if (d) {
-        const m = d.match(/^(\d{2})-(\d{2})-(\d{4})$/) // dd-MM-yyyy -> yyyy-MM-dd
-        payload.birthOfDate = m ? `${m[3]}-${m[2]}-${m[1]}` : d
-    }
-
-    try {
-        const { data } = await api.post('/customer/add', payload)
-        const created = data?.id ? data : { ...payload, id: Date.now() }
-        const createdNorm = normalizeCustomer(created)
-
-        customers.value.unshift(createdNorm)
-        onCustomerPicked(createdNorm)
-        customerSelectResetKey.value++
-
-        newCus.value = {
-            fullName: '', numberPhone: '', email: '',
-            birthOfDate: '1990-01-01', gender: true, active: true
-        }
-        showAddCus.value = false
-    } catch (e) {
-        console.error('Tạo khách hàng lỗi:', e.response?.status, e.response?.data || e.message)
-        alert(e?.response?.data?.message || 'Không thể tạo khách hàng mới')
-    }
+    showAddCus.value = false
+  } catch (e) {
+    console.error('Tạo khách hàng lỗi:', e.response?.status, e.response?.data || e.message)
+    alert(e?.response?.data?.message || 'Không thể tạo khách hàng mới')
+  }
 }
 
 const validateInvoiceStock = async () => {
-    const inv = currentInvoice.value;
-    const errors = [];
+  const inv = currentInvoice.value;
+  const errors = [];
 
-    // fetch tồn kho song song cho nhanh
-    await Promise.all(inv.items.map(async (it) => {
-        const stock = await getStock(it.productDetailId);
-        if (Number(it.quantity) > stock) {
-            errors.push({
-                name: `${it.productName} (${it.color}/${it.size})`,
-                qty: Number(it.quantity),
-                stock
-            });
-        }
-    }));
+  // fetch tồn kho song song cho nhanh
+  await Promise.all(inv.items.map(async (it) => {
+    const stock = await getStock(it.productDetailId);
+    if (Number(it.quantity) > stock) {
+      errors.push({
+        name: `${it.productName} (${it.color}/${it.size})`,
+        qty: Number(it.quantity),
+        stock
+      });
+    }
+  }));
 
-    return { ok: errors.length === 0, errors };
+  return {ok: errors.length === 0, errors};
 };
 
 
 const handleCheckout = async () => {
-    const inv = currentInvoice.value;
+  const inv = currentInvoice.value;
 
-    if (!inv || inv.items.length === 0) {
-        alert("Giỏ hàng đang trống!");
-        return;
-    }
+  if (!inv || inv.items.length === 0) {
+    alert("Giỏ hàng đang trống!");
+    return;
+  }
 
-    // ✅ Chặn vượt kho trước khi thanh toán
-    const { ok, errors } = await validateInvoiceStock();
-    if (!ok) {
-        const msg = errors
-            .map(e => `• ${e.name}: yêu cầu ${e.qty}, tồn kho ${e.stock}`)
-            .join('\n');
-        alert("Không thể thanh toán do vượt tồn kho:\n" + msg);
-        return;
-    }
-    
-    let user = null;
-    try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch { }
+  // ✅ Chặn vượt kho trước khi thanh toán
+  const {ok, errors} = await validateInvoiceStock();
+  if (!ok) {
+    const msg = errors
+        .map(e => `• ${e.name}: yêu cầu ${e.qty}, tồn kho ${e.stock}`)
+        .join('\n');
+    alert("Không thể thanh toán do vượt tồn kho:\n" + msg);
+    return;
+  }
 
-    const name = (currentCustomer.value?.fullName || WALK_IN.fullName).trim();
-    const phone = firstNonEmpty(
-        selectedPhone?.value,
-        currentCustomer.value?.phone,
-        WALK_IN.phone,
-        ""
-    ).trim();
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+  }
 
-    const dto = {
-        customerId: inv.customerId || null,
-        employeeId: user.employeeId,
-        ptttId: 1,
-        promotionId: inv.promotionId || null,
-        billCode: `HD${Date.now()}`,
-        billType: "OFFLINE",
-        status: 4,
-        recipientName: name,
-        recipientPhoneNumber: phone,
-        addressMethod: "Tại cửa hàng",
-        statusPayment: "Đã thanh toán",
-        subTotal: subTotal.value,
-        discountAmount: discountAmount.value,
-        grandTotal: grandTotal.value,
-        billDetails: inv.items.map((i) => ({
-            productDetailId: i.productDetailId,
-            quantity: i.quantity,
-            price: i.price,
-            productName: i.productName,
-            color: i.color,
-            size: i.size,
-        })),
+  const name = (currentCustomer.value?.fullName || WALK_IN.fullName).trim();
+  const phone = firstNonEmpty(
+      selectedPhone?.value,
+      currentCustomer.value?.phone,
+      WALK_IN.phone,
+      ""
+  ).trim();
+
+  const dto = {
+    customerId: inv.customerId || null,
+    employeeId: user.employeeId,
+    ptttId: 1,
+    promotionId: inv.promotionId || null,
+    billCode: `HD${Date.now()}`,
+    billType: "OFFLINE",
+    status: 4,
+    recipientName: name,
+    recipientPhoneNumber: phone,
+    addressMethod: "Tại cửa hàng",
+    statusPayment: "Đã thanh toán",
+    subTotal: subTotal.value,
+    discountAmount: discountAmount.value,
+    grandTotal: grandTotal.value,
+    billDetails: inv.items.map((i) => ({
+      productDetailId: i.productDetailId,
+      quantity: i.quantity,
+      price: i.price,
+      productName: i.productName,
+      color: i.color,
+      size: i.size,
+    })),
+  };
+
+  try {
+    const res = await api.post("/bill/create", dto);
+    const bfs = res?.data || {};
+    const employeeFromServer = bfs.employeeName ?? bfs.employee?.fullName ?? "";
+    const customerFromServer = bfs.customerName ?? bfs.customer?.fullName ?? "";
+    const customerPhone = firstNonEmpty(
+        bfs.recipientPhoneNumber,
+        bfs.phoneNumber,
+        bfs.customerPhone,
+        bfs.customer?.phone,
+        bfs.customer?.phoneNumber,
+        dto.recipientPhoneNumber,
+        phone
+    );
+    const itemsSrc =
+        Array.isArray(bfs.billDetails) && bfs.billDetails.length
+            ? bfs.billDetails
+            : dto.billDetails;
+
+    const bill = {
+      billCode: bfs.billCode ?? dto.billCode,
+      createdAt: bfs.createdDate ?? new Date().toISOString(),
+      employeeName: firstNonEmpty(
+          employeeFromServer,
+          (typeof employeeName !== "undefined" && employeeName?.value) ? employeeName.value : "",
+          user?.fullName
+      ),
+      customerName: firstNonEmpty(
+          customerFromServer,
+          currentCustomer.value?.fullName,
+          WALK_IN.fullName
+      ),
+      customerPhone: customerPhone,
+      items: itemsSrc.map((d) => ({
+        productName: d.productName,
+        color: d.color,
+        size: d.size,
+        quantity: d.quantity,
+        price: toVND(d.price),
+        lineTotal: toVND((Number(d.price) || 0) * (Number(d.quantity) || 0)),
+      })),
+      subTotal: toVND(bfs.subTotal ?? dto.subTotal),
+      discountAmount: toVND(bfs.discountAmount ?? dto.discountAmount),
+      grandTotal: toVND(bfs.grandTotal ?? dto.grandTotal),
     };
 
-    try {
-        const res = await api.post("/bill/create", dto);
-        const bfs = res?.data || {};
-        const employeeFromServer = bfs.employeeName ?? bfs.employee?.fullName ?? "";
-        const customerFromServer = bfs.customerName ?? bfs.customer?.fullName ?? "";
-        const customerPhone = firstNonEmpty(
-            bfs.recipientPhoneNumber,
-            bfs.phoneNumber,
-            bfs.customerPhone,
-            bfs.customer?.phone,
-            bfs.customer?.phoneNumber,
-            dto.recipientPhoneNumber,
-            phone
-        );
-        const itemsSrc =
-            Array.isArray(bfs.billDetails) && bfs.billDetails.length
-                ? bfs.billDetails
-                : dto.billDetails;
+    alert("Thanh toán thành công!");
+    await printReceipt(bill);
 
-        const bill = {
-            billCode: bfs.billCode ?? dto.billCode,
-            createdAt: bfs.createdDate ?? new Date().toISOString(),
-            employeeName: firstNonEmpty(
-                employeeFromServer,
-                (typeof employeeName !== "undefined" && employeeName?.value) ? employeeName.value : "",
-                user?.fullName
-            ),
-            customerName: firstNonEmpty(
-                customerFromServer,
-                currentCustomer.value?.fullName,
-                WALK_IN.fullName
-            ),
-            customerPhone: customerPhone,
-            items: itemsSrc.map((d) => ({
-                productName: d.productName,
-                color: d.color,
-                size: d.size,
-                quantity: d.quantity,
-                price: toVND(d.price),
-                lineTotal: toVND((Number(d.price) || 0) * (Number(d.quantity) || 0)),
-            })),
-            subTotal: toVND(bfs.subTotal ?? dto.subTotal),
-            discountAmount: toVND(bfs.discountAmount ?? dto.discountAmount),
-            grandTotal: toVND(bfs.grandTotal ?? dto.grandTotal),
-        };
-
-        alert("Thanh toán thành công!");
-        await printReceipt(bill);
-
-        invoices.value[activeInvoiceIndex.value] = newInvoice();
-        customerSelectModel.value = null;
-        localStorage.setItem("invoices", JSON.stringify(invoices.value));
-    } catch (error) {
-        alert(error?.response?.data?.message || "Lỗi khi thanh toán. Vui lòng thử lại.");
-    }
+    invoices.value[activeInvoiceIndex.value] = newInvoice();
+    customerSelectModel.value = null;
+    localStorage.setItem("invoices", JSON.stringify(invoices.value));
+  } catch (error) {
+    alert(error?.response?.data?.message || "Lỗi khi thanh toán. Vui lòng thử lại.");
+  }
 };
 
 
 onMounted(() => {
-    const saved = localStorage.getItem("invoices");
-    if (saved) {
-        try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                invoices.value = parsed.map((inv) => {
-                    const copy = { ...inv };
-                    if (!copy.id) copy.id = uid();
-                    if (copy.customer && !copy.customerId) copy.customerId = copy.customer.id ?? null;
-                    delete copy.customer;
-                    copy.customerId = copy.customerId == null ? null : String(copy.customerId);
+  const saved = localStorage.getItem("invoices");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        invoices.value = parsed.map((inv) => {
+          const copy = {...inv};
+          if (!copy.id) copy.id = uid();
+          if (copy.customer && !copy.customerId) copy.customerId = copy.customer.id ?? null;
+          delete copy.customer;
+          copy.customerId = copy.customerId == null ? null : String(copy.customerId);
 
-                    if (copy.promotionCode === undefined) copy.promotionCode = "";
-                    if (copy.selectedPromotion === undefined) copy.selectedPromotion = null;
-                    if (copy.promotionId === undefined) copy.promotionId = null;
-                    if (copy.promoError === undefined) copy.promoError = "";
-                    if (copy.paid === undefined) copy.paid = 0;
-                    if (copy.recipientPhoneNumber === undefined) copy.recipientPhoneNumber = "";
-                    if (!Array.isArray(copy.items)) copy.items = [];
-                    return copy;
-                });
-            }
-        } catch { }
+          if (copy.promotionCode === undefined) copy.promotionCode = "";
+          if (copy.selectedPromotion === undefined) copy.selectedPromotion = null;
+          if (copy.promotionId === undefined) copy.promotionId = null;
+          if (copy.promoError === undefined) copy.promoError = "";
+          if (copy.paid === undefined) copy.paid = 0;
+          if (copy.recipientPhoneNumber === undefined) copy.recipientPhoneNumber = "";
+          if (!Array.isArray(copy.items)) copy.items = [];
+          return copy;
+        });
+      }
+    } catch {
     }
-    if (invoices.value.length === 0) invoices.value = [newInvoice()];
-    if (activeInvoiceIndex.value >= invoices.value.length) activeInvoiceIndex.value = 0;
+  }
+  if (invoices.value.length === 0) invoices.value = [newInvoice()];
+  if (activeInvoiceIndex.value >= invoices.value.length) activeInvoiceIndex.value = 0;
 
-    customerSelectModel.value = null;
+  customerSelectModel.value = null;
 
-    fetchData();
-    fetchUser();
+  fetchData();
+  fetchUser();
 
-    fetchPromotion();
+  fetchPromotion();
 });
 </script>
 
 <template>
-    <div class="container py-4">
-        <!-- Tabs hóa đơn -->
-        <InvoiceTabs :invoices="invoices" :activeIndex="activeInvoiceIndex" @switch="switchInvoice" @add="addInvoice"
-            @remove="removeInvoice" class="mb-4" />
+  <div class="container py-4">
+    <!-- Tabs hóa đơn -->
+    <InvoiceTabs :invoices="invoices" :activeIndex="activeInvoiceIndex" @switch="switchInvoice" @add="addInvoice"
+                 @remove="removeInvoice" class="mb-4"/>
 
-        <div class="row g-4">
-            <!-- Tìm kiếm + Thêm giỏ hàng -->
-            <div class="col-md-8 pe-2">
-                <div class="card h-150 shadow-sm mb-4">
-                    <div class="card-body p-3" style="max-height: 600px;">
-                        <ProductList :products="products" @select="selectProduct" />
-                    </div>
-                </div>
-
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white fw-semibold">Giỏ hàng</div>
-                    <div class="card-body p-3">
-                        <CartTable :items="currentInvoice.items" @removeItem="removeItem"
-                            @changeQuantity="changeQuantity" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Khách hàng + Voucher + Thanh toán -->
-            <div class="col-md-4 d-flex flex-column gap-3">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white fw-semibold">Khách hàng</div>
-                    <div class="card-body p-3">
-                        <!-- Ô tìm khách luôn trắng -->
-                        <div class="position-relative">
-                            <CustomerSelect
-                                :key="currentInvoice.id + ':' + (currentInvoice.customerId ?? '') + ':' + customerSelectResetKey"
-                                :customers="customers" :modelValue="customerSelectModel"
-                                @update:modelValue="onCustomerPicked" />
-                            <!-- Nút + nhỏ nổi ở mép phải ô nhập -->
-                            <button type="button" class="btn btn-outline-primary btn-sm add-cus-btn"
-                                @click="openAddCustomer" title="Thêm khách mới">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
-                        </div>
-
-                        <!-- Hiển thị khách đã chọn -->
-                        <div class="d-flex align-items-center mt-2 flex-wrap gap-2">
-                            <div class="small mb-0">
-                                <span class="text-muted">Khách đã chọn: </span>
-                                <b v-if="currentCustomer">
-                                    {{ currentCustomer.fullName }}
-                                    <span v-if="selectedPhone"> - {{ selectedPhone }}</span>
-                                </b>
-                                <b v-else>{{ WALK_IN.fullName }}</b>
-                            </div>
-                            <button class="btn btn-link btn-sm text-danger p-0 align-baseline"
-                                @click="clearSelectedCustomer" :disabled="!currentInvoice.customerId">
-                                Xoá khách
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mã giảm giá -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white fw-semibold">Mã giảm giá</div>
-                    <div class="card-body p-3">
-                        <div class="input-group mb-2">
-                            <input v-model="currentInvoice.promotionCode" type="text" class="form-control"
-                                placeholder="Nhập mã (VD: SUMMER10)" />
-                            <button class="btn btn-primary" @click="applyPromotionCode()">Áp dụng</button>
-                            <button class="btn btn-outline-secondary" @click="clearVoucher">Xoá</button>
-                        </div>
-                        <p v-if="currentInvoice.promoError" class="text-danger small mb-0">
-                            {{ currentInvoice.promoError }}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Thanh toán -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white fw-semibold">Thanh toán</div>
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between">
-                            <span>Tạm tính</span>
-                            <span>{{ subTotal.toLocaleString() }}₫</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Giảm giá</span>
-                            <span>- {{ discountAmount.toLocaleString() }}₫</span>
-                        </div>
-                        <hr class="my-2" />
-                        <div class="d-flex justify-content-between fs-5">
-                            <span>Tổng thanh toán</span>
-                            <b>{{ grandTotal.toLocaleString() }}₫</b>
-                        </div>
-
-                        <PaymentInfo :total="grandTotal" :modelValue="currentInvoice.paid" :change="change"
-                            @update:modelValue="(val) => (currentInvoice.paid = val)" @checkout="handleCheckout" />
-                    </div>
-                </div>
-            </div>
+    <div class="row g-4">
+      <!-- Tìm kiếm + Thêm giỏ hàng -->
+      <div class="col-md-8 pe-2">
+        <div class="card h-150 shadow-sm mb-4">
+          <div class="card-body p-3" style="max-height: 600px;">
+            <ProductList :products="products" @select="selectProduct"/>
+          </div>
         </div>
 
-        <!-- Popup biến thể sản phẩm -->
-        <ProductVariantModal v-if="selectedProduct" :product="selectedProduct" :variants="productVariants"
-            @close="closeVariantModal" @confirm="addToInvoice" />
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white fw-semibold">Giỏ hàng</div>
+          <div class="card-body p-3">
+            <CartTable :items="currentInvoice.items" @removeItem="removeItem"
+                       @changeQuantity="changeQuantity"/>
+          </div>
+        </div>
+      </div>
 
-        <!-- Modal thêm khách nhanh (thuần Vue, không cần JS của Bootstrap) -->
-        <div v-if="showAddCus" class="c-modal-backdrop" @click.self="showAddCus = false">
-            <div class="c-modal">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="m-0">Thêm khách hàng</h6>
-                    <button type="button" class="btn-close" @click="showAddCus = false"></button>
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label small">Họ và tên <span class="text-danger">*</span></label>
-                    <input v-model="newCus.fullName" class="form-control" placeholder="VD: Nguyễn Văn A" />
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small">Số điện thoại <span class="text-danger">*</span></label>
-                    <input v-model="newCus.numberPhone" class="form-control" type="text" inputmode="tel"
-                        placeholder="VD: 09xxxxxxxx" />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Email <span class="text-danger">*</span></label>
-                    <input v-model="newCus.email" type="email" class="form-control" placeholder="vd: abc@example.com" />
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-outline-secondary" @click="showAddCus = false">Hủy</button>
-                    <button class="btn btn-success" @click="saveNewCustomer">
-                        <i class="bi bi-save me-1"></i> Lưu
-                    </button>
-                </div>
+      <!-- Khách hàng + Voucher + Thanh toán -->
+      <div class="col-md-4 d-flex flex-column gap-3">
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white fw-semibold">Khách hàng</div>
+          <div class="card-body p-3">
+            <!-- Ô tìm khách luôn trắng -->
+            <div class="position-relative">
+              <CustomerSelect
+                  :key="currentInvoice.id + ':' + (currentInvoice.customerId ?? '') + ':' + customerSelectResetKey"
+                  :customers="customers" :modelValue="customerSelectModel"
+                  @update:modelValue="onCustomerPicked"/>
+              <!-- Nút + nhỏ nổi ở mép phải ô nhập -->
+              <button type="button" class="btn btn-outline-primary btn-sm add-cus-btn"
+                      @click="openAddCustomer" title="Thêm khách mới">
+                <i class="bi bi-plus-lg"></i>
+              </button>
             </div>
+
+            <!-- Hiển thị khách đã chọn -->
+            <div class="d-flex align-items-center mt-2 flex-wrap gap-2">
+              <div class="small mb-0">
+                <span class="text-muted">Khách đã chọn: </span>
+                <b v-if="currentCustomer">
+                  {{ currentCustomer.fullName }}
+                  <span v-if="selectedPhone"> - {{ selectedPhone }}</span>
+                </b>
+                <b v-else>{{ WALK_IN.fullName }}</b>
+              </div>
+              <button class="btn btn-link btn-sm text-danger p-0 align-baseline"
+                      @click="clearSelectedCustomer" :disabled="!currentInvoice.customerId">
+                Xoá khách
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- Mã giảm giá -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white fw-semibold">Mã giảm giá</div>
+          <div class="card-body p-3">
+            <div class="input-group mb-2">
+              <input v-model="currentInvoice.promotionCode" type="text" class="form-control"
+                     placeholder="Nhập mã (VD: SUMMER10)"/>
+              <button class="btn btn-primary" @click="applyPromotionCode()">Áp dụng</button>
+              <button class="btn btn-outline-secondary" @click="clearVoucher">Xoá</button>
+            </div>
+            <p v-if="currentInvoice.promoError" class="text-danger small mb-0">
+              {{ currentInvoice.promoError }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Thanh toán -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-secondary text-white fw-semibold">Thanh toán</div>
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between">
+              <span>Tạm tính</span>
+              <span>{{ subTotal.toLocaleString() }}₫</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Giảm giá</span>
+              <span>- {{ discountAmount.toLocaleString() }}₫</span>
+            </div>
+            <hr class="my-2"/>
+            <div class="d-flex justify-content-between fs-5">
+              <span>Tổng thanh toán</span>
+              <b>{{ grandTotal.toLocaleString() }}₫</b>
+            </div>
+
+            <PaymentInfo :total="grandTotal" :modelValue="currentInvoice.paid" :change="change"
+                         @update:modelValue="(val) => (currentInvoice.paid = val)" @checkout="handleCheckout"/>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Popup biến thể sản phẩm -->
+    <ProductVariantModal v-if="selectedProduct" :product="selectedProduct" :variants="productVariants"
+                         @close="closeVariantModal" @confirm="addToInvoice"/>
+
+    <!-- Modal thêm khách nhanh (thuần Vue, không cần JS của Bootstrap) -->
+    <div v-if="showAddCus" class="c-modal-backdrop" @click.self="showAddCus = false">
+      <div class="c-modal">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="m-0">Thêm khách hàng</h6>
+          <button type="button" class="btn-close" @click="showAddCus = false"></button>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label small">Họ và tên <span class="text-danger">*</span></label>
+          <input v-model="newCus.fullName" class="form-control" placeholder="VD: Nguyễn Văn A"/>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">Số điện thoại <span class="text-danger">*</span></label>
+          <input v-model="newCus.numberPhone" class="form-control" type="text" inputmode="tel"
+                 placeholder="VD: 09xxxxxxxx"/>
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Email <span class="text-danger">*</span></label>
+          <input v-model="newCus.email" type="email" class="form-control" placeholder="vd: abc@example.com"/>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn btn-outline-secondary" @click="showAddCus = false">Hủy</button>
+          <button class="btn btn-success" @click="saveNewCustomer">
+            <i class="bi bi-save me-1"></i> Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </template>
 
 <style scoped>
 .card.shadow-sm {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
 .btn-link {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .add-cus-btn {
-    position: absolute;
-    right: .375rem;
-    top: .2rem;
-    padding: .10rem .45rem;
-    border-radius: 6px;
-    z-index: 3;
+  position: absolute;
+  right: .375rem;
+  top: .2rem;
+  padding: .10rem .45rem;
+  border-radius: 6px;
+  z-index: 3;
 }
 
 .c-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
 }
 
 .c-modal {
-    width: 420px;
-    max-width: calc(100vw - 2rem);
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+  width: 420px;
+  max-width: calc(100vw - 2rem);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
 }
 </style>

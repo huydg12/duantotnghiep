@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import {computed, onMounted, ref} from "vue";
 import Banner from "../common/Banner.vue";
 import axios from "axios";
-import { useRouter } from "vue-router";
-import { useCartFavoriteStore } from "@/stores/cartFavoriteStore";
+import {useRouter} from "vue-router";
+import {useCartFavoriteStore} from "@/stores/cartFavoriteStore";
 
 const store = useCartFavoriteStore()
 const showRemoveToast = ref(false)
@@ -59,7 +59,7 @@ async function removeItem(cartDetailId) {
   try {
     await axios.delete(`http://localhost:8080/cartDetail/delete/${cartDetailId}`);
     cartItems.value = cartItems.value.filter(
-      (item) => item.cartDetailId !== cartDetailId
+        (item) => item.cartDetailId !== cartDetailId
     );
     await store.fetchCartItems(customerId);
     showRemoveToast.value = true
@@ -121,17 +121,17 @@ function handleCheckout() {
   }
   // Lấy danh sách sản phẩm đã chọn
   const dataToPay = cartItems.value
-    .filter(item => selectedItems.value.includes(item.cartDetailId))
-    .map(item => ({
-      cartDetailId: item.cartDetailId,
-      productDetailId: item.productDetailId,
-      images: item.images,
-      productName: item.productName,
-      color: item.color,
-      size: item.size,
-      price: item.price,
-      quantity: item.quantity,
-    }));
+      .filter(item => selectedItems.value.includes(item.cartDetailId))
+      .map(item => ({
+        cartDetailId: item.cartDetailId,
+        productDetailId: item.productDetailId,
+        images: item.images,
+        productName: item.productName,
+        color: item.color,
+        size: item.size,
+        price: item.price,
+        quantity: item.quantity,
+      }));
   console.log("Sản phẩm đã chọn để thanh toán:", dataToPay);
 
   // Lưu vào sessionStorage
@@ -162,14 +162,14 @@ function goToProductDetail(productId) {
 </script>
 <template>
   <Banner title="Giỏ Hàng" breadcrumb="Giỏ hàng"
-    backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg" />
+          backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
 
   <div class="container my-5 bg-white p-4 rounded shadow">
     <h3 class="mb-4 fw-semibold">🛒 Giỏ Hàng Của Bạn</h3>
     <!-- Nút Chọn tất cả -->
     <div class="form-check mb-3">
       <input type="checkbox" class="form-check-input" id="selectAll" :checked="isAllSelected"
-        @change="toggleSelectAll" />
+             @change="toggleSelectAll"/>
       <label class="form-check-label" for="selectAll">
         Chọn tất cả
       </label>
@@ -179,15 +179,15 @@ function goToProductDetail(productId) {
         <div v-for="item in cartItems" :key="item.cartDetailId" class="row align-items-center g-3 mb-4 cart-item">
           <!-- Checkbox -->
           <div class="col-1 text-center">
-            <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input" />
+            <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input"/>
           </div>
           <div class="col-2 text-center">
             <img :src="item.images" :alt="item.productName" class="img-fluid rounded clickable"
-              @click="goToProductDetail(item.productId)" style="max-width: 96px; height: auto" />
+                 @click="goToProductDetail(item.productId)" style="max-width: 96px; height: auto"/>
           </div>
           <div class="col-4">
             <h6 class="mb-1 fw-medium text clickable" @click="goToProductDetail(item.productId)"
-              style="cursor: pointer;">{{ item.productName }}</h6>
+                style="cursor: pointer;">{{ item.productName }}</h6>
             <small class="text-muted">Color: {{ item.color }} | Size: {{ item.size }}</small>
           </div>
           <div class="col-2 text-danger fw-bold">
@@ -197,9 +197,9 @@ function goToProductDetail(productId) {
           </div>
           <div class="col-1">
             <input type="number" v-model="item.quantity" min="1" :max="item.quantityInventory"
-              class="form-control text-center quantity"
-              @change="validateQuantity(item); updateQuantity(item.cartDetailId, item.quantity)"
-              @keydown="blockMinus" />
+                   class="form-control text-center quantity"
+                   @change="validateQuantity(item); updateQuantity(item.cartDetailId, item.quantity)"
+                   @keydown="blockMinus"/>
           </div>
           <!-- Nút Xóa -->
           <div class="col-2 d-flex justify-content-end">
