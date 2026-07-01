@@ -7,10 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.poly.BE_main.model.Customer;
 
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+    Page<Customer> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+            String fullName, String email, Pageable pageable);
     Optional<Customer> findByAccountId(int accountId);
 
     @Query(value = """

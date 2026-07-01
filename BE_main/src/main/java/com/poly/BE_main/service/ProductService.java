@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.poly.BE_main.dto.ProductDTO;
 import com.poly.BE_main.model.Product;
 
@@ -19,6 +21,11 @@ public class ProductService {
 
     public List<Product> findAll() {
         return productRepository.findAll();
+    }
+    public Page<Product> findPage(String keyword, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        return productRepository.findByProductNameContainingIgnoreCase(keyword == null ? "" : keyword.trim(),
+                PageRequest.of(Math.max(page, 0), safeSize));
     }
 
     public Product create(Product p) {

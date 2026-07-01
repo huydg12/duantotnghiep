@@ -9,8 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 // Thay thông tin này bằng tài khoản thật
-const CLIENT_ID = "9bebd02c-b058-4832-8c34-4b0b7ae62395";
-const API_KEY = "f493f4de-c66e-4e42-809a-ca2a00d4d949";
+const CLIENT_ID = process.env.VIETQR_CLIENT_ID;
+const API_KEY = process.env.VIETQR_API_KEY;
 
 app.post("/api/generate-qr", async (req, res) => {
   console.log("Dữ liệu nhận từ client:", req.body);

@@ -5,14 +5,16 @@ import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class BillDetailDTO {
     private Integer billId;
-    private Integer productDetailId;
-    private Integer quantity;
+    @NotNull private Integer productDetailId;
+    @NotNull @Positive private Integer quantity;
     private BigDecimal price;
     private String productName;
     private String color;

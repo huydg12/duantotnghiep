@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.repository.InventoryRepository;
+import com.poly.BE_main.repository.InventoryMovementRepository;
+import com.poly.BE_main.model.InventoryMovement;
 
 import jakarta.transaction.Transactional;
 
@@ -18,6 +20,7 @@ import jakarta.transaction.Transactional;
 public class InventoryService {
     @Autowired
     InventoryRepository inventoryRepository;
+    @Autowired InventoryMovementRepository movementRepository;
 
     public List<Inventory> findAll() {
         return inventoryRepository.findAll();
@@ -48,7 +51,8 @@ public class InventoryService {
     }
 
     @Transactional
-    public boolean updateQuantityCong(int productDetailId, int addedQuantity) {
+    public boolean updateQuantityCong(int productDetailId, int addedQuantity, String username) {
+        if (addedQuantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
         Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 
         if (optionalInventory.isPresent()) {
@@ -56,6 +60,7 @@ public class InventoryService {
             inventory.setQuantity(inventory.getQuantity() + addedQuantity);
             inventory.setModifiedDate(LocalDateTime.now());
             inventoryRepository.save(inventory);
+            record(productDetailId, addedQuantity, inventory.getQuantity(), "IMPORT", username);
             return true;
         }
 
@@ -63,14 +68,17 @@ public class InventoryService {
     }
 
     @Transactional
-    public boolean updateQuantityTru(int productDetailId, int addedQuantity) {
+    public boolean updateQuantityTru(int productDetailId, int addedQuantity, String username) {
+        if (addedQuantity <= 0) throw new IllegalArgumentException("Quantity must be positive");
         Optional<Inventory> optionalInventory = inventoryRepository.findByProductDetailId(productDetailId);
 
         if (optionalInventory.isPresent()) {
             Inventory inventory = optionalInventory.get();
+            if (inventory.getQuantity() < addedQuantity) throw new IllegalArgumentException("Insufficient inventory");
             inventory.setQuantity(inventory.getQuantity() - addedQuantity);
             inventory.setModifiedDate(LocalDateTime.now());
             inventoryRepository.save(inventory);
+            record(productDetailId, -addedQuantity, inventory.getQuantity(), "MANUAL_OUT", username);
             return true;
         }
 
@@ -124,6 +132,15 @@ public class InventoryService {
         return inventoryRepository.findByProductDetailId(productDetailId)
                 .map(Inventory::getQuantity)
                 .orElse(0); // nếu không có -> trả về 0
+    }
+
+    public List<InventoryMovement> getMovements(Integer productDetailId) {
+        return movementRepository.findByProductDetailIdOrderByCreatedAtDesc(productDetailId);
+    }
+    private void record(Integer pdId, int change, int balance, String type, String username) {
+        InventoryMovement m = new InventoryMovement(); m.setProductDetailId(pdId); m.setQuantityChange(change);
+        m.setBalanceAfter(balance); m.setMovementType(type); m.setReferenceType("MANUAL");
+        m.setCreatedBy(username); m.setCreatedAt(LocalDateTime.now()); movementRepository.save(m);
     }
 
 }

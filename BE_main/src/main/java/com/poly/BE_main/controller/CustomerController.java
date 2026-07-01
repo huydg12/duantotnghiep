@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.poly.BE_main.dto.CustomerDTO;
 import com.poly.BE_main.dto.CustomerInfoDTO;
@@ -28,11 +30,20 @@ public class CustomerController {
     CustomerService customerService;
 
     @GetMapping("/show")
+    @PreAuthorize("@ownership.isStaff(authentication)")
     public List<CustomerDTO> findAll() {
         return customerService.findAll();
     }
 
+    @GetMapping("/page")
+    @PreAuthorize("@ownership.isStaff(authentication)")
+    public ResponseEntity<?> page(@RequestParam(defaultValue="") String keyword,
+            @RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="20") int size) {
+        return ResponseEntity.ok(customerService.findPage(keyword, page, size));
+    }
+
     @GetMapping("/showInfoCustomer/{customerId}")
+    @PreAuthorize("@ownership.ownsCustomer(authentication, #customerId)")
     public InformationCustomerDTO findInformationCustomerByCustomerId(@PathVariable Integer customerId) {
         return customerService.findInformationCustomerByCustomerId(customerId);
     }
@@ -62,6 +73,7 @@ public class CustomerController {
     }
 
     @PutMapping("/updateInfoCustomer/{id}")
+    @PreAuthorize("@ownership.ownsCustomer(authentication, #id)")
     public ResponseEntity<?> updateCustomer(@PathVariable Integer id, @RequestBody InformationCustomerDTO dto) {
         LocalDate birthDate = dto.getBirthOfDate();
         customerService.updateCustomerInfo(

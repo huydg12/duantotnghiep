@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import com.poly.BE_main.dto.CustomerDTO;
 import com.poly.BE_main.dto.CustomerInfoDTO;
@@ -71,6 +73,12 @@ public class CustomerService {
         return customerRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+    public Page<CustomerDTO> findPage(String keyword, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        String value = keyword == null ? "" : keyword.trim();
+        return customerRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                value, value, PageRequest.of(Math.max(page, 0), safeSize)).map(this::toDTO);
     }
 
     // Tìm khách hàng theo ID

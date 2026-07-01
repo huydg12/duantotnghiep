@@ -11,6 +11,10 @@ const form = ref({
   name: "",
   type: 1,
   value: 0,
+  minOrderAmount: 0,
+  maxDiscountAmount: null,
+  usageLimit: null,
+  perCustomerLimit: 1,
   startDate: "",
   endDate: "",
   note: "",
@@ -41,6 +45,10 @@ const normalize = (x) => ({
   name: (x.name ?? "").trim(),
   type: Number(x.type ?? 0),
   value: Number(x.value ?? 0),
+  minOrderAmount: Number(x.minOrderAmount ?? 0),
+  maxDiscountAmount: x.maxDiscountAmount == null ? null : Number(x.maxDiscountAmount),
+  usageLimit: x.usageLimit == null ? null : Number(x.usageLimit),
+  perCustomerLimit: x.perCustomerLimit == null ? null : Number(x.perCustomerLimit),
   startDate: (x.startDate ?? ""), // so sánh theo ngày, chưa cộng T00:00:00
   endDate: (x.endDate ?? ""),
   note: (x.note ?? "").trim(),
@@ -122,6 +130,10 @@ const resetForm = () => {
     name: "",
     type: 1,
     value: 0,
+    minOrderAmount: 0,
+    maxDiscountAmount: null,
+    usageLimit: null,
+    perCustomerLimit: 1,
     startDate: "",
     endDate: "",
     note: "",
@@ -170,6 +182,22 @@ onMounted(async () => {
           <div class="col-md-3">
             <label class="form-label">Giá trị</label>
             <input type="number" v-model="form.value" class="form-control" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Đơn tối thiểu</label>
+            <input type="number" min="0" v-model="form.minOrderAmount" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Giảm tối đa</label>
+            <input type="number" min="0" v-model="form.maxDiscountAmount" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Tổng lượt dùng</label>
+            <input type="number" min="1" v-model="form.usageLimit" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Lượt mỗi khách</label>
+            <input type="number" min="1" v-model="form.perCustomerLimit" class="form-control" />
           </div>
           <div class="col-md-3">
             <label class="form-label">Từ ngày</label>

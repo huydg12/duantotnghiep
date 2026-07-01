@@ -187,15 +187,11 @@ const submitCancel = async () => {
     const note = buildCancelNote() // NOTE mới
 
     // Gọi API để cập nhật trạng thái và NOTE của Bill
-    await axios.put(
-      `http://localhost:8080/bill/updateStatusNote/${cancelBillId.value}`,
-      { status: 5, note }
-    )
+    await axios.put(`/bill/${cancelBillId.value}/cancel`, { note })
 
     // Cập nhật UI local (sử dụng các mảng orders/paginatedOrders)
     updateLocalBill()
     // Cập nhật số lượng kho cho từng sản phẩm trong Bill Detail
-    await updateInventory()
     Swal.fire('Đã huỷ đơn', 'Cảm ơn bạn đã cho biết lý do.', 'success')
     closeCancelModal()
   } catch (e) {

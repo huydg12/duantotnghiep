@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.poly.BE_main.dto.InventoryDTO;
 import com.poly.BE_main.model.Inventory;
 import com.poly.BE_main.service.InventoryService;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/inventory")
@@ -46,17 +47,17 @@ public class InventoryController {
 
     @PutMapping("/updateQuantityTru/{productDetailId}")
     public ResponseEntity<?> updateQuantityTru(@PathVariable("productDetailId") Integer productDetailId,
-            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body, Authentication authentication) {
         int quantity = body.get("quantity");
-        inventoryService.updateQuantityTru(productDetailId, quantity);
+        inventoryService.updateQuantityTru(productDetailId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/updateQuantityCong/{productDetailId}")
     public ResponseEntity<?> updateQuantityCong(@PathVariable("productDetailId") Integer productDetailId,
-            @RequestBody Map<String, Integer> body) {
+            @RequestBody Map<String, Integer> body, Authentication authentication) {
         int quantity = body.get("quantity");
-        inventoryService.updateQuantityCong(productDetailId, quantity);
+        inventoryService.updateQuantityCong(productDetailId, quantity, authentication.getName());
         return ResponseEntity.ok().build();
     }
 
@@ -75,6 +76,11 @@ public class InventoryController {
         result.put("productDetailId", productDetailId);
         result.put("quantityInventory", quantity);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/movements/{productDetailId}")
+    public ResponseEntity<?> movements(@PathVariable Integer productDetailId) {
+        return ResponseEntity.ok(inventoryService.getMovements(productDetailId));
     }
 
     @PutMapping("/updateQuantityByBill/{productDetailId}")

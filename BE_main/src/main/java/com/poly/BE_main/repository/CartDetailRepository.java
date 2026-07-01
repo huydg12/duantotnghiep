@@ -13,6 +13,10 @@ import com.poly.BE_main.model.CartDetail;
 import jakarta.transaction.Transactional;
 
 public interface CartDetailRepository extends JpaRepository<CartDetail, Integer> {
+    @Transactional
+    @Modifying
+    @Query(value = "DELETE FROM CART_DETAIL WHERE CART_ID = :cartId", nativeQuery = true)
+    void deleteAllByCartId(@Param("cartId") Integer cartId);
     @Query(value = """
             WITH RepresentativeProductDetail AS (
                 SELECT

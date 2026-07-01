@@ -31,6 +31,12 @@ public class ProductController {
         return productService.findAll();
     }
 
+    @GetMapping("/page")
+    public ResponseEntity<?> page(@RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(productService.findPage(keyword, page, size));
+    }
+
     @GetMapping("/showSPdto")
     public ResponseEntity<List<ProductDTO>> getAllProductDTOs() {
         List<ProductDTO> products = productService.getProducts();

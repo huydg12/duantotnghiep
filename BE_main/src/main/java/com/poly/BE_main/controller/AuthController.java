@@ -2,35 +2,23 @@ package com.poly.BE_main.controller;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
-import com.poly.BE_main.dto.AuthDTO;
-import com.poly.BE_main.dto.ForgetPasswordDTO;
-import com.poly.BE_main.dto.LoginDTO;
-import com.poly.BE_main.dto.RegisterDTO;
-import com.poly.BE_main.dto.ResetPasswordDTO;
-import com.poly.BE_main.dto.VerifyCodeDTO;
-import com.poly.BE_main.dto.LoginResponseDTO;
+import com.poly.BE_main.dto.*;
 import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Customer;
 import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.service.AccountService;
 import com.poly.BE_main.utils.JwtUtil;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-@CrossOrigin(origins = "http://localhost:5173")
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    @Autowired
     private final AccountService accountService;
     private final JwtUtil jwtUtil;
 
@@ -40,80 +28,63 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        Optional<Account> accountOptional = accountService.getAccountByUsername(loginDTO.getUsername());
-
-        if (accountOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản không tồn tại");
+    public ResponseEntity<?> login(@Valid @RequestBody LoginDTO request) {
+        Optional<Account> found = accountService.getAccountByUsername(request.getUsername());
+        if (found.isEmpty() || !accountService.passwordMatchesAndUpgrade(found.get(), request.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
-        Account account = accountOptional.get();
-        if (!loginDTO.getPassword().equals(account.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai mật khẩu");
+        Account account = found.get();
+        if (!account.getIsActive()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is inactive");
         }
-
-        // Tạo JWT
-        String token = jwtUtil.generateToken(account.getUsername());
-
-        AuthDTO accountDTO = new AuthDTO(account);
+        AuthDTO user = new AuthDTO(account);
         if (account.getRoleId() == 2) {
-            Optional<Customer> customerOptional = accountService.getCustomerByAccountId(account.getId());
-            customerOptional.ifPresent(customer -> accountDTO.setCustomerId(customer.getId()));
+            accountService.getCustomerByAccountId(account.getId()).ifPresent(c -> user.setCustomerId(c.getId()));
+        } else {
+            accountService.getEmployeeByAccountId(account.getId()).ifPresent(e -> user.setEmployeeId(e.getId()));
         }
-
-        if (account.getRoleId() == 1) {
-            Optional<Employee> employeeOptional = accountService.getEmployeeByAccountId(account.getId());
-            employeeOptional.ifPresent(employee -> accountDTO.setEmployeeId(employee.getId()));
-        }
-
-        LoginResponseDTO response = new LoginResponseDTO(token, accountDTO);
-
-        return ResponseEntity.ok(response);
+        String token = jwtUtil.generateToken(account.getUsername(), account.getRoleId(), account.getId());
+        return ResponseEntity.ok(new LoginResponseDTO(token, user));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> login(@RequestBody RegisterDTO registerDTO) {
+    @Transactional
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO request) {
+        if (accountService.getAccountByUsername(request.getUsername()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
+        }
         Account account = new Account();
-        account.setUsername(registerDTO.getUsername());
-        account.setPassword(registerDTO.getPassword());
+        account.setUsername(request.getUsername());
+        account.setPassword(accountService.encodePassword(request.getPassword()));
         account.setIsActive(true);
         account.setRoleId(2);
-
         account = accountService.createAccount(account);
 
         Customer customer = new Customer();
-        customer.setFullName(registerDTO.getFullname());
-        customer.setNumberPhone(registerDTO.getPhone());
-        customer.setEmail(registerDTO.getEmail());
+        customer.setFullName(request.getFullname());
+        customer.setNumberPhone(request.getPhone());
+        customer.setEmail(request.getEmail());
         customer.setGender(true);
         customer.setActive(true);
         customer.setAccount(account);
-
-        customer = accountService.createCustomer(customer); // Gán lại để lấy ID
-
-        return ResponseEntity.ok(customer);
+        return ResponseEntity.ok(accountService.createCustomer(customer));
     }
 
     @PostMapping("/forgetpassword")
-    public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordDTO forgetPasswordDTO) {
-        accountService.forgetPassword(forgetPasswordDTO.getEmail());
-        return ResponseEntity.ok("OTP đã được gửi");
+    public ResponseEntity<?> forgetPassword(@Valid @RequestBody ForgetPasswordDTO request) {
+        accountService.forgetPassword(request.getEmail());
+        return ResponseEntity.ok("If the email exists, an OTP has been sent");
     }
 
     @PostMapping("/verifycode")
-    public ResponseEntity<?> verifyCode(@RequestBody VerifyCodeDTO verifyCodeDTO) {
-        accountService.verifyCode(verifyCodeDTO.getEmail(), verifyCodeDTO.getOtpCode());
-        return ResponseEntity.ok("OTP hợp lệ");
+    public ResponseEntity<?> verifyCode(@Valid @RequestBody VerifyCodeDTO request) {
+        accountService.verifyCode(request.getEmail(), request.getOtpCode());
+        return ResponseEntity.ok("OTP is valid");
     }
 
     @PostMapping("/resetpassword")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO resertPasswordDTO) {
-        accountService.resetPassword(resertPasswordDTO.getEmail(), resertPasswordDTO.getNewPassword());
-        return ResponseEntity.ok("Đổi mật khẩu thành công");
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO request) {
+        accountService.resetPassword(request.getEmail(), request.getOtpCode(), request.getNewPassword());
+        return ResponseEntity.ok("Password changed successfully");
     }
-
-    @GetMapping("/show")
-    public String getMethodName(@RequestParam String param) {
-        return new String();
-    }
-
 }

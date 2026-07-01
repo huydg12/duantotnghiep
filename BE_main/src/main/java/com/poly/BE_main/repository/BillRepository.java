@@ -17,6 +17,7 @@ import com.poly.BE_main.dto.TopSellingProductDTO;
 import com.poly.BE_main.model.Bill;
 
 public interface BillRepository extends JpaRepository<Bill, Integer> {
+    boolean existsByCode(String code);
 
   @Query("""
       SELECT SUM(b.grandTotal)

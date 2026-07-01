@@ -495,7 +495,7 @@ const generateBillPayload = (override = {}) => {
     ptttId: paymentMethodMapping[selectedPaymentMethod.value] || 1, // Mặc định là CASH
     code: billCode.value, // auto code
     billType: "ONLINE",
-    promotion: 2,
+    promotionId: selectedPromotion.value?.id || null,
     status: 1,
     createdBy: customerId,
     createdDate: today,
@@ -561,10 +561,9 @@ const createBill = async () => {
 
 
   if (selectedPaymentMethod.value === 'MOMO') {
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    await createMoMoPayment(); // 🚀 Gọi MoMo
+    await Swal.fire({ icon: 'info', title: 'MoMo đang được bảo trì', text: 'Vui lòng chọn thanh toán khi nhận hàng.' });
     Swal.close();
-    return; // Không gọi sendBill vì sẽ xử lý ở callback
+    return;
   }
   // Gửi đơn hàng như bình thường
   await sendBill();
@@ -574,15 +573,9 @@ const createBill = async () => {
 const sendBill = async () => {
   try {
     const payload = generateBillPayload();
-    await axios.post("http://localhost:8080/bill/add", payload);
+    await axios.post("/bill/create", payload);
 
 
-    // Xoá cart
-    for (const item of checkoutItems.value) {
-      if (item.cartDetailId !== undefined && item.cartDetailId !== null) {
-        await axios.delete(`http://localhost:8080/cartDetail/delete/${item.cartDetailId}`);
-      }
-    }
     sessionStorage.removeItem("checkoutItems");
 
     window.location.href = "/invoicecustomer";  // Chuyển về trang invoicecustomer
@@ -924,8 +917,8 @@ onUnmounted(() => {
       </div>
       <div class="form-check mb-2">
         <input class="form-check-input" type="radio" name="paymentMethod" value="MOMO" id="paymentMomo"
-          v-model="selectedPaymentMethod">
-        <label class="form-check-label" for="paymentMomo">Ví MoMo</label>
+          v-model="selectedPaymentMethod" disabled>
+        <label class="form-check-label text-muted" for="paymentMomo">Ví MoMo (đang bảo trì)</label>
       </div>
       <!-- <div class="form-check">
         <input class="form-check-input" type="radio" name="paymentMethod" value="QR" id="paymentQr"

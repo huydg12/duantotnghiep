@@ -10,13 +10,22 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origin:http://localhost:5173}")
+    private String allowedOrigin;
 
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
@@ -28,10 +37,33 @@ public class SecurityConfig {
                 .and()
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().permitAll() // Tạm thời mở toàn bộ để test
+                        .requestMatchers(HttpMethod.GET, "/product/**", "/productDetail/**", "/brand/**",
+                                "/category/**", "/color/**", "/size/**", "/sole/**", "/collar/**",
+                                "/promotion/**", "/image/**").permitAll()
+                        .requestMatchers("/account/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/employee/showInformationEmployee/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/employee/updateInformation/**").authenticated()
+                        .requestMatchers("/employee/**").hasRole("ADMIN")
+                        .requestMatchers("/inventory/**", "/importReceipt/**", "/importReceiptDetail/**",
+                                "/statistic/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers(HttpMethod.POST, "/bill/create").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/bill/*/cancel").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/bill/invoicecustomer/**", "/bill/{billId}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/bill/*/status-history").authenticated()
+                        .requestMatchers("/bill/**", "/billDetail/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers(HttpMethod.POST, "/product/**", "/productDetail/**", "/brand/**",
+                                "/category/**", "/color/**", "/size/**", "/sole/**", "/collar/**",
+                                "/promotion/**", "/image/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers(HttpMethod.PUT, "/product/**", "/productDetail/**", "/brand/**",
+                                "/category/**", "/color/**", "/size/**", "/sole/**", "/collar/**",
+                                "/promotion/**", "/image/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers(HttpMethod.DELETE, "/product/**", "/productDetail/**", "/brand/**",
+                                "/category/**", "/color/**", "/size/**", "/sole/**", "/collar/**",
+                                "/promotion/**", "/image/**").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -45,7 +77,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Frontend
+        config.setAllowedOrigins(List.of(allowedOrigin));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // Nếu cần gửi cookie, JWT...
@@ -53,5 +85,10 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
     }
 }

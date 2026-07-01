@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.poly.BE_main.dto.BillDTO;
 import com.poly.BE_main.dto.InvoiceCustomerDTO;
@@ -38,13 +42,7 @@ public class BillController {
 
     @PostMapping("/add")
     public ResponseEntity<Bill> create(@RequestBody Bill bill) {
-        // Gán Bill vào từng BillDetail để duy trì quan hệ hai chiều
-        if (bill.getBillDetails() != null) {
-            bill.getBillDetails().forEach(detail -> detail.setBill(bill));
-        }
-
-        Bill savedBill = billService.create(bill);
-        return ResponseEntity.ok(savedBill);
+        throw new ResponseStatusException(HttpStatus.GONE, "Use POST /bill/create");
     }
 
     @DeleteMapping("/delete/{id}")
@@ -58,10 +56,26 @@ public class BillController {
     }
 
     @PutMapping("/updateStatus/{id}")
-    public ResponseEntity<?> updateStatus(@PathVariable int id, @RequestBody Map<String, Integer> body) {
-        int status = body.get("status");
-        Bill updated = billService.updateStatus(id, status);
+    public ResponseEntity<?> updateStatus(@PathVariable int id, @RequestBody Map<String, Object> body,
+            Authentication authentication) {
+        int status = ((Number) body.get("status")).intValue();
+        String note = body.get("note") == null ? null : body.get("note").toString();
+        Bill updated = billService.transitionStatus(id, status, authentication.getName(), note);
         return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/{billId}/status-history")
+    @PreAuthorize("@ownership.ownsBill(authentication, #billId)")
+    public ResponseEntity<?> statusHistory(@PathVariable Integer billId) {
+        return ResponseEntity.ok(billService.getStatusHistory(billId));
+    }
+
+    @PutMapping("/{billId}/cancel")
+    @PreAuthorize("@ownership.ownsBill(authentication, #billId)")
+    public ResponseEntity<?> cancel(@PathVariable Integer billId, @RequestBody(required = false) Map<String, String> body,
+            Authentication authentication) {
+        String note = body == null ? "Khách hàng hủy đơn" : body.getOrDefault("note", "Khách hàng hủy đơn");
+        return ResponseEntity.ok(billService.transitionStatus(billId, 5, authentication.getName(), note));
     }
 
     @PutMapping("/updateEmployee/{id}")
@@ -70,23 +84,19 @@ public class BillController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createBill(@RequestBody BillDTO dto) {
-        try {
-            Bill createdBill = billService.createBill(dto);
-            return ResponseEntity.ok(createdBill);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi khi tạo hóa đơn: " + e.getMessage());
-        }
+    public ResponseEntity<?> createBill(@Valid @RequestBody BillDTO dto, Authentication authentication) {
+        return ResponseEntity.ok(billService.createBill(dto, authentication.getName()));
     }
 
     @GetMapping("/invoicecustomer/{customerId}")
+    @PreAuthorize("@ownership.ownsCustomer(authentication, #customerId)")
     public ResponseEntity<List<InvoiceCustomerDTO>> getInvoiceItems(@PathVariable Integer customerId) {
         List<InvoiceCustomerDTO> items = billService.getInvoicesByCustomerId(customerId);
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/{billId}")
+    @PreAuthorize("@ownership.ownsBill(authentication, #billId)")
     public ResponseEntity<Bill> getBillById(@PathVariable int billId) {
         Optional<Bill> bill = billService.findById(billId);
 

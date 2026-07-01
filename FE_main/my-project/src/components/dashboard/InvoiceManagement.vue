@@ -275,6 +275,16 @@ if (userJson) {
 
 const updateInventory = async (bill, newStatus) => {
   try {
+    // Stock was already reserved atomically when the order was created.
+    // Confirmation only assigns the employee and advances the state machine.
+    if (employeeId) {
+      await axios.put(`/bill/updateEmployee/${bill.ID}`, { employeeId });
+    }
+    await axios.put(`/bill/updateStatus/${bill.ID}`, { status: newStatus });
+    bill.STATUS = newStatus;
+    await fetchBills();
+    window.dispatchEvent(new CustomEvent('bill:changed'));
+    return;
     // Lấy các sản phẩm trong hóa đơn
     const response = await axios.get(`http://localhost:8080/billDetail/show/${bill.ID}`);
     const billDetails = response.data;

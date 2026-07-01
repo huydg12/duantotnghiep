@@ -20,6 +20,7 @@ import com.poly.BE_main.dto.CartDetailDTO;
 import com.poly.BE_main.dto.UpdateQuantityDTO;
 import com.poly.BE_main.model.CartDetail;
 import com.poly.BE_main.service.CartDetailService;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -34,21 +35,25 @@ public class CartDetailController {
     }
 
     @GetMapping("/showCartDetail/{customerId}")
+    @PreAuthorize("@ownership.ownsCustomer(authentication, #customerId)")
     public List<CartDetailDTO> showCartDetail(@PathVariable Integer customerId) {
         return cartDetailService.findAllCartDetailByCustomer(customerId);
     }
 
     @PostMapping("/add")
+    @PreAuthorize("@ownership.ownsCart(authentication, #cartDetail.cartId)")
     public void addCartDetail(@RequestBody CartDetail cartDetail) {
         cartDetailService.add(cartDetail);
     }
 
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("@ownership.ownsCartDetail(authentication, #id)")
     public void deleteCartDetail(@PathVariable Integer id) {
         cartDetailService.deleteById(id);
     }
 
     @GetMapping("/exists")
+    @PreAuthorize("@ownership.ownsCart(authentication, #cartId)")
     public ResponseEntity<Boolean> checkProductExistsInCart(
             @RequestParam("cartId") Integer cartId,
             @RequestParam("productDetailId") Integer productDetailId) {
@@ -57,6 +62,7 @@ public class CartDetailController {
     }
 
     @PutMapping("/updateQuantity")
+    @PreAuthorize("@ownership.ownsCart(authentication, #request.cartId)")
     public ResponseEntity<String> updateQuantity(@RequestBody UpdateQuantityDTO request) {
         try {
             cartDetailService.updateQuantity(request.getCartId(), request.getProductDetailId(), request.getQuantity());
@@ -67,6 +73,7 @@ public class CartDetailController {
     }
 
     @PutMapping("/updateQuantityByCartDetailID/{id}")
+    @PreAuthorize("@ownership.ownsCartDetail(authentication, #id)")
     public ResponseEntity<?> updateQuantity(@PathVariable Integer id, @RequestBody Map<String, Integer> body) {
         Integer quantity = body.get("quantity");
         cartDetailService.upateQuantityByCartDetailID(id, quantity);

@@ -24,6 +24,7 @@ import com.poly.BE_main.model.Account;
 import com.poly.BE_main.model.Employee;
 import com.poly.BE_main.service.AccountService;
 import com.poly.BE_main.service.EmployeeService;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -53,7 +54,8 @@ public class EmployeeController {
         // 1. Tạo account
         Account account = new Account();
         account.setUsername(dto.getUsername());
-        account.setPassword(dto.getPassword() != null ? dto.getPassword() : "123456");
+        String temporaryPassword = dto.getPassword() != null ? dto.getPassword() : "ChangeMe@123";
+        account.setPassword(accountService.encodePassword(temporaryPassword));
         account.setIsActive(true);
         int roleId;
         if (dto.getRoleId().equals(1)) {
@@ -111,11 +113,13 @@ public class EmployeeController {
     }
 
     @GetMapping("/showInformationEmployee/{employeeId}")
+    @PreAuthorize("@ownership.ownsEmployee(authentication, #employeeId)")
     public InformationEmployeeDTO findInformationEmployeeByEmployeeId(@PathVariable Integer employeeId) {
         return employeeService.findInformationEmployeeByEmployeeId(employeeId);
     }
 
     @PutMapping("/updateInformation/{id}")
+    @PreAuthorize("@ownership.ownsEmployee(authentication, #id)")
     public InformationEmployeeDTO updateInfoByEmployeeId(
             @PathVariable("id") Integer employeeId,
             @RequestBody InformationEmployeeDTO dto) {

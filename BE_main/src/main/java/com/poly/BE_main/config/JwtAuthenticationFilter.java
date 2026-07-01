@@ -2,6 +2,7 @@ package com.poly.BE_main.config;
 
 import java.io.IOException;
 import java.util.List;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,8 +33,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(token)) {
                 String username = jwtUtil.getUsernameFromToken(token);
+                Integer roleId = jwtUtil.getRoleIdFromToken(token);
+                String role = switch (roleId) {
+                    case 1 -> "ROLE_ADMIN";
+                    case 3 -> "ROLE_EMPLOYEE";
+                    default -> "ROLE_CUSTOMER";
+                };
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null,
-                        List.of());
+                        List.of(new SimpleGrantedAuthority(role)));
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

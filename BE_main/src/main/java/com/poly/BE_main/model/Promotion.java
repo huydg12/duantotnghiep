@@ -38,6 +38,18 @@ public class Promotion {
     @Column(name = "VALUE", precision = 10, scale = 2)
     private BigDecimal value;
 
+    @Column(name = "MIN_ORDER_AMOUNT", precision = 18, scale = 2)
+    private BigDecimal minOrderAmount;
+
+    @Column(name = "MAX_DISCOUNT_AMOUNT", precision = 18, scale = 2)
+    private BigDecimal maxDiscountAmount;
+
+    @Column(name = "USAGE_LIMIT")
+    private Integer usageLimit;
+
+    @Column(name = "PER_CUSTOMER_LIMIT")
+    private Integer perCustomerLimit;
+
     @Column(name = "START_DATE")
     private LocalDateTime startDate;
 

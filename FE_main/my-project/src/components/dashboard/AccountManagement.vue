@@ -32,7 +32,7 @@ async function resetPassword(id) {
     if (!confirm("Bạn có chắc muốn cập nhật mật khẩu tài khoản này?")) return;
     try {
         await axios.put(`http://localhost:8080/account/updatePassword/${id}`, { id });
-        alert("Cập nhật mật khẩu thành công, mật khẩu mới của tài khoản là 123456");
+        alert("Cập nhật mật khẩu thành công. Mật khẩu tạm thời là ChangeMe@123; yêu cầu người dùng đổi ngay.");
         await fetchAccount();
     } catch (error) {
         console.error(

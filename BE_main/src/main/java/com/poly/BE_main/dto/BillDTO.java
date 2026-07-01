@@ -6,6 +6,8 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
@@ -20,11 +22,13 @@ public class BillDTO {
     private Integer status;
     private String recipientName;
     private String recipientPhoneNumber;
+    private String receiverAddress;
     private String addressMethod;
+    private String note;
     private String statusPayment;
     private BigDecimal subTotal;
     private BigDecimal discountAmount;
     private BigDecimal shippingFee;
     private BigDecimal grandTotal;
-    private List<BillDetailDTO> billDetails;
+    @NotEmpty private List<@Valid BillDetailDTO> billDetails;
 }
