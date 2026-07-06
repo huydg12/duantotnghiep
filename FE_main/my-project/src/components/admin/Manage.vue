@@ -145,6 +145,7 @@ function firstAllowedTarget() {
 }
 
 const activeTarget = ref(firstAllowedTarget());
+const sidebarOpen = ref(false);
 const activeComponent = shallowRef(
     componentMap[activeTarget.value] ??
     defineAsyncComponent(() => import("../dashboard/StatisticsManagement.vue"))
@@ -202,6 +203,7 @@ function loadContent(target) {
 }
 
 function handleClick(target) {
+  sidebarOpen.value = false;
   if (target === 'logout') {
     userStore.logout();
     router.replace("/auth/login").then(() => window.location.reload());
@@ -245,8 +247,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="d-flex vh-100">
-    <div class="sidebar">
+  <div class="d-flex vh-100 admin-shell">
+    <button class="btn btn-dark mobile-menu-button" type="button" @click="sidebarOpen = true"
+            aria-label="Mở menu quản trị" :aria-expanded="sidebarOpen">
+      <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    </button>
+    <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false" aria-hidden="true"></div>
+    <aside class="sidebar" :class="{'is-open': sidebarOpen}" aria-label="Menu quản trị">
       <div class="flex-grow-1 sidebar-scroll">
         <div class="text-center py-4 border-bottom border-secondary user-profile">
           <div
@@ -292,7 +299,7 @@ onUnmounted(() => {
           </li>
         </ul>
       </div>
-    </div>
+    </aside>
 
     <main class="flex-grow-1 p-4 main-content">
       <Transition name="fade" mode="out-in">
@@ -324,6 +331,42 @@ onUnmounted(() => {
   flex-direction: column;
   flex-shrink: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu-button { display: none; }
+.sidebar-backdrop { display: none; }
+
+@media (max-width: 991.98px) {
+  .mobile-menu-button {
+    display: inline-flex;
+    position: fixed;
+    top: .75rem;
+    left: .75rem;
+    z-index: 1045;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1050;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    max-width: min(288px, 86vw);
+  }
+  .sidebar.is-open { transform: translateX(0); }
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1049;
+    background: rgb(0 0 0 / .5);
+  }
+  .main-content { padding: 4.75rem 1rem 1rem !important; width: 100%; }
+  .user-profile { padding-block: 1rem !important; }
+  .sidebar .user-profile .user-icon { width: 64px; height: 64px; }
 }
 
 .sidebar .user-profile .user-icon {

@@ -74,9 +74,9 @@ onMounted(() => {
              @click.stop="deleteFavorite(favorite.favoriteId)"></i>
 
           <div class="image-container position-relative">
-            <img :src="favorite.image1" class="product-image image-front" :alt="favorite.productName"/>
+            <img :src="favorite.image1" class="product-image image-front" :alt="favorite.productName" loading="lazy" decoding="async"/>
             <img :src="favorite.image2" class="product-image image-hover position-absolute top-0 start-0"
-                 :alt="favorite.productName"/>
+                 :alt="favorite.productName" loading="lazy" decoding="async"/>
           </div>
 
           <div class="card-body d-flex flex-column">

@@ -200,9 +200,9 @@ onMounted(() => {
                 'far text-secondary': !favoriteMap.has(product.productId)
               }" @click.stop="toggleFavorite(product.productId)"></i>
               <div class="image-container position-relative">
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName" loading="lazy" decoding="async"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                     :alt="product.productName"/>
+                     :alt="product.productName" loading="lazy" decoding="async"/>
               </div>
               <div class="card-body d-flex flex-column text-center">
                 <h5 class="cart-title">{{ product.productName }}</h5>
@@ -253,9 +253,9 @@ onMounted(() => {
                   'fas text-danger scale-up': favoriteMap.has(product.productId),
                   'far text-secondary': !favoriteMap.has(product.productId)
                 }" @click.stop="toggleFavorite(product.productId)"></i>
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName" loading="lazy" decoding="async"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                     :alt="product.productName"/>
+                     :alt="product.productName" loading="lazy" decoding="async"/>
                 <div class="card-body text-center">
                   <h6 class="card-title">{{ product.productName }}</h6>
                   <p class="product-price">{{ formatCurrency(product.price) }}</p>

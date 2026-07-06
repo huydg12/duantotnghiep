@@ -317,9 +317,9 @@ onMounted(() => {
                 'far text-secondary': !favoriteMap.has(product.productId)
               }" @click.stop="toggleFavorite(product.productId)"></i>
               <div class="image-container position-relative">
-                <img :src="product.image1" class="product-image image-front" :alt="product.productName"/>
+                <img :src="product.image1" class="product-image image-front" :alt="product.productName" loading="lazy" decoding="async"/>
                 <img :src="product.image2" class="product-image image-hover position-absolute top-0 start-0"
-                     :alt="product.productName"/>
+                     :alt="product.productName" loading="lazy" decoding="async"/>
               </div>
 
               <div class="card-body d-flex flex-column">

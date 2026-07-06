@@ -164,7 +164,7 @@ function goToProductDetail(productId) {
   <Banner title="Giỏ Hàng" breadcrumb="Giỏ hàng"
           backgroundImage="https://i.postimg.cc/py5ywZCZ/kv-basas-mobile-Banner-4-2019.jpg"/>
 
-  <div class="container my-5 bg-white p-4 rounded shadow">
+  <main class="container my-5 bg-white p-4 rounded shadow cart-page">
     <h3 class="mb-4 fw-semibold">🛒 Giỏ Hàng Của Bạn</h3>
     <!-- Nút Chọn tất cả -->
     <div class="form-check mb-3">
@@ -182,7 +182,7 @@ function goToProductDetail(productId) {
             <input type="checkbox" :value="item.cartDetailId" v-model="selectedItems" class="form-check-input"/>
           </div>
           <div class="col-2 text-center">
-            <img :src="item.images" :alt="item.productName" class="img-fluid rounded clickable"
+            <img :src="item.images" :alt="item.productName" class="img-fluid rounded clickable" loading="lazy" decoding="async"
                  @click="goToProductDetail(item.productId)" style="max-width: 96px; height: auto"/>
           </div>
           <div class="col-4">
@@ -203,7 +203,8 @@ function goToProductDetail(productId) {
           </div>
           <!-- Nút Xóa -->
           <div class="col-2 d-flex justify-content-end">
-            <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.cartDetailId)">Xóa</button>
+            <button class="btn btn-outline-danger btn-sm" @click="removeItem(item.cartDetailId)"
+                    :aria-label="`Xóa ${item.productName} khỏi giỏ hàng`">Xóa</button>
           </div>
 
         </div>
@@ -233,7 +234,7 @@ function goToProductDetail(productId) {
       <p class="fs-5">Giỏ hàng của bạn đang trống.</p>
       <router-link to="/product" class="btn btn-primary">Bắt đầu mua sắm</router-link>
     </div>
-  </div>
+  </main>
   <!-- Toast xóa khỏi yêu thích -->
   <div v-if="showRemoveToast" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
     <div class="toast align-items-center show bg-danger text-white border-0">
@@ -286,6 +287,19 @@ function goToProductDetail(productId) {
   max-width: 300px;
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 767.98px) {
+  .cart-page { margin-block: 1rem !important; padding: 1rem !important; border-radius: 0 !important; }
+  .cart-item { position: relative; padding: 1rem .5rem; }
+  .cart-item > .col-1:first-child { width: 10%; }
+  .cart-item > .col-2:nth-child(2) { width: 30%; }
+  .cart-item > .col-4 { width: 60%; }
+  .cart-item > .col-2:nth-child(4) { width: 45%; margin-left: 10%; }
+  .cart-item > .col-1:nth-child(5) { width: 25%; }
+  .cart-item > .col-2:last-child { width: 20%; }
+  .cart-item .quantity { min-width: 64px; }
+  .cart-page .border-top .btn { min-height: 46px; }
 }
 
 @keyframes slideIn {

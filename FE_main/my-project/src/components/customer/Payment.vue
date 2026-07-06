@@ -6,6 +6,7 @@ import Swal from 'sweetalert2'
 const showAddressOverlay = ref(false);
 const showAddAddressOverlay = ref(false);
 const showUpdateAddressOverlay = ref(false);
+const isSubmitting = ref(false);
 const checkoutItems = ref([]);
 const CustomerData = ref(null);
 const note = ref(""); // Ghi chú đơn hàng
@@ -553,8 +554,9 @@ function requireAddress() {
 }
 
 const createBill = async () => {
-
+  if (isSubmitting.value) return;
   if (!requireAddress()) return;
+  isSubmitting.value = true;
   // ✅ Hiển thị popup loading bằng Swal
   Swal.fire({
     title: 'Đang xử lý thanh toán...',
@@ -572,11 +574,13 @@ const createBill = async () => {
   if (selectedPaymentMethod.value === 'MOMO') {
     await Swal.fire({icon: 'info', title: 'MoMo đang được bảo trì', text: 'Vui lòng chọn thanh toán khi nhận hàng.'});
     Swal.close();
+    isSubmitting.value = false;
     return;
   }
   // Gửi đơn hàng như bình thường
   await sendBill();
   Swal.close();
+  isSubmitting.value = false;
 };
 
 const sendBill = async () => {
@@ -881,7 +885,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="container bg-white p-4 rounded shadow-sm">
+  <main class="container bg-white p-4 rounded shadow-sm checkout-page">
     <!-- Địa chỉ nhận hàng -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-semibold">Địa chỉ nhận hàng</h4>
@@ -900,7 +904,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Sản phẩm -->
-    <div class="row fw-semibold border-bottom py-2 mt-4">
+    <div class="row fw-semibold border-bottom py-2 mt-4 checkout-product-header">
       <div class="col-6">Sản phẩm</div>
       <div class="col-2 text-end">Đơn giá</div>
       <div class="col-2 text-center">Số lượng</div>
@@ -908,7 +912,7 @@ onUnmounted(() => {
     </div>
 
     <div v-if="checkoutItems.length > 0">
-      <div v-for="item in checkoutItems" :key="item.cartDetailId" class="row align-items-center border-bottom py-3">
+      <div v-for="item in checkoutItems" :key="item.cartDetailId" class="row align-items-center border-bottom py-3 checkout-item">
         <div class="col-6 d-flex">
           <img :src="item.images" :alt="item.productName" class="img-thumbnail me-3" style="width: 80px;"/>
           <div>
@@ -994,10 +998,14 @@ onUnmounted(() => {
     </div>
 
     <!-- Nút thanh toán -->
-    <div class="text-end mt-4">
-      <button class="btn btn-success px-4" @click="createBill">Đặt hàng</button>
+    <div class="text-end mt-4 checkout-actions">
+      <button class="btn btn-success px-4" @click="createBill" :disabled="isSubmitting"
+              :aria-busy="isSubmitting">
+        <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        {{ isSubmitting ? 'Đang xử lý…' : 'Đặt hàng' }}
+      </button>
     </div>
-  </div>
+  </main>
   <!-- Popup chọn địa chỉ -->
   <div v-if="showAddressOverlay" @click.self="closeAddressOverlay"
        class="overlay-background position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 zindex-tooltip d-flex align-items-center justify-content-center">
@@ -1271,5 +1279,34 @@ onUnmounted(() => {
 
 .swal2-container {
   z-index: 20000 !important;
+}
+
+@media (max-width: 767.98px) {
+  .checkout-page { padding: 1rem !important; border-radius: 0 !important; }
+  .checkout-product-header { display: none; }
+  .checkout-item {
+    margin: .75rem 0;
+    padding: 1rem .25rem !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: .75rem;
+  }
+  .checkout-item > .col-6 { width: 100%; margin-bottom: .75rem; }
+  .checkout-item > .col-2 { width: 33.333%; text-align: left !important; }
+  .checkout-item > .col-2::before { display: block; color: #6c757d; font-size: .75rem; }
+  .checkout-item > .col-2:nth-child(2)::before { content: 'Đơn giá'; }
+  .checkout-item > .col-2:nth-child(3)::before { content: 'Số lượng'; }
+  .checkout-item > .col-2:nth-child(4)::before { content: 'Thành tiền'; }
+  .checkout-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    margin-inline: -1rem;
+    padding: .75rem 1rem;
+    background: rgb(255 255 255 / .96);
+    box-shadow: 0 -4px 18px rgb(0 0 0 / .08);
+  }
+  .checkout-actions .btn { width: 100%; min-height: 48px; }
+  .overlay-background { padding: .75rem; align-items: flex-end !important; }
+  .overlay-background > div { max-height: 92dvh !important; border-radius: 1rem 1rem 0 0 !important; }
 }
 </style>

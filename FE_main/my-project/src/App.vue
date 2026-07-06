@@ -1,25 +1,33 @@
 <script setup>
-import {onMounted} from "vue";
-import {useUserStore} from "@/stores/userStore";
-import {useRouter} from "vue-router";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 
-const userStore = useUserStore();
-const router = useRouter();
-
+const online = ref(navigator.onLine);
+const updateNetworkState = () => { online.value = navigator.onLine; };
 onMounted(() => {
-  userStore.loadUserFromLocalStorage();
-  if (userStore.user) {
-    if (userStore.user.roleId === 1 || userStore.user.roleId === 3) {
-      router.replace("/manage");
-    }
-  }
+  window.addEventListener("online", updateNetworkState);
+  window.addEventListener("offline", updateNetworkState);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("online", updateNetworkState);
+  window.removeEventListener("offline", updateNetworkState);
 });
 </script>
 
 <template>
   <div id="app">
-    <RouterView/>
+    <div v-if="!online" class="offline-banner" role="status">
+      Bạn đang ngoại tuyến. Một số thao tác sẽ hoạt động lại khi có kết nối mạng.
+    </div>
+    <RouterView v-slot="{Component, route}">
+      <Suspense>
+        <component :is="Component" :key="route.fullPath"/>
+        <template #fallback>
+          <div class="route-loading" role="status" aria-live="polite">
+            <span class="spinner-border text-danger" aria-hidden="true"></span>
+            <span>Đang tải trang…</span>
+          </div>
+        </template>
+      </Suspense>
+    </RouterView>
   </div>
 </template>
-
-<style scoped></style>

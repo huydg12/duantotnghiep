@@ -1,166 +1,65 @@
 import {createRouter, createWebHistory} from "vue-router";
-// Layout
-import CustomerLayout from "../components/layout/CustomerLayout.vue";
-
-// Customer Pages
-import Home from "../components/customer/Home.vue";
-import Payment from "../components/customer/Payment.vue";
-import ProductDetail from "../components/customer/ProductDetail.vue";
-import InformationCustomer from "../components/customer/InformationCustomer.vue";
-import Introduce from "../components/customer/Introduce.vue";
-import Product from "../components/customer/Product.vue";
-import Contact from "../components/customer/Contact.vue";
-import Cart from "../components/customer/Cart.vue";
-import Favorite from "../components/customer/Favorite.vue";
-
-// Auth Pages
-import Auth from "../components/auth/Auth.vue";
-import Login from "../components/auth/Login.vue";
-import Register from "../components/auth/Register.vue";
-import ForgetPassword from "../components/auth/ForgetPassword.vue";
-import ResetPassword from "../components/auth/ResetPassword.vue";
-import VerifyCode from "../components/auth/VerifyCode.vue";
-
-// Admin Page
-import Manage from "../components/admin/Manage.vue";
 import {useUserStore} from "@/stores/userStore";
-import InvoiceCustomer from "../components/customer/InvoiceCustomer.vue";
 
-const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
-    routes: [
-        // Layout customer
-        {
-            path: "/",
-            component: CustomerLayout,
-            children: [
-                {path: "", redirect: "/home"},
-                {
-                    path: "home",
-                    name: "home",
-                    component: Home,
-                },
-                {path: "product", name: "product", component: Product},
-                {
-                    path: "productdetail/:id",
-                    name: "productdetail",
-                    component: ProductDetail,
-                },
-                {path: "contact", name: "contact", component: Contact},
-                {
-                    path: "cart",
-                    name: "cart",
-                    component: Cart,
-                    meta: {requiresAuth: true},
-                },
-                {
-                    path: "payment",
-                    name: "payment",
-                    component: Payment,
-                    meta: {requiresAuth: true},
-                },
-                {path: "introduce", name: "introduce", component: Introduce},
-                {
-                    path: "favorite",
-                    name: "favorite",
-                    component: Favorite,
-                    meta: {requiresAuth: true},
-                },
-                {
-                    path: "informationcustomer",
-                    name: "informationcustomer",
-                    component: InformationCustomer,
-                },
-                {
-                    path: "invoicecustomer",
-                    name: "invoicecustomer",
-                    component: InvoiceCustomer,
-                },
-            ],
-        },
+const lazy = (path) => () => import(/* @vite-ignore */ path);
+const CustomerLayout = () => import("../components/layout/CustomerLayout.vue");
 
-        // Auth
-        {
-            path: "/auth",
-            component: Auth,
-            redirect: "/auth/login",
-            children: [
-                {
-                    path: "login",
-                    name: "login",
-                    component: Login,
-                },
-                {
-                    path: "register",
-                    name: "register",
-                    component: Register,
-                },
-            ],
-        },
-        {
-            path: "/auth/forgetpassword",
-            name: "forgetpassword",
-            component: ForgetPassword,
-        },
-        {
-            path: "/auth/verifycode",
-            name: "verifycode",
-            component: VerifyCode,
-        },
-        {
-            path: "/auth/resetpassword",
-            name: "resetpassword",
-            component: ResetPassword,
-        },
+const routes = [
+    {
+        path: "/",
+        component: CustomerLayout,
+        children: [
+            {path: "", redirect: "/home"},
+            {path: "home", name: "home", component: () => import("../components/customer/Home.vue"), meta: {title: "Trang chủ"}},
+            {path: "product", name: "product", component: () => import("../components/customer/Product.vue"), meta: {title: "Sản phẩm"}},
+            {path: "productdetail/:id", name: "productdetail", component: () => import("../components/customer/ProductDetail.vue"), meta: {title: "Chi tiết sản phẩm"}},
+            {path: "contact", name: "contact", component: () => import("../components/customer/Contact.vue"), meta: {title: "Liên hệ"}},
+            {path: "cart", name: "cart", component: () => import("../components/customer/Cart.vue"), meta: {requiresAuth: true, title: "Giỏ hàng"}},
+            {path: "payment", name: "payment", component: () => import("../components/customer/Payment.vue"), meta: {requiresAuth: true, title: "Thanh toán"}},
+            {path: "introduce", name: "introduce", component: () => import("../components/customer/Introduce.vue"), meta: {title: "Giới thiệu"}},
+            {path: "favorite", name: "favorite", component: () => import("../components/customer/Favorite.vue"), meta: {requiresAuth: true, title: "Sản phẩm yêu thích"}},
+            {path: "informationcustomer", name: "informationcustomer", component: () => import("../components/customer/InformationCustomer.vue"), meta: {requiresAuth: true, title: "Thông tin tài khoản"}},
+            {path: "invoicecustomer", name: "invoicecustomer", component: () => import("../components/customer/InvoiceCustomer.vue"), meta: {requiresAuth: true, title: "Đơn hàng của tôi"}},
+        ],
+    },
+    {
+        path: "/auth",
+        component: () => import("../components/auth/Auth.vue"),
+        redirect: "/auth/login",
+        children: [
+            {path: "login", name: "login", component: () => import("../components/auth/Login.vue"), meta: {title: "Đăng nhập"}},
+            {path: "register", name: "register", component: () => import("../components/auth/Register.vue"), meta: {title: "Đăng ký"}},
+        ],
+    },
+    {path: "/auth/forgetpassword", name: "forgetpassword", component: () => import("../components/auth/ForgetPassword.vue"), meta: {title: "Quên mật khẩu"}},
+    {path: "/auth/verifycode", name: "verifycode", component: () => import("../components/auth/VerifyCode.vue"), meta: {title: "Xác minh OTP"}},
+    {path: "/auth/resetpassword", name: "resetpassword", component: () => import("../components/auth/ResetPassword.vue"), meta: {title: "Đặt lại mật khẩu"}},
+    {path: "/manage", name: "manage", component: () => import("../components/admin/Manage.vue"), meta: {requiresAuth: true, staffOnly: true, title: "Quản trị"}},
+    {path: "/:pathMatch(.*)*", name: "not-found", component: () => import("../components/common/NotFound.vue"), meta: {title: "Không tìm thấy trang"}},
+];
 
-        // Manage
-        {
-            path: "/manage",
-            name: "manage",
-            component: Manage,
-            meta: {requiresAuth: true},
-        },
-    ],
-});
+const router = createRouter({history: createWebHistory(import.meta.env.BASE_URL), routes, scrollBehavior: () => ({top: 0})});
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
     const userStore = useUserStore();
     userStore.loadUserFromLocalStorage();
     const user = userStore.user;
-
-    const requiresAuth = to.meta.requiresAuth === true;
-
-    // Nếu chưa đăng nhập
-    if (!user) {
-        if (requiresAuth) {
-            return next("/auth/login");
-        }
-        return next(); // Vào home, introduce, v.v. được
-    }
-
-    // Nếu đã đăng nhập
+    if (to.meta.requiresAuth && !user) return {path: "/auth/login", query: {redirect: to.fullPath}};
+    if (!user) return true;
     const role = user.role || user.roleName || user.roleId;
+    const isCustomer = role === "CUSTOMER" || role === 2;
+    const isStaff = role === "ADMIN" || role === "EMPLOYEE" || role === 1 || role === 3;
+    if (to.path.startsWith("/auth")) return isCustomer ? "/home" : "/manage";
+    if (to.meta.staffOnly && !isStaff) return "/home";
+    return true;
+});
 
-    // Ngăn không cho quay lại trang login
-    if (to.path.startsWith("/auth")) {
-        return next(role === "CUSTOMER" || role === 2 ? "/home" : "/manage");
-    }
-
-    // Nếu là ADMIN hoặc EMPLOYEE mà vào /home thì chuyển về /manage
-    if (
-        (role === "ADMIN" || role === "EMPLOYEE" || role === 1 || role === 3) &&
-        to.path === "/home"
-    ) {
-        return next("/manage");
-    }
-
-    // Nếu là CUSTOMER mà cố vào /manage thì chuyển về /home
-    if ((role === "CUSTOMER" || role === 2) && to.path.startsWith("/manage")) {
-        return next("/home");
-    }
-
-    // Mặc định cho đi tiếp
-    return next();
+router.afterEach((to) => {
+    document.title = `${to.meta.title || "Kix Store"} | Kix Store`;
+    const description = to.meta.description || "Kix Store - cửa hàng giày chính hãng, đa dạng phong cách và kích cỡ.";
+    let tag = document.querySelector('meta[name="description"]');
+    if (!tag) { tag = document.createElement("meta"); tag.name = "description"; document.head.appendChild(tag); }
+    tag.content = description;
 });
 
 export default router;
